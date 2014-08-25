@@ -37,15 +37,15 @@
 #******************************************************************************/
 
 HEADERS += \
-    $$PWD/FileInfoEx.hpp \
-    $$PWD/FastFile.hpp \
     $$PWD/DirIterator.hpp \
+    $$PWD/FastFile.hpp \
+    $$PWD/FileInfoEx.hpp \
     $$PWD/FileInfoEx_p.hpp
 
 SOURCES += \
-    $$PWD/FileInfoEx.cpp \
+    $$PWD/DirIterator.cpp \
     $$PWD/FastFile.cpp \
-    $$PWD/DirIterator.cpp
+    $$PWD/FileInfoEx.cpp
 
 win32 {
     HEADERS += $$PWD/Functions_win.hpp

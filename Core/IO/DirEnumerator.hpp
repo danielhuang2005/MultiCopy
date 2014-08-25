@@ -87,11 +87,11 @@ class TDirEnumerator
     public:
         //! Флаги, управляющие перечислением элементов.
         enum TFilter {
-            Files           = 0x0001, //!< Файлы.
-            Dirs            = 0x0002, //!< Каталоги.
-            Hidden          = 0x0004, //!< Скрытые элементы.
-            System          = 0x0008, //!< Системные элементы.
-            FollowShortcuts = 0x0010  //!< Следовать по ярлыкам Windows
+            Files           = 0x0001,  //!< Файлы.
+            Dirs            = 0x0002,  //!< Каталоги.
+            Hidden          = 0x0004,  //!< Скрытые элементы.
+            System          = 0x0008,  //!< Системные элементы.
+            FollowShortcuts = 0x0010   //!< Следовать по ярлыкам Windows.
         };
         typedef QFlags<TFilter> TFilters;
 
@@ -119,10 +119,11 @@ class TDirEnumerator
 
         //! Перечислитель элементов каталога.
         struct TIterator {
-            TSharedIterator Iterator;   //!< Итератор библиотеки Qt.
+            TSharedIterator Iterator;   //!< Итератор каталога.
             QString         Name;       //!< Имя каталога (без пути!)
             QString         RelName;    //!< Относительное имя каталога.
             TFileInfoEx     Info;       //!< Информация о каталоге.
+
             //! Конструктор пустого элемента.
             TIterator() { }
             //! Конструктор.
@@ -134,16 +135,16 @@ class TDirEnumerator
         };
         typedef QStack<TIterator> TIteratorsStack;
 
-        TParams          m_Params;          //!< Параметры работы.
-        TDirIterator::TFilters m_DirFilters;      //!< Фильтр (Dirs)
-        TIteratorsStack  m_Iterators;       //!< Итераторы.
-        TIteratorsStack  m_InIterators;     //!< "Новые" итераторы.
-        TIteratorsStack  m_OutIterators;    //!< "Старые" итераторы.
-        TFileInfoEx      m_FileInfoEx;      //!< Информация о текущем элементе.
-        bool             m_Started;
-        bool             m_RelNameWithRoot; //!< Относительный путь с корнем.
-        mutable QString  m_RelPath;         //!< Относительный путь.
-        mutable bool     m_RelPathValid;    //!< Флаг валидности относительного пути.
+        TParams                m_Params;          //!< Параметры работы.
+        TDirIterator::TFilters m_DirFilters;      //!< Фильтр.
+        TIteratorsStack        m_Iterators;       //!< Итераторы.
+        TIteratorsStack        m_InIterators;     //!< "Новые" итераторы.
+        TIteratorsStack        m_OutIterators;    //!< "Старые" итераторы.
+        TFileInfoEx            m_FileInfoEx;      //!< Информация о текущем элементе.
+        bool                   m_Started;         //!< Флаг запуска перечислителя.
+        bool                   m_RelNameWithRoot; //!< Относительный путь с корнем.
+        mutable QString        m_RelPath;         //!< Относительный путь.
+        mutable bool           m_RelPathValid;    //!< Флаг валидности относительного пути.
 
         TAnalyseResult analyze();
         bool start();

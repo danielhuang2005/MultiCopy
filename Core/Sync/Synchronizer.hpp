@@ -39,6 +39,8 @@
 #ifndef __SYNCHRONIZER__HPP__7135A604_B77B_41ED_B50F_CAE51C0D80CB__
 #define __SYNCHRONIZER__HPP__7135A604_B77B_41ED_B50F_CAE51C0D80CB__
 
+//------------------------------------------------------------------------------
+
 #include <QHash>
 #include <QReadWriteLock>
 
@@ -74,14 +76,15 @@ class TSynchronizer
         TProducerLocker m_ProducerLocker;     //!< Блокировщик производителя.
 
         int m_BlockedConsumersCount;  //!< Число блокирующих потребителей.
-        int m_BlocksCount;  //!< Число блоков кольцевого буфера.
-        int m_ReadIndex;    //!< Индекс первого занятого блока.
-        int m_WriteIndex;   //!< Индекс первого свободного блока.
+        int m_BlocksCount;            //!< Число блоков кольцевого буфера.
+        int m_ReadIndex;              //!< Индекс первого занятого блока.
+        int m_WriteIndex;             //!< Индекс первого свободного блока.
 
         mutable QReadWriteLock m_Locker;  //!< Блокировщик доступа.
-        bool m_Unlocked;         //!< Флаг принудительной разблокировки.
+        bool m_Unlocked;                  //!< Флаг принудительной разблокировки.
 
         void updateReadIndex();
+
     public:
         TSynchronizer(int BlocksCount);
         ~TSynchronizer();
@@ -95,7 +98,6 @@ class TSynchronizer
         bool registerBlockedConsumer(void* pConsumer);
         bool registerNonblockedConsumer(void* pConsumer);
         bool registerConsumer(void* pConsumer, bool Blocked = false);
-        //bool reRegisterConsumer(void* pConsumer, bool Blocked);
         bool unregisterConsumer(void* pConsumer);
         bool isConsumerRegistered(void* pConsumer) const;
         bool isBlockedConsumer(void* pConsumer) const;

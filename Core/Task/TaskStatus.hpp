@@ -39,6 +39,8 @@
 #ifndef __TASKSTATUS__HPP__
 #define __TASKSTATUS__HPP__
 
+//------------------------------------------------------------------------------
+
 #include <QString>
 #include <QHash>
 #include <QMutex>
@@ -58,7 +60,7 @@ class TTaskStatus
     private:
         //----------------------------------------------------------------------
         //----------------------------------------------------------------------
-        // Типы
+        // Внутренние типы
 
         //! Структура общей статистики.
         struct TCounters {
@@ -99,6 +101,7 @@ class TTaskStatus
                 QString   m_RelName;      //!< Имя текущего файла относительно
                                           //!< каталога-источника.
                 qint64   m_CurrentSize;   //!< Размер текущего файла (байт).
+
             public :
                 TReaderStat();
                 void clear();
@@ -126,6 +129,7 @@ class TTaskStatus
                 QString      m_RelName;     //!< Имя текущего файла относительно
                                             //!< каталога-назначения.
                 qint64       m_Size;        //!< Размер текущего файла (байт).
+
             public :
                 TWriterStat();
 
@@ -150,10 +154,13 @@ class TTaskStatus
         typedef QHash<const void*, TWriterStat> TWritersStat;
 
         //----------------------------------------------------------------------
+        //! Общая статистика записи.
+
         struct TTotalStat {
             private :
-                int    m_TotalWritedFiles;
-                qint64 m_TotalWritedBytes;
+                int    m_TotalWritedFiles;  //!< Всего записано файлов.
+                qint64 m_TotalWritedBytes;  //!< Всего записано байт.
+
             public :
                 TTotalStat();
                 void addWritedBytes(qint64 WritedBytes);
@@ -165,10 +172,13 @@ class TTaskStatus
 
 
         //----------------------------------------------------------------------
+        //! Финальная статистика.
 
         struct TFinalStat {
-            int Files;
-            qint64 Bytes;
+            int Files;     //!< Число файлов.
+            qint64 Bytes;  //!< Число байт.
+
+            //! Конструктор.
             TFinalStat() : Files(0), Bytes(0) {}
         };
 
@@ -185,11 +195,11 @@ class TTaskStatus
         TTimeCounter m_TimeCounter;     //!< Счётчик времени.
         TTotalStat   m_TotalStat;       //!< Общая статистика.
         TTaskSize    m_TaskSize;        //!< Размер задания.
-        TFinalStat   m_FinalStat;
+        TFinalStat   m_FinalStat;       //!< Финальная статистика.
 
         //----------------------------------------------------------------------
         //----------------------------------------------------------------------
-        // Внутренние функции.
+        // Внутренние методы.
 
         TWriterStat* writerStat(const void* pWriter);
         const TWriterStat* writerStat(const void *pWriter) const;

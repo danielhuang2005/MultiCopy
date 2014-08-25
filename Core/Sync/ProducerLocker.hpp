@@ -39,6 +39,8 @@
 #ifndef __PRODUCERLOCKER__HPP__E7E6CC3E_23E5_466A_81FF_4B766867B634__
 #define __PRODUCERLOCKER__HPP__E7E6CC3E_23E5_466A_81FF_4B766867B634__
 
+//------------------------------------------------------------------------------
+
 #include "SemaphoreEx.hpp"
 #include <QList>
 

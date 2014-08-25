@@ -60,6 +60,10 @@ TErrorAction TLastActions::lastAction(TErrorCode ErrorCode) const
 
 //------------------------------------------------------------------------------
 //! Добавление действия Action для кода ошибки ErrorCode.
+/*!
+   \remarks Если действие для данного кода уже было добавлено, старое действие
+     заменяется новым.
+ */
 
 void TLastActions::addAction(TErrorCode ErrorCode, TErrorAction Action)
 {

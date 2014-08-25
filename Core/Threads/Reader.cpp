@@ -41,6 +41,7 @@
 #include <QSemaphore>
 #include <QDir>
 
+#include "Core/Common/CommonFn.hpp"
 #include "Core/IO/DirEnumerator.hpp"
 #include "Core/FastIO/FastFile.hpp"
 #include "Core/FastIO/FileInfoEx.hpp"
@@ -49,6 +50,7 @@
 #include "Core/Buffer/CircularBuffer.hpp"
 
 //------------------------------------------------------------------------------
+//! Получение и блокировка ячейки кольцевого буфера.
 
 TBufferCell* TReader::acquireCell()
 {
@@ -60,6 +62,7 @@ TBufferCell* TReader::acquireCell()
 }
 
 //------------------------------------------------------------------------------
+//! Освобождение ячейки кольцевого буфера.
 
 void TReader::releaseCell()
 {
@@ -76,7 +79,12 @@ bool TReader::openFile()
 {
     Q_ASSERT(isRunning());
 
-    while (!m_File.open(QIODevice::ReadOnly, !m_Task->TaskSettings.NoUseCache))
+    bool NoUseCache = m_Task->TaskSettings.NoUseCache &&
+                      (m_pFileInfoEx->size() > m_Task->TaskSettings.NoUseCacheFor);
+
+    while (!m_File.open(TFastFile::omRead,
+                        NoUseCache,
+                        IO_BLOCK_SIZE))
     {
         // Открыть файл не удалось. Обрабатываем ошибку.
         TErrorData ErrorData;
@@ -96,6 +104,7 @@ bool TReader::openFile()
 }
 
 //------------------------------------------------------------------------------
+//! Чтение следующего блока данных из файла.
 
 qint64 TReader::readNextBlock()
 {
@@ -113,8 +122,10 @@ qint64 TReader::readNextBlock()
             if (m_File.seek(m_Readed))
                 Readed = 0;
         }
-        if (Readed >= 0)
+        if (Readed >= 0) {
+            Q_ASSERT(Readed <= pCell->size());
             Readed = m_File.read(pCell->data(), pCell->size());
+        }
 
 
         if (Readed < 0)
@@ -136,17 +147,29 @@ qint64 TReader::readNextBlock()
         }
     } while (true);
 
-    if (Readed > 0) {
-        // Команда записи очередного блока данных.
+    /* Readed даже при прямом чтении с диска может быть некратно размеру
+       физического сектора. Но такой вариант возможен только если мы считываем
+       "остаток" файла. */
+
+    if (Readed >= 0)
+    {
         pCell->setUsedSize(Readed);
-        pCell->setCommand(cmdWriteBlock);
+        m_Readed += Readed;
+
+        if (Readed == pCell->size()) {
+            /* Ячейка полностью заполнена. С высокой вероятностью в файле есть
+               ещё данные. (Кратность размера файла размеру ячейки маловероятна)
+            */
+            pCell->setCommand(cmdWriteBlock);
+        }
+        else {
+            /* Ячейка заполнена не полностью. Считаем, что файл закончился. */
+            pCell->setCommand(cmdCloseFile);
+            pCell->CommandData.Size = m_Readed;
+        }
     }
-    else if (Readed == 0) {
-        // Файл прочитан до конца.
-        pCell->setCommand(cmdCloseFile);
-        pCell->CommandData.Size = m_Readed;
-    }
-    else /* Length < 0 */ {
+    else /* Readed < 0 */ {
+        // Произошла невосстановимая ошибка чтения.
         pCell->setCommand(cmdNoOp);
     }
 
@@ -155,7 +178,6 @@ qint64 TReader::readNextBlock()
     // Для экономии времени вначале освобождаем ячейку и только затем
     // пересчитываем статистику.
     if (Readed > 0) {
-        m_Readed += Readed;
         if (m_pTaskStatus)
             m_pTaskStatus->readerProgress(Readed);
     }
@@ -186,7 +208,7 @@ bool TReader::readFile()
 
     /* TODO: Здесь возможна ошибка. Если разрешить открывать файлы, открытые
        другими процессами для записи, то размер файла может измениться.
-       Возможно, стоит вначале попытаться откыть файл с запретом записи другим
+       Возможно, стоит вначале попытаться открыть файл с запретом записи другим
        процессам, а затем - с разрешением. Далее здесь проверяем режим. */
     qint64 NotReaded = FileSize - m_Readed;
     if (FileSize >= 0)
@@ -395,6 +417,7 @@ void TReader::processSource(const TDirEnumerator::TParams &Params)
 }
 
 //------------------------------------------------------------------------------
+//! Обработка всего списка источников.
 
 void TReader::process()
 {
@@ -446,6 +469,14 @@ void TReader::process()
 }
 
 //------------------------------------------------------------------------------
+//! Обработчик ошибок.
+/*!
+   Метод вызывается из других методов экземпляра класса, если произошла ошибка,
+   при которой действия зависят от ответа пользователя. Аргумент метода -
+   pErrorData - заполняется информацией об ошибке вызывающим методом.
+   Обработчик приостанавливает выполнение текущего потока до получения ответа
+   пользователя.
+ */
 
 void TReader::errorHandler(TErrorData* pErrorData)
 {
@@ -500,6 +531,7 @@ TReader::TReader()
       m_pDirEnumerator(new TDirEnumerator()),
       m_pTaskStatus(NULL),
       m_pBuffer(NULL),
+      m_pFileInfoEx(NULL),
       m_Readed(0),
       m_Skip(false)
 {

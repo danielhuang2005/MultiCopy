@@ -40,8 +40,6 @@
 
 #include "FastFile.hpp"
 
-#ifndef _NO_FAST_FILE
-
 #ifdef Q_OS_UNIX
     #ifndef _LARGEFILE64_SOURCE
         #define _LARGEFILE64_SOURCE
@@ -65,7 +63,8 @@ void TFastFile::setErrorString()
 //! Конструктор.
 
 TFastFile::TFastFile()
-    :
+    : m_DirectAccess(true),
+      m_BlockSize(-1),
       #ifdef Q_OS_WIN
           m_Handle(INVALID_HANDLE_VALUE)
       #else
@@ -109,7 +108,9 @@ void TFastFile::setFileName(const QString& FileName)
 //! Открывает файл.
 /*!
    \arg Mode Режим открытия файла
-   \arg UseCache Флаг использования системного кэша при операциях чтения/записи.
+   \arg DirectAccess Флаг прямого доступа к файлу (без кэширования).
+   \arg BlockSize Размер блока при прямом доступе (если флаг прямого доступа
+     не установлен, этот параметр игнорируется).
 
    \return true, если файл успешно открыт и false в противном случае. В случае
      ошибки текст сообщения можно получить методом \c errorString.
@@ -119,12 +120,20 @@ void TFastFile::setFileName(const QString& FileName)
    \sa close, setFileName
  */
 
-bool TFastFile::open(QIODevice::OpenMode Mode, bool UseCache)
+bool TFastFile::open(OpenMode Mode, bool DirectAccess, int BlockSize)
 {
+    if (DirectAccess && BlockSize <= 0) {
+        qWarning("Direct access with non-positive block size. Using cached I/O.");
+        DirectAccess = false;
+    }
+
     close();
     if (isOpen()) return false;
 
-    // TODO: Проверять неподдерживаемые флаги.
+    m_DirectAccess = DirectAccess;
+    // Если нет прямого доступа, размер блока устанавливается в -1.
+    m_BlockSize = m_DirectAccess ? BlockSize : -1;
+
 #ifdef Q_OS_WIN
     DWORD dwDesiredAccess = 0;            // Режим доступа.
     DWORD dwShareMode = FILE_SHARE_READ;  // Режим совместного доступа.
@@ -138,20 +147,20 @@ bool TFastFile::open(QIODevice::OpenMode Mode, bool UseCache)
             FILE_FLAG_SEQUENTIAL_SCAN |  // Оптимизировать для
                                          // последовательного доступа.
             FILE_FLAG_BACKUP_SEMANTICS;  // Для работы с датой.
-    if (!UseCache) {
-        // Прямая запись на диск (без кэша).
-        dwFlagsAndAttributes |= FILE_FLAG_WRITE_THROUGH;
+    if (m_DirectAccess) {
+        // Прямой доступ к диску (без кэша).
+        dwFlagsAndAttributes |= FILE_FLAG_NO_BUFFERING;
     }
 
-    if (Mode.testFlag(QIODevice::ReadOnly))
+    if (Mode.testFlag(omRead))
     {
         dwDesiredAccess |= GENERIC_READ;        // Файл для чтения.
-        dwCreationDisposition = OPEN_EXISTING;  // Открыть если существует.
+        dwCreationDisposition = OPEN_EXISTING;  // Открыть существующий.
     }
-    if (Mode.testFlag(QIODevice::WriteOnly))
+    if (Mode.testFlag(omWrite))
     {
         dwDesiredAccess |= GENERIC_WRITE;       // Файл для записи.
-        dwCreationDisposition = OPEN_ALWAYS;    // Создать если не существует.
+        dwCreationDisposition = OPEN_ALWAYS;    // Создать, если не существует.
     }
 
 
@@ -176,16 +185,16 @@ bool TFastFile::open(QIODevice::OpenMode Mode, bool UseCache)
     return m_Handle != INVALID_HANDLE_VALUE;
 #else
     int flags = O_NOFOLLOW /*0*/;
-    if (Mode.testFlag(QIODevice::ReadOnly)) {
+    if (Mode.testFlag(omRead)) {
         flags |= O_RDONLY;
     }
-    if (Mode.testFlag(QIODevice::WriteOnly))
+    if (Mode.testFlag(omWrite))
     {
         flags |= O_WRONLY | O_CREAT;
     }
     // TODO: Реализовать некэшированную запись для Linux.
-    Q_UNUSED(UseCache);
-    /*if (!UseCache)
+    Q_UNUSED(m_DirectAccess);
+    /*if (m_DirectAccess)
         flags |= O_DIRECT | O_SYNC;*/
     mode_t mode = S_IRUSR | S_IWUSR |  // user
                   S_IRGRP |            // group
@@ -282,6 +291,13 @@ qint64 TFastFile::read(char* data, qint64 maxSize)
         return -1;
     }
 
+    if (m_BlockSize > 0 && maxSize % m_BlockSize != 0) {
+        qWarning("TFastFile::read. "
+                 "Maximum size (%s) is not multiple of block size (%i).",
+                 qPrintable(QString::number(maxSize)), m_BlockSize);
+        return -1;
+    }
+
 #ifdef Q_OS_WIN
     // TODO: Обрабатывать большие блоки.
     /* В Windows 7 x64 экспериментально проверена работа на блоках размером до
@@ -335,6 +351,13 @@ qint64 TFastFile::write(const char* data, qint64 maxSize)
     if (maxSize < 0) {
         qWarning("TFastFile::write. "
                  "Attempt to write block with negative size.");
+        return -1;
+    }
+
+    if (m_BlockSize > 0 && maxSize % m_BlockSize != 0) {
+        qWarning("TFastFile::write. "
+                 "Maximum size (%s) is not multiple of block size (%i).",
+                 qPrintable(QString::number(maxSize)), m_BlockSize);
         return -1;
     }
 
@@ -417,7 +440,7 @@ qint64 TFastFile::pos()
    \arg Требуемая позиция указателя.
 
    \return true, если операция успешно завершена и false, если произошла ошибка
-     или файл не открыт, возвращает -1.
+     или файл не открыт.
 
    \sa pos, resize
  */
@@ -432,6 +455,13 @@ bool TFastFile::seek(qint64 pos)
     if (pos < 0) {
         qWarning("TFastFile::seek. "
                  "Attempt to seek negative file position.");
+        return false;
+    }
+
+    if (m_BlockSize > 0 && pos % m_BlockSize != 0) {
+        qWarning("TFastFile::seek. "
+                 "Position (%s) is not multiple of block size (%i).",
+                 qPrintable(QString::number(pos)), m_BlockSize);
         return false;
     }
 
@@ -489,6 +519,13 @@ bool TFastFile::resize(qint64 Size)
     if (Size < 0) {
         qWarning("TFastFile::resize. "
                  "Attempt to change file size to negative.");
+        return false;
+    }
+
+    if (m_BlockSize > 0 && Size % m_BlockSize != 0) {
+        qWarning("TFastFile::seek. "
+                 "File size (%s) is not multiple of block size (%i).",
+                 qPrintable(QString::number(Size)), m_BlockSize);
         return false;
     }
 
@@ -633,4 +670,17 @@ bool TFastFile::remove(const QString& FileName, QString* pErrorString)
 
 //------------------------------------------------------------------------------
 
-#endif // _NO_FAST_FILE
+bool TFastFile::resize(const QString& FileName, qint64 Size)
+{
+    bool Result = false;
+    TFastFile FastFile;
+    FastFile.setFileName(FileName);
+    if (FastFile.open(omWrite)) {
+        if (FastFile.resize(Size))
+            Result = true;
+        FastFile.close();
+    }
+    return Result;
+}
+
+//------------------------------------------------------------------------------

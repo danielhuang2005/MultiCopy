@@ -56,75 +56,77 @@ DESTDIR = ../bin
 
 INCLUDEPATH += GUI/Widgets
 
-SOURCES += main.cpp\
-    Core/Sync/Synchronizer.cpp \
-    Core/Sync/ProducerLocker.cpp \
-    Core/Sync/SemaphoreEx.cpp \
-    Core/Buffer/CircularBuffer.cpp \
-    Core/Buffer/Buffer.cpp \
-    Core/Common/CommonFn.cpp \
-    Core/Threads/ThreadEx.cpp \
-    GUI/Widgets/QListWidget2.cpp \
-    GUI/Forms/SettingsForm.cpp \
-    GUI/Forms/MultiCopyForm.cpp \
-    GUI/Settings.cpp \
-    Core/TimeCounter.cpp \
-    GUI/Translator.cpp \
-    Core/Buffer/BufferCell.cpp \
-    Core/IO/DirEnumerator.cpp \
-    Core/Threads/SizeCalculator.cpp \
-    Core/Threads/TaskManager.cpp \
-    Core/Threads/Reader.cpp \
-    Core/Threads/Writer.cpp \
-    GUI/Forms/TaskSettingsForm.cpp \
-    Core/Task/TaskModel.cpp \
-    Core/Task/Task.cpp \
-    Core/Task/TaskStatus.cpp \
-    Core/Task/GlobalStatistics.cpp \
-    GUI/GUIErrorHandler.cpp \
-    GUI/Widgets/QPushButton2.cpp \
-    Core/Task/Command.cpp \
-    GUI/Forms/ProgressForm.cpp \
-    Core/Errors/LastActions.cpp \
-    Core/Errors/ErrorHandler.cpp
-
 HEADERS += \
-    Core/Sync/Synchronizer.hpp \
+    Core/Buffer/Buffer.hpp \
+    Core/Buffer/BufferCell.hpp \
+    Core/Buffer/CircularBuffer.hpp \
+    Core/Common/CommonFn.hpp \
+    Core/Common/SharedMemory.hpp \
+    Core/Errors/ErrorHandler.hpp \
+    Core/Errors/ErrorsAndActions.hpp \
+    Core/Errors/LastActions.hpp \
+    Core/IO/DirEnumerator.hpp \
     Core/Sync/ProducerLocker.hpp \
     Core/Sync/SemaphoreEx.hpp \
-    Core/Buffer/CircularBuffer.hpp \
-    Core/Buffer/Buffer.hpp \
-    Core/Common/CommonFn.hpp \
-    Core/Threads/ThreadEx.hpp \
-    GUI/Widgets/QListWidget2.hpp \
-    GUI/Forms/SettingsForm.hpp \
-    GUI/Forms/MultiCopyForm.hpp \
-    GUI/Settings.hpp \
-    Core/TimeCounter.hpp \
-    GUI/Translator.hpp \
-    Core/Buffer/BufferCell.hpp \
-    Core/IO/DirEnumerator.hpp \
+    Core/Sync/Synchronizer.hpp \
+    Core/Task/Command.hpp \
+    Core/Task/GlobalStatistics.hpp \
+    Core/Task/Task.hpp \
+    Core/Task/TaskModel.hpp \
+    Core/Task/TaskStatus.hpp \
+    Core/Threads/Reader.hpp \
     Core/Threads/SizeCalculator.hpp \
     Core/Threads/TaskManager.hpp \
-    Core/Threads/Reader.hpp \
+    Core/Threads/ThreadEx.hpp \
     Core/Threads/Writer.hpp \
+    Core/Resources.hpp \
+    Core/TimeCounter.hpp \
+    GUI/Forms/MultiCopyForm.hpp \
+    GUI/Forms/ProgressForm.hpp \
+    GUI/Forms/SettingsForm.hpp \
     GUI/Forms/TaskSettingsForm.hpp \
-    Core/Task/TaskModel.hpp \
-    Core/Task/Task.hpp \
-    Core/Task/TaskStatus.hpp \
-    Core/Task/GlobalStatistics.hpp \
+    GUI/Widgets/QListWidget2.hpp \
     GUI/Widgets/QPushButton2.hpp \
     GUI/GUIErrorHandler.hpp \
-    Core/Task/Command.hpp \
-    GUI/Forms/ProgressForm.hpp \
-    Core/Errors/LastActions.hpp \
-    Core/Errors/ErrorHandler.hpp \
-    Core/Errors/ErrorsAndActions.hpp
+    GUI/Settings.hpp \
+    GUI/Translator.hpp
+
+SOURCES += main.cpp\
+    Core/Buffer/Buffer.cpp \
+    Core/Buffer/BufferCell.cpp \
+    Core/Buffer/CircularBuffer.cpp \
+    Core/Common/CommonFn.cpp \
+    Core/Errors/ErrorHandler.cpp \
+    Core/Errors/LastActions.cpp \
+    Core/IO/DirEnumerator.cpp \
+    Core/Sync/ProducerLocker.cpp \
+    Core/Sync/SemaphoreEx.cpp \
+    Core/Sync/Synchronizer.cpp \
+    Core/Task/Command.cpp \
+    Core/Task/GlobalStatistics.cpp \
+    Core/Task/Task.cpp \
+    Core/Task/TaskModel.cpp \
+    Core/Task/TaskStatus.cpp \
+    Core/Threads/Reader.cpp \
+    Core/Threads/SizeCalculator.cpp \
+    Core/Threads/TaskManager.cpp \
+    Core/Threads/ThreadEx.cpp \
+    Core/Threads/Writer.cpp \
+    Core/TimeCounter.cpp \
+    GUI/Forms/MultiCopyForm.cpp \
+    GUI/Forms/ProgressForm.cpp \
+    GUI/Forms/SettingsForm.cpp \
+    GUI/Forms/TaskSettingsForm.cpp \
+    GUI/Widgets/QListWidget2.cpp \
+    GUI/Widgets/QPushButton2.cpp \
+    GUI/GUIErrorHandler.cpp \
+    GUI/Settings.cpp \
+    GUI/Translator.cpp
 
 FORMS += \
-    GUI/Forms/SettingsForm.ui \
-    GUI/Forms/ProgressForm.ui \
     GUI/Forms/MultiCopyForm.ui \
+    GUI/Forms/ProgressForm.ui \
+    GUI/Forms/SettingsForm.ui \
     GUI/Forms/TaskSettingsForm.ui
 
 TRANSLATIONS += \
@@ -132,16 +134,23 @@ TRANSLATIONS += \
 
 OTHER_FILES += \
     Documentation/history.txt \
+    Documentation/TODO.txt \
     GUI/MultiCopy.Win.rc \
-    Documentation/TODO.txt
+    GUI/MultiCopy.Win64.rc
 
 RESOURCES += \
-    GUI/Forms/MultiCopy.qrc
+    GUI/Forms/Resources.qrc
 
-win32 {
-    RC_FILE += \
-        GUI/MultiCopy.Win.rc
+contains(QMAKE_HOST.arch, x86_64) {
+    RESOURCES += GUI/Forms/MultiCopy64.qrc
+    win32 {
+        RC_FILE += GUI/MultiCopy.Win64.rc
+    }
+} else {
+    RESOURCES += GUI/Forms/MultiCopy.qrc
+    win32 {
+        RC_FILE += GUI/MultiCopy.Win.rc
+    }
 }
 
-# DEFINES += _NO_FAST_FILE
 # DEFINES += _NO_NONPAGED_MEM

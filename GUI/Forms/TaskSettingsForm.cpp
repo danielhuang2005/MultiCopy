@@ -45,6 +45,31 @@
 #include "GUI/Settings.hpp"
 
 //------------------------------------------------------------------------------
+/*!
+   Функция преобразует значение Value в вид (*pNum) * 2^(*pUnit).
+
+   \remarks При вычислении производятся целочисленные деления без округления.
+     Полученный результат может быть меньше исходного.
+ */
+
+void ValueToNumAndUnit(qint64 Value, int* pNum, int* pUnit)
+{
+    Q_ASSERT(pNum != NULL);
+    Q_ASSERT(pUnit != NULL);
+    Q_ASSERT(Value >= 0);
+
+    *pUnit = 0;
+    qint64 Value2 = Value / 1024;
+    while (Value2 > 0) {
+        ++(*pUnit);
+        Value = Value2;
+        Value2 = Value / 1024;
+    }
+    *pNum = Value;
+}
+
+//------------------------------------------------------------------------------
+//! Конструктор.
 
 TTaskSettingsForm::TTaskSettingsForm(QWidget *Parent)
     : QDialog(Parent),
@@ -78,6 +103,7 @@ TTaskSettingsForm::TTaskSettingsForm(QWidget *Parent)
 }
 
 //------------------------------------------------------------------------------
+//! Деструктор.
 
 TTaskSettingsForm::~TTaskSettingsForm()
 {
@@ -86,6 +112,7 @@ TTaskSettingsForm::~TTaskSettingsForm()
 }
 
 //------------------------------------------------------------------------------
+//! Сохранение сессии.
 
 void TTaskSettingsForm::saveSession()
 {
@@ -100,6 +127,7 @@ void TTaskSettingsForm::saveSession()
 }
 
 //------------------------------------------------------------------------------
+//! Восстановление сессии.
 
 void TTaskSettingsForm::restoreSession()
 {
@@ -133,8 +161,19 @@ void TTaskSettingsForm::readData_RAMParams(const TTaskSettings *pTS)
     ui->CellSize->setValue(pTS->RAMCellSize / (1024 * 1024));
     ui->CellsCount->setValue(pTS->RAMCellCount);
     ui->LockMemory->setChecked(pTS->LockMemory);
-    ui->NoUseCache->setChecked(pTS->NoUseCache);
     calculateRAM();
+
+    ui->NoUseCache->setChecked(pTS->NoUseCache);
+    int Num;
+    int Unit;
+    ValueToNumAndUnit(pTS->NoUseCacheFor, &Num, &Unit);
+    if (Num > ui->NoUseCacheForNum->maximum())
+        Num = ui->NoUseCacheForNum->maximum();
+    Q_ASSERT(ui->NoUseCacheForUnit->count() > 0);
+    if (Unit >= ui->NoUseCacheForUnit->count())
+        Unit = ui->NoUseCacheForUnit->count() - 1;
+    ui->NoUseCacheForNum->setValue(Num);
+    ui->NoUseCacheForUnit->setCurrentIndex(Unit);
 }
 
 //------------------------------------------------------------------------------
@@ -170,6 +209,12 @@ void TTaskSettingsForm::writeData_RAMParams(TTaskSettings* pTS)
     pTS->RAMCellSize          = ui->CellSize->value() * 1024 * 1024;
     pTS->LockMemory           = ui->LockMemory->isChecked();
     pTS->NoUseCache           = ui->NoUseCache->isChecked();
+
+    qint64 Size = ui->NoUseCacheForNum->value();
+    int Unit = ui->NoUseCacheForUnit->currentIndex();
+    while (Unit-- > 0)
+        Size *= 1024;
+    pTS->NoUseCacheFor = Size;
 }
 
 //------------------------------------------------------------------------------

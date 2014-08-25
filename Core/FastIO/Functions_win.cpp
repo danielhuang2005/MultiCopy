@@ -44,9 +44,9 @@
 // Этот define должен быть раньше всех include!
 #define _WIN32_WINNT 0x0501  // Windows XP или выше.
 
+// Этот include должен быть первым!
 #include "Functions_win.hpp"
 
-#include <windows.h>
 #include <winioctl.h>
 #include <shlobj.h>
 #include <lm.h>
@@ -54,6 +54,15 @@
 #include "Core/Common/CommonFn.hpp"
 
 //------------------------------------------------------------------------------
+//! Перечисление сетевых ресурсов.
+/*!
+   Функция перечисляет сетевые ресурсы сервера с именем ServerName и заполняет
+   полученными именами список pSharesList. Возвращает true, если перечисление
+   успешно завершено и false в случае ошибки.
+
+   \remarks Параметр ServerName не должны иметь в себе элементов пути,
+     т.е. не должен содержать символы-разделители '\', '/', ':'.
+ */
 
 bool enumServerShares(const QString& ServerName, QStringList *const pSharesList)
 {
@@ -79,17 +88,22 @@ bool enumServerShares(const QString& ServerName, QStringList *const pSharesList)
             SHARE_INFO_0* p = pInfo;
             for (DWORD i = 0; i < EntriesRead; ++i)
             {
-                if (/*p->shi1_type == STYPE_DISKTREE && */p->shi0_netname != NULL)
+                if (p->shi0_netname != NULL)
                 {
                     pSharesList->append(QString::fromWCharArray(p->shi0_netname));
                 }
                 ++p;
             }
-            NetApiBufferFree(pInfo);
+            DWORD ErrCode = NetApiBufferFree(pInfo);
+            if (ErrCode != NERR_Success) {
+                qWarning("enumServerShares. NetApiBufferFree error: %s",
+                         qPrintable(GetSystemErrorString(ErrCode)));
+            }
         }
         else {
-            qWarning("sharesOnServer. NetShareEnum error on server name \"%s\": %s",
-                     qPrintable(ServerName), qPrintable(GetSystemErrorString()));
+            qWarning("enumServerShares. NetShareEnum error on server name \"%s\": %s",
+                     qPrintable(ServerName),
+                     qPrintable(GetSystemErrorString(naStatus)));
         }
     } while (naStatus == ERROR_MORE_DATA);
 
@@ -108,11 +122,19 @@ bool enumServerShares(const QString& ServerName, QStringList *const pSharesList)
 bool isNetworkShareExists(const QString& ServerName, const QString& Share)
 {
     QStringList Shares;
-    enumServerShares(ServerName, &Shares);
+    if (!enumServerShares(ServerName, &Shares)) {
+        qWarning("Error enumerating shares on server \"%s\".",
+                 qPrintable(ServerName));
+    }
     return Shares.contains(Share, Qt::CaseInsensitive);
 }
 
 //------------------------------------------------------------------------------
+/*!
+   Метод для объекта файловой системы с именем Name заполняет данными объекта
+   структуру WIN32_FIND_DATAW. Возвращает true, если данные успешно получены
+   и false в случае ошибки.
+ */
 
 bool getFileFindData(const QString& Name, WIN32_FIND_DATAW *const pData)
 {
@@ -129,7 +151,10 @@ bool getFileFindData(const QString& Name, WIN32_FIND_DATAW *const pData)
                                     0);
     if (hFind != INVALID_HANDLE_VALUE)
     {
-        FindClose(hFind);
+        if (!FindClose(hFind)) {
+            qWarning("getFileFindData. FindClose error: %s",
+                     qPrintable(GetSystemErrorString()));
+        }
         return true;
     }
     else {
@@ -142,15 +167,20 @@ bool getFileFindData(const QString& Name, WIN32_FIND_DATAW *const pData)
 }
 
 //------------------------------------------------------------------------------
+/*!
+   Метод для объекта файловой системы с именем Name заполняет данными объекта
+   структуру WIN32_FILE_ATTRIBUTE_DATA. Возвращает true, если данные успешно
+   получены и false в случае ошибки.
+ */
 
 bool getFileAttributesData(const QString& Name, WIN32_FILE_ATTRIBUTE_DATA *const pData)
 {
     if (pData == NULL) {
-        qWarning("getFileAttributesData. Null pointer to WIN32_FILE_ATTRIBUTE_DATA.");
+        qWarning("getFileAttributesData. Data pointer is NULL.");
         return false;
     }
 
-    if (GetFileAttributesExW((LPCWSTR)Name.utf16(),GetFileExInfoStandard, pData) != 0)
+    if (GetFileAttributesExW((LPCWSTR)Name.utf16(), GetFileExInfoStandard, pData) != 0)
     {
         return true;
     }
@@ -164,9 +194,7 @@ bool getFileAttributesData(const QString& Name, WIN32_FILE_ATTRIBUTE_DATA *const
 }
 
 //------------------------------------------------------------------------------
-
 //------------------------------------------------------------------------------
-
 
 #ifndef MAXIMUM_REPARSE_DATA_BUFFER_SIZE
     #define MAXIMUM_REPARSE_DATA_BUFFER_SIZE 16384
@@ -247,7 +275,7 @@ QString resolveVolume(const QString& VolumeName)
             qWarning("resolveVolume. GetVolumePathNamesForVolumeNameW error: \"%s\"",
                      qPrintable(GetSystemErrorString()));
         }
-        delete Names;
+        delete[] Names;
     }
     else {
         qWarning("resolveVolume. GetVolumePathNamesForVolumeNameW error: \"%s\"",
@@ -259,15 +287,21 @@ QString resolveVolume(const QString& VolumeName)
 
 //------------------------------------------------------------------------------
 /*!
-   Возвращает имя, на которое указывает точка повтороной обработки NTFS.
+   Возвращает имя, на которое указывает точка повторной обработки NTFS с именем
+   LongWinPath. Если объект не является точкой повторной обработки, возвращает
+   пустую строку.
 
    \remarks Возвращённый объект может оказаться ещё одной точкой повторной
      обработки.
+
+   \remarks Если точка повторной обработки указывает на диск, не имеющий других
+     точек монтирования, то возвращается исходное имя.
  */
 
 QString resolveReparsePoint(const QString& LongWinPath)
 {
     QString Result;
+
     HANDLE hFile = CreateFileW((LPCWSTR)LongWinPath.utf16(),
                                FILE_READ_EA,
                                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -277,11 +311,12 @@ QString resolveReparsePoint(const QString& LongWinPath)
                                0);
     if (hFile != INVALID_HANDLE_VALUE)
     {
-        REPARSE_DATA_BUFFER* pRDB = (REPARSE_DATA_BUFFER*)
+        REPARSE_DATA_BUFFER* pRDB = static_cast<REPARSE_DATA_BUFFER*>(
                                         VirtualAlloc(NULL,
                                             MAXIMUM_REPARSE_DATA_BUFFER_SIZE,
                                             MEM_COMMIT | MEM_RESERVE,
-                                            PAGE_READWRITE);
+                                            PAGE_READWRITE)
+                                    );
         if (pRDB != NULL)
         {
             DWORD BytesReturned = 0;
@@ -309,7 +344,7 @@ QString resolveReparsePoint(const QString& LongWinPath)
                     Result = QString::fromWCharArray(pName, Length);
                 }
                 else {
-                    qWarning("TFileInfoEx::resolveLink. Unknown reparse point tag: %lX",
+                    qWarning("resolveReparsePoint. Unknown reparse point tag: %lX",
                              pRDB->ReparseTag);
                 }
 
@@ -324,20 +359,28 @@ QString resolveReparsePoint(const QString& LongWinPath)
                 }
             }
             else {
-                qWarning("TFileInfoEx::resolveLink. DeviceIoControl error on file \"%s\": %s",
+                qWarning("resolveReparsePoint. DeviceIoControl error on file \"%s\": %s",
                          qPrintable(LongWinPath), qPrintable(GetSystemErrorString()));
             }
-            VirtualFree(pRDB, 0, MEM_RELEASE);
+
+            if (!VirtualFree(pRDB, 0, MEM_RELEASE)) {
+                qWarning("resolveReparsePoint. VirtualFree error: %s",
+                         qPrintable(GetSystemErrorString()));
+            }
         }
         else {
-            qWarning("TFileInfoEx::resolveLink. VirtualAlloc error on %i bytes: %s",
+            qWarning("resolveReparsePoint. VirtualAlloc error on %i bytes: %s",
                      MAXIMUM_REPARSE_DATA_BUFFER_SIZE,
                      qPrintable(GetSystemErrorString()));
         }
-        CloseHandle(hFile);
+
+        if (!CloseHandle(hFile)) {
+            qWarning("resolveReparsePoint. CloseHandle error: %s",
+                     qPrintable(GetSystemErrorString()));
+        }
     }
     else {
-        qWarning("TFileInfoEx::resolveLink. CreateFileW error on file \"%s\": %s",
+        qWarning("resolveReparsePoint. CreateFileW error on file \"%s\": %s",
                  qPrintable(LongWinPath), qPrintable(GetSystemErrorString()));
     }
 
@@ -346,7 +389,8 @@ QString resolveReparsePoint(const QString& LongWinPath)
 
 //------------------------------------------------------------------------------
 /*!
-   Возвращает имя, на которое указывает ярлык Windows (lnk-файл).
+   Возвращает имя, на которое указывает ярлык Windows (lnk-файл) с именем
+   LongWinPath.
 
    \remarks Возвращённый объект может оказаться ещё одним ярлыком.
  */

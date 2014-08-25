@@ -99,7 +99,7 @@ QString AddWithSeparator(const QString& Initial, const QString& Added)
 
    Если затребована блокировка памяти, т.е. в параметре Lock передано true, то
    при успешном выделении памяти в этом параметре возвращается true, если память
-   заблокирована и false, если блокировка не удалась. Если блокировка памяти не
+   заблокирована, и false, если блокировка не удалась. Если блокировка памяти не
    затребована, значение параметра Lock не изменяется.
 
    \remarks Для освобождения памяти, выделенной данной функцией,
@@ -110,78 +110,81 @@ void* GetLockedMem(size_t Size, bool *Lock)
 {
     void* Pointer;
 
-#ifdef Q_OS_WIN
-    Pointer = VirtualAlloc(NULL,
-                           Size,
-                           MEM_COMMIT | MEM_RESERVE,
-                           PAGE_READWRITE);
-    if (Pointer != NULL) {
-        // Память успешно выделена.
-        if (Lock && *Lock) {
-            // Пытаемся заблокировать память.
-            if (!VirtualLock(Pointer, Size)) {
-                *Lock = false;
-                // Память не удалось заблокировать.
-                SIZE_T Min, Max;
-                HRESULT HResult = GetProcessWorkingSetSize(GetCurrentProcess(),
-                                                           &Min, &Max);
-                if (SUCCEEDED(HResult)) {
-                    Min += Size;
-                    Max += Size;
-                    if (SetProcessWorkingSetSize(GetCurrentProcess(), Min, Max))
+    #ifdef Q_OS_WIN
+        Pointer = VirtualAlloc(NULL,
+                               Size,
+                               MEM_COMMIT | MEM_RESERVE,
+                               PAGE_READWRITE);
+        if (Pointer != NULL)
+        {
+            // Память успешно выделена.
+            if (Lock != NULL && *Lock)
+            {
+                // Пытаемся заблокировать память.
+                if (!VirtualLock(Pointer, Size))
+                {
+                    *Lock = false;
+                    // Память не удалось заблокировать.
+                    SIZE_T Min, Max;
+                    HRESULT HResult = GetProcessWorkingSetSize(GetCurrentProcess(), &Min, &Max);
+                    if (SUCCEEDED(HResult))
                     {
-                        // Размер рабочего набора памяти изменён.
-                        // Повторно пытаемся заблокировать память.
-                        if (VirtualLock(Pointer, Size)) {
-                            *Lock = true;
+                        Min += Size;
+                        Max += Size;
+                        if (SetProcessWorkingSetSize(GetCurrentProcess(), Min, Max))
+                        {
+                            // Размер рабочего набора памяти изменён.
+                            // Повторно пытаемся заблокировать память.
+                            if (VirtualLock(Pointer, Size)) {
+                                *Lock = true;
+                            }
+                            else {
+                                // Повторная попытка блокировки не удалась.
+                                qWarning("GetLockedMem. Error locking memory: %s",
+                                         qPrintable(GetSystemErrorString()));
+                            }
                         }
                         else {
-                            // Повторная попытка блокировки не удалась.
-                            qWarning("GetLockedMem. Error locking memory: %s",
+                            // Ошибка при изменении размера рабочего набора памяти.
+                            qWarning("GetLockedMem. SetProcessWorkingSetSize error: %s",
                                      qPrintable(GetSystemErrorString()));
                         }
                     }
                     else {
-                        // Ошибка при изменении размера рабочего набора памяти.
-                        qWarning("GetLockedMem. SetProcessWorkingSetSize error: %s",
+                        // Ошибка при получении размера рабочего набора памяти.
+                        qWarning("GetLockedMem. GetProcessWorkingSetSize error: %s",
                                  qPrintable(GetSystemErrorString()));
                     }
                 }
-                else {
-                    // Ошибка при получении размера рабочего набора памяти.
-                    qWarning("GetLockedMem. GetProcessWorkingSetSize error: %s",
-                             qPrintable(GetSystemErrorString()));
-                }
             }
         }
-    }
-    else {
-        // При выделении памяти произошла ошибка.
-        qWarning("GetLockedMem. Error allocate memory: %s",
-                 qPrintable(GetSystemErrorString()));
-    }
-#else
-    // TODO: Реализовать для UNIX.
-    Pointer = malloc(Size);
-    //posix_memalign(&Pointer, 512, Size);
-    if (Pointer) {
-        // Память успешно выделена.
-        if (Lock && *Lock) {
-            // Пытаемся заблокировать память.
-            /*if (mlock(Pointer, Size) == -1) {
-                // Ошибка при блокировке памяти.
-                qWarning("Error locking memory: %s",
-                         qPrintable(GetSystemErrorString()));
-            }*/
-            qWarning("GetLockedMem. Memory lock function is not implemented.");
-            *Lock = false;
+        else {
+            // При выделении памяти произошла ошибка.
+            qWarning("GetLockedMem. Error allocate memory: %s",
+                     qPrintable(GetSystemErrorString()));
         }
-    }
-    else {
-        qWarning("GetLockedMem. Error allocate memory: %s",
-                 qPrintable(GetSystemErrorString()));
-    }
-#endif
+    #else
+        // TODO: Реализовать для UNIX.
+        Pointer = malloc(Size);
+        //posix_memalign(&Pointer, 512, Size);
+        if (Pointer) {
+            // Память успешно выделена.
+            if (Lock && *Lock) {
+                // Пытаемся заблокировать память.
+                /*if (mlock(Pointer, Size) == -1) {
+                    // Ошибка при блокировке памяти.
+                    qWarning("Error locking memory: %s",
+                             qPrintable(GetSystemErrorString()));
+                }*/
+                qWarning("GetLockedMem. Memory lock function is not implemented.");
+                *Lock = false;
+            }
+        }
+        else {
+            qWarning("GetLockedMem. Error allocate memory: %s",
+                     qPrintable(GetSystemErrorString()));
+        }
+    #endif
 
     return Pointer;
 }
@@ -189,8 +192,8 @@ void* GetLockedMem(size_t Size, bool *Lock)
 //------------------------------------------------------------------------------
 //! Объём доступной физической памяти.
 /*!
- * Функция возвращает объём доступной физической памяти в системе. Если объём
- * определить не удалось, возвращает -1.
+   Функция возвращает объём доступной физической памяти в системе. Если объём
+   определить не удалось, возвращает -1.
  */
 
 qint64 AvailablePhysicalMemory()
@@ -222,10 +225,10 @@ qint64 AvailablePhysicalMemory()
 //------------------------------------------------------------------------------
 //! Освобожение заблокированной (не сбрасываемой на диск) памяти.
 /*!
- * Функция используется для освобождения памяти, выделенной функцией
- * GetLockedMem.
- *
- * \param Pointer Указатель на память, выделенную функцией GetLockedMem.
+   Функция используется для освобождения памяти, выделенной функцией
+   GetLockedMem.
+
+   \param Pointer Указатель на память, выделенную функцией GetLockedMem.
  */
 
 void FreeLockedMem(void* Pointer)
@@ -241,7 +244,7 @@ void FreeLockedMem(void* Pointer)
 }
 
 //------------------------------------------------------------------------------
-//! Строковое описание системной ошибки.
+//! Строковое описание системной ошибки с номером ErrCode.
 
 QString GetSystemErrorString(
             #ifdef Q_OS_WIN
@@ -251,21 +254,32 @@ QString GetSystemErrorString(
             #endif
                 ErrCode)
 {
-#ifdef Q_OS_WIN
-    WCHAR* errStr = NULL;
-    FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                   NULL,
-                   ErrCode,
-                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                   (LPWSTR)&errStr,
-                   0,
-                   NULL);
-    QString Result = QString::fromWCharArray(errStr);
-    LocalFree(errStr);
-    return Result;
-#else
-    return QString::fromLocal8Bit(strerror(ErrCode));
-#endif
+    #ifdef Q_OS_WIN
+        WCHAR* errStr = NULL;
+        if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                           NULL,
+                           ErrCode,
+                           MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                           (LPWSTR)&errStr,
+                           0,
+                           NULL) != 0)
+        {
+            QString Result = QString::fromWCharArray(errStr);
+            if (!LocalFree(errStr)) {
+                qWarning("GetSystemErrorString. LocalFree error: %li.",
+                         GetLastError());
+            }
+            return Result;
+        }
+        else {
+            qWarning("GetSystemErrorString. FormatMessageW error: %li.",
+                     GetLastError());
+        }
+
+        return QString();
+    #else
+        return QString::fromLocal8Bit(strerror(ErrCode));
+    #endif
 }
 
 //------------------------------------------------------------------------------
@@ -299,10 +313,12 @@ QString PathToLongWinPath(const QString& Path)
             return LocalPrefix + S;
         }
     }
-    else return Path;
+    else
+        return Path;
 }
 
 //------------------------------------------------------------------------------
+//! Проверка, является ли путь сетевым.
 
 bool isNetworkPath(const QString& Path)
 {
@@ -311,6 +327,11 @@ bool isNetworkPath(const QString& Path)
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+//! Преобразование скорости в строку.
+/*!
+   \arg BytesPerSec Скорость (байт в секунду).
+   \arg Digits      Число цифр после запятой (максимально).
+ */
 
 QString speedToStr(qint64 BytesPerSec, int Digits)
 {
@@ -335,6 +356,11 @@ QString speedToStr(qint64 BytesPerSec, int Digits)
 }
 
 //------------------------------------------------------------------------------
+//! Преобразование размера в строку.
+/*!
+   \arg Bytes  Размер (байт).
+   \arg Digits Число цифр после запятой (максимально).
+ */
 
 QString sizeToStr(qint64 Bytes, int Digits)
 {
@@ -383,10 +409,10 @@ QString GetDriveByPath(const QString& Path)
                      qPrintable(Path), qPrintable(GetSystemErrorString()));
         }
 
-        delete pVolumePathName;
+        delete[] pVolumePathName;
         return Result;
     #else
-        Q_ASSERT_X(false, "GetDriveByPath", "Function is not implemented!");
+        qWarning("GetDriveByPath. Not implemented!");
         return QString();
     #endif
 }
@@ -394,8 +420,10 @@ QString GetDriveByPath(const QString& Path)
 //------------------------------------------------------------------------------
 //! Определение свободного объёма дисковой памяти.
 /*!
- * Функция определяет объём дисковой памяти, доступный пользователю для записи.
- * Если определить объём не удалось, возвращает -1.
+   Функция определяет объём дисковой памяти, доступный пользователю для записи.
+   Если определить объём не удалось, возвращает -1.
+
+   \arg Path Любой каталог (в том числе корневой) диска.
  */
 
 qint64 DiskFreeSpace(const QString& Path)

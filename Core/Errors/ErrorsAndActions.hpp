@@ -39,6 +39,8 @@
 #ifndef __ERRORSANDACTIONS__HPP__
 #define __ERRORSANDACTIONS__HPP__
 
+//------------------------------------------------------------------------------
+
 #include <QSet>
 #include <QString>
 #include <QSemaphore>
@@ -63,7 +65,7 @@ enum TErrorAction {
 typedef QSet<TErrorAction> TErrorActionSet;
 
 //------------------------------------------------------------------------------
-//! Типы ошибок.
+//! Ошибки.
 
 enum TErrorCode {
     ecNoError,       //!< Нет ошибок.
@@ -94,6 +96,7 @@ struct TErrorData
     QObject*     pSender;     //!< Указатель на источник ошибки.
     QSemaphore*  pLocker;     //!< Блокировщик вызываемого потока.
 
+    //! Конструктор.
     TErrorData()
         : ErrorCode(ecNoError), Action(eaNoAction),
           DestsCount(-1),       TasksCount(-1),

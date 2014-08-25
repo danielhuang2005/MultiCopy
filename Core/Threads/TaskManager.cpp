@@ -310,7 +310,11 @@ void TTaskManager::processCurrentTask()
         bufferSizeAutodetect(&CellCount, &CellSize);
     else {
         CellCount = m_pCurrentTask->TaskSettings.RAMCellCount;
-        CellSize = m_pCurrentTask->TaskSettings.RAMCellSize;
+        CellSize  = m_pCurrentTask->TaskSettings.RAMCellSize;
+
+        // CellSize должно быть кратно размеру физического сектора диска.
+        if (CellSize % IO_BLOCK_SIZE != 0)
+            CellSize = (CellSize / IO_BLOCK_SIZE + 1) * IO_BLOCK_SIZE;
     }
     m_pBuffer = new TCircularBuffer(CellCount,
                                     CellSize,
@@ -808,6 +812,7 @@ void TTaskManager::cancelAllTasks()
 }
 
 //------------------------------------------------------------------------------
+//! Блокировка обработчика ошибок.
 
 void TTaskManager::lockProcessErrors()
 {
@@ -820,6 +825,7 @@ void TTaskManager::lockProcessErrors()
 }
 
 //------------------------------------------------------------------------------
+//! Разблокировка обработчика ошибок.
 
 void TTaskManager::unlockProcessErrors()
 {

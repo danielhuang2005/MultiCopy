@@ -39,13 +39,13 @@
 #ifndef __READER__HPP__
 #define __READER__HPP__
 
+//------------------------------------------------------------------------------
+
 #include "Core/Threads/ThreadEx.hpp"
 #include "Core/Task/Task.hpp"
 #include "Core/FastIO/FileInfoEx.hpp"
 #include "Core/FastIO/FastFile.hpp"
 #include "Core/IO/DirEnumerator.hpp"
-
-//#include <QFileInfo>
 
 //------------------------------------------------------------------------------
 
@@ -93,8 +93,10 @@ class TReader : public TThreadEx
         void errorHandler(TErrorData* pErrorData);
 
         Q_DISABLE_COPY(TReader)
+
     protected :
         virtual void run();
+
     public:
         explicit TReader();
         virtual ~TReader();
@@ -115,8 +117,11 @@ class TReader : public TThreadEx
 
         //! Указатель на кольцевой буфер.
         inline TCircularBuffer* buffer() { return m_pBuffer; }
+        //! Указатель на кольцевой буфер.
         inline const TCircularBuffer* buffer() const { return m_pBuffer; }
+        //! Число прочитанных байт.
         inline qint64 readed() const { return m_Readed; }
+        //! Флаг пропуска текущего объекта.
         inline bool isSkipped() const { return m_Skip; }
         /*! Порядковый номер обрабатываемого файла.
            \remarks Учитываются только файлы, которые удалось успешно открыть.
@@ -124,6 +129,7 @@ class TReader : public TThreadEx
         inline int fileNumber() const { return m_FileNumber; }
 
     signals :
+        //! Сигнал-сообщение об ошибке.
         void error(TErrorData* pErrorData);
 };
 

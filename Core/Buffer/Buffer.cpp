@@ -41,9 +41,9 @@
 //------------------------------------------------------------------------------
 //! Конструктор.
 /*!
- * \param CellsCount Число ячеек.
- * \param CellSize Объём ячейки (байт).
- * \param Lock Флаг блокировки страниц памяти.
+   \param CellsCount Число ячеек.
+   \param CellSize   Объём ячейки (байт).
+   \param Lock       Флаг блокировки страниц памяти.
  */
 
 TBuffer::TBuffer(int CellsCount, int CellSize, bool Lock)
@@ -62,14 +62,14 @@ TBuffer::~TBuffer()
 //------------------------------------------------------------------------------
 //! Изменение размера буфера.
 /*!
- * \param CellsCount Число ячеек.
- * \param CellSize Объём ячейки (байт).
- * \param Lock Флаг блокировки страниц памяти.
- *
- * \return true, если изменение размера прошло успешно и false если произошла
- *   ошибка. При возникновении ошибки буфер разрушается.
- *
- * \remarks Старое содержимое буфера разрушается!
+   \param CellsCount Число ячеек.
+   \param CellSize   Объём ячейки (байт).
+   \param Lock       Флаг блокировки страниц памяти.
+
+   \return true, если изменение размера прошло успешно и false если произошла
+     ошибка. При возникновении ошибки буфер разрушается.
+
+   \remarks Старое содержимое буфера разрушается!
  */
 
 bool TBuffer::resize(int CellsCount, int CellSize, bool Lock)
@@ -79,8 +79,9 @@ bool TBuffer::resize(int CellsCount, int CellSize, bool Lock)
     for (int i = CellsCount; i > 0; --i)
     {
         TBufferCell* pBC = new TBufferCell(CellSize, Lock);
-        if ((pBC != NULL) && (pBC->data() != NULL))
+        if ((pBC != NULL) && (pBC->data() != NULL)) {
             m_CellsVector.append(pBC);
+        }
         else {
             clear();
             return false;
@@ -121,26 +122,27 @@ inline int TBuffer::count() const
 //------------------------------------------------------------------------------
 //! Объём ячейки буфера.
 /*!
- * \remarks Если буфер пуст, возвращает ноль.
+   \remarks Если буфер пуст, возвращает ноль.
  */
 
 int TBuffer::cellSize() const
 {
     if (m_CellsVector.count() > 0)
         return m_CellsVector.at(0)->size();
-    else return 0;
+    else
+        return 0;
 }
 
 //------------------------------------------------------------------------------
 //! Указатель на ячейку буфера.
 /*!
- * \remarks Если индекс выходит за границы допустимого диапазона, возвращает
- *   NULL.
+   \remarks Если индекс выходит за границы допустимого диапазона, возвращает
+     NULL.
  */
 
 TBufferCell* TBuffer::at(int Index) const
 {
-    if ((Index >= 0) && (Index < size()))
+    if (Index >= 0 && Index < size())
         return m_CellsVector.at(Index);
     return NULL;
 }
@@ -156,8 +158,8 @@ TBufferCell* TBuffer::operator[](int Index) const
 //------------------------------------------------------------------------------
 //! Признак готовности буфера.
 /*!
- * Возвращает true, если буфер готов к работе (память распределена) и false
- * в противном случае.
+   Возвращает true, если буфер готов к работе (память распределена) и false
+   в противном случае.
  */
 
 bool TBuffer::isAllocated() const

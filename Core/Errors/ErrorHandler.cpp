@@ -72,7 +72,7 @@ QString TErrorHandler::errorText(TErrorCode Code)
         case ecNoError :
             qWarning("TErrorHandler::errorText. "
                      "Requested error text for ecNoError.");
-            return "";
+            return QString();
 
         case ecBadSrc :
             return tr("Bad source.");

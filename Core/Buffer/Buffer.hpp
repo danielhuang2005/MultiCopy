@@ -39,8 +39,10 @@
 #ifndef __BUFFER__HPP__ED8BD2FE_B9D9_4A09_A6DE_EFBB66FC7FF5__
 #define __BUFFER__HPP__ED8BD2FE_B9D9_4A09_A6DE_EFBB66FC7FF5__
 
+//------------------------------------------------------------------------------
 
 #include <QVector>
+
 #include "BufferCell.hpp"
 
 //------------------------------------------------------------------------------

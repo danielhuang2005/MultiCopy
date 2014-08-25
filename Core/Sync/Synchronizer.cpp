@@ -384,52 +384,6 @@ bool TSynchronizer::registerConsumer(void* pConsumer, bool Blocked)
 }
 
 //------------------------------------------------------------------------------
-//! Перерегистрация блокирующего потребителя на неблокирующего и наоборот.
-/*!
-   Метод производит перерегистрацию блокирующего потребителя на неблокирующего
-   и наоборот.
-
-   \arg pConsumer
-   \arg Blocked Новое состояние потребителя (true - блокирующий, false -
-     неблокирующий. Если новое состояние совпадает с текущим, метод ничего не
-     меняет.
-
-   \remarks Действие блокировки не мгновенное.
- */
-
-/*bool TSynchronizer::reRegisterConsumer(void* pConsumer, bool Blocked)
-{
-    QWriteLocker WriteLocker(&m_Locker);
-    Q_UNUSED(WriteLocker);
-
-    TConsumerData* pCD = m_ConsumersData.value(pConsumer, NULL);
-    if (pCD != NULL)
-    {
-        if (pCD->Blocked != Blocked) {
-            if (pCD->Blocked) {
-                --m_BlockedConsumersCount;
-                Q_ASSERT(m_BlockedConsumersCount >= 0);
-            }
-            else {
-                ++m_BlockedConsumersCount;
-                Q_ASSERT(m_BlockedConsumersCount < m_ConsumersData.count());
-            }
-            pCD->Blocked = Blocked;
-            return true;
-        }
-        else {
-            qWarning("TSynchronizer::reRegisterConsumer. Reregistration for "
-                     "consumer (%p) is not required.", pConsumer);
-        }
-    }
-    else {
-        qWarning("TSynchronizer::reRegisterConsumer. Attempt to reregister "
-                 "consumer (%p), which is not registered.", pConsumer);
-    }
-    return false;
-}*/
-
-//------------------------------------------------------------------------------
 //! Отмена регистрации потребителя.
 /*!
    \return true, если регистрация успешно отменена и false, если потребитель

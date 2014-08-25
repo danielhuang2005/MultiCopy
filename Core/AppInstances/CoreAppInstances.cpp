@@ -39,53 +39,22 @@
 #include "CoreAppInstances.hpp"
 
 #include <QCoreApplication>
-#include <QSharedMemory>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-//! Вспомогательный класс для блокировки общей памяти.
-/*!
-   Класс является аналогом класса QMutexLocker, но применяется не к объектам
-   типа QMutex, а к объектам типа QSharedMemory. При объявлении экземпляр
-   класса блокирует доступ к общей памяти, а при выходе из области видимости
-   автоматически снимает блокировку.
- */
-
-class TSharedMemoryLocker
-{
-    private :
-        QSharedMemory* m_pSharedMemory;  //! Указатель на общую память.
-
-    public :
-        //! Конструктор.
-        TSharedMemoryLocker(QSharedMemory* pSharedMemory)
-            : m_pSharedMemory(pSharedMemory)
-        {
-            if (m_pSharedMemory)
-                m_pSharedMemory->lock();
-            else
-                qWarning("TSharedMemoryLocker constructed with null pointer.");
-        }
-
-        //! Деструктор.
-        ~TSharedMemoryLocker()
-        {
-            if (m_pSharedMemory)
-                m_pSharedMemory->unlock();
-        }
-};
+#include "../Common/SharedMemory.hpp"
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //! Общие данные.
 
-struct TSharedData {
+struct TCoreAppInstances::TSharedData {
     int Instances;  //!< Число запущенных экземпляров программы.
     int Index;      //!< Индекс последнего запущенного экземпляра программы.
-    //! Конструктор
-    TSharedData() : Instances(0), Index(0) { }
+    //! Конструктор.
+    TSharedData()
+        : Instances(0), Index(-1)
+    { }
 };
 
 //------------------------------------------------------------------------------
@@ -101,38 +70,32 @@ void TCoreAppInstances::init()
             AppId = AppId.toLower();
         #endif
     }
-    else
+    else {
         AppId = m_AppId;
-
+    }
     AppId = QLatin1String("TSingleInstance-") + AppId.toUtf8().toHex();
 
-    m_pSharedMemory = new QSharedMemory(AppId);
-    m_pSharedMemory->attach();
 
-    if (m_pSharedMemory->data())
+    // Общая память.
+    m_pSharedMemory = new TSharedMemory<TSharedData>(AppId);
+    m_pSharedData = m_pSharedMemory->data();
     {
         TSharedMemoryLocker Locker(m_pSharedMemory);
         Q_UNUSED(Locker);
 
-        m_pSharedData = static_cast<TSharedData*>(m_pSharedMemory->data());
         ++m_pSharedData->Instances;
         m_Index = ++m_pSharedData->Index;
     }
+
+    // Прослушивающий сокет.
+    m_pLocalServer = new QLocalServer(this);
+    if (m_pLocalServer->listen(AppId)) {
+        connect(m_pLocalServer, SIGNAL(newConnection()),
+                SLOT(newConnection()));
+    }
     else {
-        TSharedMemoryLocker Locker(m_pSharedMemory);
-        Q_UNUSED(Locker);
-
-        m_pSharedMemory->create(sizeof(TSharedData));
-        m_pSharedData = static_cast<TSharedData*>(m_pSharedMemory->data());
-        m_pSharedData->Instances = 0;
-        m_pSharedData->Index   = 0;
-        m_Index = 0;
-
-        m_pLocalServer = new QLocalServer(this);
-        if (m_pLocalServer->listen(AppId)) {
-            connect(m_pLocalServer, SIGNAL(newConnection()),
-                    SLOT(newConnection()));
-        }
+        qWarning("TCoreAppInstances::init. Error listening: %s.",
+                 qPrintable(m_pLocalServer->errorString()));
     }
 }
 
@@ -149,8 +112,9 @@ void TCoreAppInstances::init()
 
 TCoreAppInstances::TCoreAppInstances(const QString& AppId, QObject* Parent)
     : QObject(Parent),
-      m_AppId(AppId),
       m_pSharedMemory(NULL),
+      m_AppId(AppId),
+      m_pSharedData(NULL),
       m_pLocalServer(NULL),
       m_Index(0)
 {
@@ -170,10 +134,10 @@ TCoreAppInstances::TCoreAppInstances(const QString& AppId, QObject* Parent)
      они будут восприняты как различные приложения.
  */
 
-
 TCoreAppInstances::TCoreAppInstances(QObject* Parent)
     : QObject(Parent),
       m_pSharedMemory(NULL),
+      m_pSharedData(NULL),
       m_pLocalServer(NULL),
       m_Index(0)
 {
@@ -186,17 +150,26 @@ TCoreAppInstances::TCoreAppInstances(QObject* Parent)
 TCoreAppInstances::~TCoreAppInstances()
 {
     delete m_pLocalServer;
+    if (m_pSharedData) {
+        TSharedMemoryLocker Locker(m_pSharedMemory);
+        Q_UNUSED(Locker);
+
+        --m_pSharedData->Instances;
+    }
     delete m_pSharedMemory;
 }
 
 //------------------------------------------------------------------------------
-//! Обработчик новых соединений с локальным сервером.
+//! Обработчик новых соединений с прослушивающим сокетом.
 
 void TCoreAppInstances::newConnection()
 {
     QLocalSocket* pSocket = m_pLocalServer->nextPendingConnection();
-    if (!pSocket)
+    if (pSocket == NULL) {
+        qWarning("TCoreAppInstances::newConnection. "
+                 "nextPendingConnection return empty socket.");
         return;
+    }
 
     QByteArray Message;
     while (pSocket->waitForReadyRead(1000))
@@ -230,8 +203,8 @@ bool TCoreAppInstances::sendMessageToFirst(const QString& Message)
     else {
         qWarning("TAppInstances::sendMessage. Cannot connect to server.\n"
                  "\"%s\"", qPrintable(Socket.errorString()));
-        return false;
     }
+    return false;
 }
 
 //------------------------------------------------------------------------------
@@ -239,14 +212,15 @@ bool TCoreAppInstances::sendMessageToFirst(const QString& Message)
 
 int TCoreAppInstances::instancesCount() const
 {
-    if (m_pSharedMemory && m_pSharedData) {
+    if (m_pSharedMemory != NULL && m_pSharedData != NULL)
+    {
         TSharedMemoryLocker Locker(m_pSharedMemory);
         Q_UNUSED(Locker);
 
         return m_pSharedData->Instances;
     }
-    else
-        return 0;
+
+    return 0;
 }
 
 //------------------------------------------------------------------------------

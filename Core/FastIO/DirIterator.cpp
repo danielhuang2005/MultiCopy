@@ -45,15 +45,15 @@
 #include <QDir>
 
 #include "FileInfoEx.hpp"
+#include "FileInfoEx_p.hpp"
 #include "Core/Common/CommonFn.hpp"
 
-#include "Core/FastIO/FileInfoEx_p.hpp"
-
 //------------------------------------------------------------------------------
+//! Запуск перечисления.
 
 void TDirIterator::start()
 {
-    Q_ASSERT(m_Status != stStarted);
+    Q_ASSERT(m_Status == stNotStarted);
 
     #ifdef Q_OS_WIN
         QString Path = PathToLongWinPath(m_StartPath);
@@ -94,14 +94,21 @@ void TDirIterator::start()
         }
     #endif
 
-    if (!m_FileInfoEx.isDir()) {
-        qWarning("TDirIterator::start(). Not folder: \"%s\".",
+    if (m_FileInfoEx.exists()) {
+        if (!m_FileInfoEx.isDir()) {
+            qWarning("TDirIterator::start. Not folder: \"%s\".",
+                     qPrintable(m_StartPath));
+            finish();
+        }
+    }
+    else {
+        qWarning("TDirIterator::start. Object not exists or insufficient privileges: \"%s\".",
                  qPrintable(m_StartPath));
-        finish();
     }
 }
 
 //------------------------------------------------------------------------------
+//! Определение требуется ли запрос следующего элемента.
 
 bool TDirIterator::nextRequired()
 {
@@ -137,6 +144,7 @@ bool TDirIterator::nextRequired()
 }
 
 //------------------------------------------------------------------------------
+//! Получение следующего элемента.
 
 void TDirIterator::getNext()
 {
@@ -169,7 +177,7 @@ void TDirIterator::getNext()
         }
         else {
             if (errno != 0) {
-                qWarning("TDirIterator::getNext(). readdir64 error on \"%s\": %s",
+                qWarning("TDirIterator::getNext. readdir64 error on \"%s\": %s",
                          qPrintable(m_StartPath),
                          qPrintable(GetSystemErrorString()));
             }
@@ -179,37 +187,41 @@ void TDirIterator::getNext()
 }
 
 //------------------------------------------------------------------------------
+//! Финализация перечисления.
 
 void TDirIterator::finish()
 {
     #ifdef Q_OS_WIN
         if (m_hFind != INVALID_HANDLE_VALUE) {
-            FindClose(m_hFind);
+            if (!FindClose(m_hFind)) {
+                qWarning("TDirIterator::finish. FindClose error: %s",
+                         qPrintable(GetSystemErrorString()));
+            }
             m_hFind = INVALID_HANDLE_VALUE;
         }
     #else
-    if (m_pDir != NULL) {
-        if (::closedir(m_pDir) != 0) {
-            qWarning("TDirIterator::finish. closedir error: %s",
-                     qPrintable(GetSystemErrorString()));
+        if (m_pDir != NULL) {
+            if (::closedir(m_pDir) != 0) {
+                qWarning("TDirIterator::finish. closedir error: %s",
+                         qPrintable(GetSystemErrorString()));
+            }
+            m_pDir = NULL;
         }
-        m_pDir = NULL;
-    }
     #endif
+
     m_FileInfoEx.clear();
     m_Status = stFinished;
 }
 
 //------------------------------------------------------------------------------
+//! Конструктор.
 
 TDirIterator::TDirIterator(const QString& StartPath, TFilters Filters)
     : m_Filters(Filters), m_Status(stNotStarted)
       #ifdef Q_OS_WIN
-          ,
-          m_hFind(INVALID_HANDLE_VALUE)
+          , m_hFind(INVALID_HANDLE_VALUE)
       #else
-          ,
-          m_pDir(NULL)
+          , m_pDir(NULL)
       #endif
 {
     m_StartPath = QDir::toNativeSeparators(StartPath);
@@ -218,6 +230,7 @@ TDirIterator::TDirIterator(const QString& StartPath, TFilters Filters)
 }
 
 //------------------------------------------------------------------------------
+//! Деструктор.
 
 TDirIterator::~TDirIterator()
 {
@@ -225,6 +238,11 @@ TDirIterator::~TDirIterator()
 }
 
 //------------------------------------------------------------------------------
+//! Переход к следующему элементу.
+/*!
+   Метод возвращает true, если следующий элемент успешно получен и false в
+   противном случае.
+ */
 
 bool TDirIterator::next()
 {
@@ -246,6 +264,10 @@ bool TDirIterator::next()
 }
 
 //------------------------------------------------------------------------------
+//! Краткое имя объекта.
+/*!
+   Метод возвращает имя объекта в содержащем его каталоге (имя без пути).
+ */
 
 QString TDirIterator::fileName() const
 {
@@ -253,6 +275,7 @@ QString TDirIterator::fileName() const
 }
 
 //------------------------------------------------------------------------------
+//! Путь до текущего объекта.
 
 QString TDirIterator::filePath() const
 {
@@ -260,13 +283,15 @@ QString TDirIterator::filePath() const
 }
 
 //------------------------------------------------------------------------------
+//! Начальный путь перечисления.
 
-QString TDirIterator::path() const
+QString TDirIterator::startPath() const
 {
     return m_StartPath;
 }
 
 //------------------------------------------------------------------------------
+//! Информация о текущем объекте.
 
 TFileInfoEx TDirIterator::info() const
 {

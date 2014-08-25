@@ -168,8 +168,8 @@ void TProgressForm::clearView()
     ui->Speed->clear();
     ui->Elapsed->clear();
     ui->Remaining->clear();
-    ui->ReadProgress_Label->setText(QString());
-    ui->WriteProgress_Label->setText(QString());
+    ui->SourceName->setText(QString());
+    ui->DestName->setText(QString());
 
     ui->CountProgress_Label->setEnabled(false);
     ui->CountProgress->setRange(0, 100);

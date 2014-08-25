@@ -36,8 +36,8 @@
 
 *******************************************************************************/
 
-#ifndef __TIMECOUNTER__HPP__
-#define __TIMECOUNTER__HPP__
+#ifndef __TIMECOUNTER__HPP__3FDDD5C2_1BD9_4884_A4AB_B84F6321A5B6__
+#define __TIMECOUNTER__HPP__3FDDD5C2_1BD9_4884_A4AB_B84F6321A5B6__
 
 //------------------------------------------------------------------------------
 
@@ -49,12 +49,13 @@
 class TTimeCounter
 {
     private :
-        qint64 m_StartTime;
-        qint64 m_PauseTime;
-        bool m_Started;
-        bool m_Paused;
-        qint64 m_msec;
-        qint64 m_Pause_msec;
+        qint64 m_StartTime;   //!< Время старта.
+        qint64 m_PauseTime;   //!< Время постановки на паузу.
+        bool   m_Started;     //!< Флаг запуска.
+        bool   m_Paused;      //!< Флаг приостановки.
+        qint64 m_msec;        //!< Время работы.
+        qint64 m_Pause_msec;  //!< Общее время приостановки.
+
     public:
         TTimeCounter();
         virtual ~TTimeCounter();
@@ -78,4 +79,4 @@ class TTimeCounter
 
 //------------------------------------------------------------------------------
 
-#endif // __TIMECOUNTER__HPP__
+#endif // __TIMECOUNTER__HPP__3FDDD5C2_1BD9_4884_A4AB_B84F6321A5B6__

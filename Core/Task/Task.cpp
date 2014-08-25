@@ -94,6 +94,7 @@ void TTaskSettings::setDefault()
     RAMCellCount         = 4;
     LockMemory           = false;
     NoUseCache           = false;
+    NoUseCacheFor        = 1 * 1024 * 1024;   // 1Mb
     TotalCalc            = true;
     CheckFreeSpace       = true;
     NoCreateRootDir      = false;

@@ -39,6 +39,8 @@
 #ifndef __SEMAPHOREEX__HPP__E1E8D9A3_2274_4393_98E0_FD1F4AE26A61__
 #define __SEMAPHOREEX__HPP__E1E8D9A3_2274_4393_98E0_FD1F4AE26A61__
 
+//------------------------------------------------------------------------------
+
 #include <QMutex>
 #include <QWaitCondition>
 

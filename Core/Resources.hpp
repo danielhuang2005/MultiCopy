@@ -36,63 +36,31 @@
 
 *******************************************************************************/
 
-#ifndef __ERRORHANDLER__HPP__
-#define __ERRORHANDLER__HPP__
+#ifndef __RESOURCES_HPP__
+#define __RESOURCES_HPP__
 
 //------------------------------------------------------------------------------
 
 #include <QString>
-#include <QMap>
-#include <QMutex>
-
-#include "ErrorsAndActions.hpp"
 
 //------------------------------------------------------------------------------
 
-class TTaskStatus;
+#define MAJOR_VERSION       2
+#define MINOR_VERSION       0
+#define MAINTERANCE_VERSION 1
+#define VERSION_POSTFIX     ""
 
 //------------------------------------------------------------------------------
-//! Обработчик ошибок.
 
-class TErrorHandler : public QObject
+QString version()
 {
-    Q_OBJECT
-    protected :
-        //! Диалоговый обработчик ошибок.
-        /*!
-           Этот метод должен быть определён в потомке класса. Назначение
-           метода - вывод запроса пользователю о возможных действиях.
-           Метод вызывается только в случае необходимости. Например, если
-           пользователь в определённой ситуации выбрал вариант ответа,
-           предполагающий повтор выбранного действия ("пропустить всё",
-           "игнорировать всё" и т.п.), то метод вызван не будет. Результатом
-           действия метода должна быть ТОЛЬКО установка поля Action
-           структуры m_pErrorData.
-         */
-        virtual void userPrompt(TErrorData* pErrorData) = 0;
-
-        TErrorActionSet m_Actions;
-
-    public:
-        TErrorHandler(QObject* Parent = NULL);
-        virtual ~TErrorHandler();
-
-        static QString errorText(TErrorCode Code);
-        static TErrorActionSet actions(TErrorCode Code);
-
-    signals :
-        //! Сигнал завершения обработки ошибки.
-        /*!
-           Сигнал генерируется после завершения обработки ошибки. В поле Action
-           структуры pErrorData возвращается выбранное пользователем
-           (или автоматически) действие.
-         */
-        void errorProcessed(TErrorData* pErrorData);
-
-    public slots :
-        void errorReceiver(TErrorData* pErrorData);
-};
+    static QString Version = QString::number(MAJOR_VERSION) + "." +
+                             QString::number(MINOR_VERSION) + "." +
+                             QString::number(MAINTERANCE_VERSION) +
+                             QString(VERSION_POSTFIX);
+    return Version;
+}
 
 //------------------------------------------------------------------------------
 
-#endif // __ERRORHANDLER__HPP__
+#endif // __RESOURCES_HPP__

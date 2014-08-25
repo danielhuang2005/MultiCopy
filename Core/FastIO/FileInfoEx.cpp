@@ -55,10 +55,10 @@
 #include "Core/Common/CommonFn.hpp"
 
 //------------------------------------------------------------------------------
-//! Установка статистики файла.
+//! Установка параметров объекта файловой системы.
 /*!
-   Функция устанавливает параметры файла с именем FileName, перечисленные в поле
-   Options стркутуры pFileStat. Возвращает перечень успешно установленных
+   Функция устанавливает параметры объекта с именем FileName, перечисленные в
+   поле Options структуры pFileStat. Возвращает перечень успешно установленных
    параметров.
  */
 
@@ -68,78 +68,83 @@ TFileStatOptions SetFileStat(const QString& FileName, const TFileStat* pFileStat
 
     TFileStatOptions Result;
 
-#ifdef Q_OS_WIN
-    QString wFileName = PathToLongWinPath(FileName);
-    if (pFileStat->Options.testFlag(fsoTime))
-    {
-        HANDLE hFile = CreateFileW((LPCWSTR)wFileName.utf16(),
-                                   GENERIC_WRITE,
-                                   FILE_SHARE_READ,
-                                   NULL,
-                                   OPEN_EXISTING,
-                                   FILE_FLAG_BACKUP_SEMANTICS,
-                                   NULL);
-        if (hFile == INVALID_HANDLE_VALUE) {
-            qWarning("SetFileStat. Cannot open file \"%s\" for writing: %s",
-                     qPrintable(FileName),
-                     qPrintable(GetSystemErrorString()));
-        }
-        else {
-            if (!SetFileTime(hFile,
-                             &pFileStat->CreationTime,
-                             &pFileStat->LastAccessTime,
-                             &pFileStat->LastWriteTime))
-            {
-                qWarning("SetFileStat. Cannot set date/time for file \"%s\": %s",
+    #ifdef Q_OS_WIN
+        QString wFileName = PathToLongWinPath(FileName);
+        if (pFileStat->Options.testFlag(fsoTime))
+        {
+            HANDLE hFile = CreateFileW((LPCWSTR)wFileName.utf16(),
+                                       GENERIC_WRITE,
+                                       FILE_SHARE_READ,
+                                       NULL,
+                                       OPEN_EXISTING,
+                                       FILE_FLAG_BACKUP_SEMANTICS,
+                                       NULL);
+            if (hFile == INVALID_HANDLE_VALUE) {
+                qWarning("SetFileStat. Cannot open object \"%s\" for writing: %s",
                          qPrintable(FileName),
                          qPrintable(GetSystemErrorString()));
             }
             else {
+                if (!SetFileTime(hFile,
+                                 &pFileStat->CreationTime,
+                                 &pFileStat->LastAccessTime,
+                                 &pFileStat->LastWriteTime))
+                {
+                    qWarning("SetFileStat. Cannot set date/time for object \"%s\": %s",
+                             qPrintable(FileName),
+                             qPrintable(GetSystemErrorString()));
+                }
+                else {
+                    Result |= fsoTime;
+                }
+                if (!CloseHandle(hFile)) {
+                    qWarning("SetFileStat. Error close handle for object \"%s\": %s",
+                             qPrintable(FileName),
+                             qPrintable(GetSystemErrorString()));
+                }
+            }
+        }
+
+        if (pFileStat->Options.testFlag(fsoAttr))
+        {
+            if (SetFileAttributesW((LPCWSTR)wFileName.utf16(), pFileStat->Attr) != 0) {
+                Result |= fsoAttr;
+            }
+            else {
+                qWarning("SetFileStat. Cannot set attributes for object \"%s\": %s",
+                         qPrintable(FileName),
+                         qPrintable(GetSystemErrorString()));
+            }
+        }
+    #else
+        QByteArray File = FileName.toLocal8Bit();
+        if (pFileStat->Options.testFlag(fsoTime))
+        {
+            utimbuf Utimbuf;
+            Utimbuf.actime  = pFileStat->AccessTime;
+            Utimbuf.modtime = pFileStat->ModificationTime;
+            if (utime(File.data(), &Utimbuf) != 0) {
+                qWarning("SetFileStat. Cannot set time for object \"%s\": %s",
+                         File.data(), qPrintable(GetSystemErrorString()));
+            }
+            else {
                 Result |= fsoTime;
             }
-            CloseHandle(hFile);
         }
-    }
-
-    if (pFileStat->Options.testFlag(fsoAttr))
-    {
-        if (SetFileAttributesW((LPCWSTR)wFileName.utf16(), pFileStat->Attr) != 0) {
-            Result |= fsoAttr;
-        }
-        else {
-            qWarning("SetFileStat. Cannot set attributes for file \"%s\": %s",
-                     qPrintable(FileName),
-                     qPrintable(GetSystemErrorString()));
-        }
-    }
-#else
-    QByteArray File = FileName.toLocal8Bit();
-    if (pFileStat->Options.testFlag(fsoTime))
-    {
-        utimbuf Utimbuf;
-        Utimbuf.actime  = pFileStat->AccessTime;
-        Utimbuf.modtime = pFileStat->ModificationTime;
-        if (utime(File.data(), &Utimbuf) != 0) {
-            qWarning("SetFileStat. Cannot set time for file \"%s\": %s",
-                     File.data(), qPrintable(GetSystemErrorString()));
-        }
-        else {
-            Result |= fsoTime;
-        }
-    }
 
 
-    if (pFileStat->Options.testFlag(fsoAttr))
-    {
-        if (chmod(File.data(), pFileStat->Mode) != 0) {
-            qWarning("SetFileStat. Cannot set permissions for file \"%s\": %s",
-                     File.data(), qPrintable(GetSystemErrorString()));
+        if (pFileStat->Options.testFlag(fsoAttr))
+        {
+            if (chmod(File.data(), pFileStat->Mode) != 0) {
+                qWarning("SetFileStat. Cannot set permissions for file \"%s\": %s",
+                         File.data(), qPrintable(GetSystemErrorString()));
+            }
+            else {
+                Result |= fsoAttr;
+            }
         }
-        else {
-            Result |= fsoAttr;
-        }
-    }
-#endif
+    #endif
+
     return Result;
 }
 
@@ -160,22 +165,23 @@ TFileStat::TFileStat()
 }
 
 //------------------------------------------------------------------------------
+//! Очистка.
 
 void TFileStat::clear()
 {
-#ifdef Q_OS_WIN
-    CreationTime.dwLowDateTime    = 0;
-    CreationTime.dwHighDateTime   = 0;
-    LastAccessTime.dwLowDateTime  = 0;
-    LastAccessTime.dwHighDateTime = 0;
-    LastWriteTime.dwLowDateTime   = 0;
-    LastWriteTime.dwHighDateTime  = 0;
-    Attr = 0;
-#else
-    AccessTime       = 0;
-    ModificationTime = 0;
-    Mode             = 0;
-#endif
+    #ifdef Q_OS_WIN
+        CreationTime.dwLowDateTime    = 0;
+        CreationTime.dwHighDateTime   = 0;
+        LastAccessTime.dwLowDateTime  = 0;
+        LastAccessTime.dwHighDateTime = 0;
+        LastWriteTime.dwLowDateTime   = 0;
+        LastWriteTime.dwHighDateTime  = 0;
+        Attr = 0;
+    #else
+        AccessTime       = 0;
+        ModificationTime = 0;
+        Mode             = 0;
+    #endif
 }
 
 
@@ -188,6 +194,11 @@ void TFileStat::clear()
 //------------------------------------------------------------------------------
 
 #ifdef Q_OS_WIN
+
+//! Установка информации из структуры WIN32_FIND_DATAW.
+/*!
+   \remarks Имя не изменяется!
+ */
 
 void TFileInfoExData::set(const WIN32_FIND_DATAW* _FindData)
 {
@@ -218,6 +229,7 @@ void TFileInfoExData::set(const WIN32_FIND_DATAW* _FindData)
 }
 
 //------------------------------------------------------------------------------
+//! Установка имени _Name и информации из структуры WIN32_FIND_DATAW.
 
 void TFileInfoExData::set(const QString& _Name, const WIN32_FIND_DATAW* _FindData)
 {
@@ -227,6 +239,7 @@ void TFileInfoExData::set(const QString& _Name, const WIN32_FIND_DATAW* _FindDat
 }
 
 //------------------------------------------------------------------------------
+//! Инициализация.
 
 void TFileInfoExData::init(const QString& _DirName, const WIN32_FIND_DATAW* _FindData)
 {
@@ -236,6 +249,8 @@ void TFileInfoExData::init(const QString& _DirName, const WIN32_FIND_DATAW* _Fin
 }
 
 #else
+
+//! Установка информации из структуры stat64.
 
 void TFileInfoExData::set(const struct stat64* _Stat)
 {
@@ -314,6 +329,7 @@ void TFileInfoExData::clear()
 }
 
 //------------------------------------------------------------------------------
+//! Подготовка имени.
 
 void TFileInfoExData::prepareName(const QString& _Name)
 {
@@ -350,64 +366,64 @@ void TFileInfoEx::getInfo(const QString& Name)
 
     m_Data->prepareName(Name);
 
-#if defined(Q_OS_WIN)
-    if (isNetworkPath(m_Data->Name))
-    {
-        m_Data->TypeFlags |= ffNetwork;
-        QStringList Path = m_Data->Name.split('\\', QString::SkipEmptyParts);
-        // Path[0] - имя сервера, Path[1] - имя папки, далее - элементы пути.
+    #if defined(Q_OS_WIN)
+        if (isNetworkPath(m_Data->Name))
+        {
+            m_Data->TypeFlags |= ffNetwork;
+            QStringList Path = m_Data->Name.split('\\', QString::SkipEmptyParts);
+            // Path[0] - имя сервера, Path[1] - имя папки, далее - элементы пути.
 
-        if (Path.count() < 2) {
-            // Имя сервера без папки. Ошибка.
-            m_Data->AnalyzedFlags = faMask;
-        }
-        else if (Path.count() == 2) {
-            // Корень сетевой папки. О ней почти ничего узнать не удастся.
-            m_Data->TypeFlags |= ffNetShare;
-            if (isNetworkShareExists(Path[0], Path[1]))
-            {
-                // Для совместимости считаем корень сетевой папки каталогом.
-                m_Data->TypeFlags |= ffExists | ffDir;
+            if (Path.count() < 2) {
+                // Имя сервера без папки. Ошибка.
+                m_Data->AnalyzedFlags = faMask;
+            }
+            else if (Path.count() == 2) {
+                // Корень сетевой папки. О ней почти ничего узнать не удастся.
+                m_Data->TypeFlags |= ffNetShare;
+                if (isNetworkShareExists(Path[0], Path[1]))
+                {
+                    // Для совместимости считаем корень сетевой папки каталогом.
+                    m_Data->TypeFlags |= ffExists | ffDir;
+                }
+            }
+            else {
+                // Path.count() >= 3
+                if (getFileFindData(m_Data->LongWinName, &m_Data->FindData))
+                    m_Data->set();
+                else
+                    m_Data->AnalyzedFlags |= faMask;
             }
         }
+        else if (m_Data->Name.endsWith(':'))
+        {
+            // Корневой каталог диска.
+            WIN32_FILE_ATTRIBUTE_DATA Data;
+            if (getFileAttributesData(m_Data->LongWinName, &Data))
+            {
+                // Пользуемся тем, что начало структуры WIN32_FIND_DATA
+                // совпадает со структурой WIN32_FILE_ATTRIBUTE_DATA
+                memcpy(&m_Data->FindData, &Data, sizeof(Data));
+                m_Data->set();
+            }
+            m_Data->AnalyzedFlags |= faMask;
+        }
         else {
-            // Path.count() >= 3
+            // Не корневой каталог. Можно использовать getFileFindData.
             if (getFileFindData(m_Data->LongWinName, &m_Data->FindData))
                 m_Data->set();
             else
-                m_Data->AnalyzedFlags |= faMask;
+                m_Data->AnalyzedFlags = faMask;
         }
-    }
-    else if (m_Data->Name.endsWith(':'))
-    {
-        // Корневой каталог диска.
-        WIN32_FILE_ATTRIBUTE_DATA Data;
-        if (getFileAttributesData(m_Data->LongWinName, &Data))
-        {
-            // Пользуемся тем, что начало структуры WIN32_FIND_DATA
-            // совпадает со структурой WIN32_FILE_ATTRIBUTE_DATA
-            memcpy(&m_Data->FindData, &Data, sizeof(Data));
+    #else
+        if (::stat64(m_Data->NativeName.data(), &m_Data->Stat) == 0) {
             m_Data->set();
         }
-        m_Data->AnalyzedFlags |= faMask;
-    }
-    else {
-        // Не корневой каталог. Можно использовать getFileFindData.
-        if (getFileFindData(m_Data->LongWinName, &m_Data->FindData))
-            m_Data->set();
-        else
+        else {
             m_Data->AnalyzedFlags = faMask;
-    }
-#else
-    if (::stat64(m_Data->NativeName.data(), &m_Data->Stat) == 0) {
-        m_Data->set();
-    }
-    else {
-        m_Data->AnalyzedFlags = faMask;
-        qWarning("TFileInfoEx::getInfo. stat error on object \"%s\": %s",
-                 m_Data->NativeName.data(), qPrintable(GetSystemErrorString()));
-    }
-#endif
+            qWarning("TFileInfoEx::getInfo. stat64 error on object \"%s\": %s",
+                     m_Data->NativeName.data(), qPrintable(GetSystemErrorString()));
+        }
+    #endif
 }
 
 //------------------------------------------------------------------------------
@@ -418,22 +434,24 @@ void TFileInfoEx::resolveLink() const
     if (!m_Data->AnalyzedFlags.testFlag(faLinkTarget) ||
         !m_Data->AnalyzedFlags.testFlag(faLinkAnalyzed))
     {
-#if defined(Q_OS_WIN)
-        if (m_Data->FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-        {
-            Q_ASSERT(m_Data->AnalyzedFlags.testFlag(faLinkAnalyzed));
-            m_Data->LinkTarget = resolveReparsePoint(m_Data->LongWinName);
-        }
-        else if (m_Data->Name.endsWith(".lnk", Qt::CaseInsensitive))
-        {
-            Q_ASSERT(!m_Data->AnalyzedFlags.testFlag(faLinkTarget));
-            m_Data->LinkTarget = resolveLnkFile(m_Data->LongWinName);
-            if (!m_Data->LinkTarget.isEmpty())
-                m_Data->TypeFlags |= ffLink | ffLnkFile;
-        }
-#else
-
-#endif
+        #if defined(Q_OS_WIN)
+            if (m_Data->FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+            {
+                // Точка повтороной обработки.
+                Q_ASSERT(m_Data->AnalyzedFlags.testFlag(faLinkAnalyzed));
+                m_Data->LinkTarget = resolveReparsePoint(m_Data->LongWinName);
+            }
+            else if (m_Data->Name.endsWith(".lnk", Qt::CaseInsensitive))
+            {
+                // Ярлык Windows.
+                Q_ASSERT(!m_Data->AnalyzedFlags.testFlag(faLinkTarget));
+                m_Data->LinkTarget = resolveLnkFile(m_Data->LongWinName);
+                if (!m_Data->LinkTarget.isEmpty())
+                    m_Data->TypeFlags |= ffLink | ffLnkFile;
+            }
+        #else
+            // TODO : Реализовать для Linux.
+        #endif
         m_Data->AnalyzedFlags |= faLinkAnalyzed | faLinkTarget;
     }
 }
@@ -577,7 +595,7 @@ void TFileInfoEx::setName(const QString& Name)
 //------------------------------------------------------------------------------
 //! Обновление информации об объекте.
 /*!
-   Метод заново опрашивает файловую систему об объекте.
+   Метод заново запрашивает у файловой системе информацию об объекте.
  */
 
 void TFileInfoEx::refresh()
@@ -633,7 +651,7 @@ bool TFileInfoEx::isHidden() const
 //------------------------------------------------------------------------------
 //! Метод возвращает true, если объект является системным.
 /*!
-   \remarks Для Windows проверяестя наличие флага System.
+   \remarks Для Windows проверяется наличие флага System.
  */
 
 bool TFileInfoEx::isSystem() const
@@ -661,8 +679,8 @@ bool TFileInfoEx::isLink() const
 //! Метод возвращает true, если объект является ярлыком Windows.
 /*!
    Метод вернёт true только в случае, когда объект является ярлыком Windows
-   (файлом с расширением lnk) и этот ярлык действителен (т.е. удаётся определить
-   объект, на который он ссылается). Однако, этот объект может и не
+   (файлом с расширением lnk) и этот ярлык действителен, т.е. удаётся определить
+   объект, на который он ссылается. Однако, объект-назначение может и не
    существовать.
 
    \remarks В операционных системах, отличных от Windows, всегда вернёт false.
@@ -715,7 +733,14 @@ qint64 TFileInfoEx::size() const
 }
 
 //------------------------------------------------------------------------------
-//! Статистическая информация об объекте.
+//! Параметры объекта.
+/*!
+   Метод возвращает параметры текущего объекта. Поле Options результирующей
+   структуры типа TFileStat будет содержать флаги параметров, которые удалось
+   получить.
+
+   \arg What Флаги параметров, которые необходимо получить.
+ */
 
 TFileStat TFileInfoEx::stat(TFileStatOptions What) const
 {
@@ -746,12 +771,11 @@ TFileStat TFileInfoEx::stat(TFileStatOptions What) const
 }
 
 //------------------------------------------------------------------------------
-//! Установка статистики для другого объекта.
+//! Установка параметров для другого объекта.
 /*!
-   Метод устанавливает для файла с именем Target статистику данного файла.
-   В параметре What передаются флаги, указывающие, какую именно стстистику
-   необходимо установить. Возвращает перечень успешно установленных
-   параметров.
+   Метод устанавливает для объекта с именем Target статистику данного объекта.
+   В параметре What передаются флаги, указывающие, какие именно параметры
+   необходимо установить. Возвращает флаги успешно установленных параметров.
  */
 
 TFileStatOptions TFileInfoEx::copyStatTo(const QString& Target,
@@ -763,13 +787,16 @@ TFileStatOptions TFileInfoEx::copyStatTo(const QString& Target,
 }
 
 //------------------------------------------------------------------------------
-//! Установка статистики для текущего объекта.
+//! Установка параметров для текущего объекта.
 /*!
-   Метод устанавливает для текущего объекта статистику, переданную в структуре
-   Stat. Поле Options структуры указывает, какую именно статистику необходимо
-   установить. Возвращает перечень успешно установленных параметров.
+   Метод устанавливает для текущего объекта параметров, переданные в структуре
+   Stat. Поле Options структуры указывает, какие именно параметры необходимо
+   установить. Возвращает флаги успешно установленных параметров.
 
    \remarks Если объект не существует, ничего не делает.
+
+   \remarks Повторно запрашивает у файловой системы информацию об объекте после
+     изменения параметров.
  */
 
 TFileStatOptions TFileInfoEx::setStat(const TFileStat& Stat)
@@ -811,7 +838,7 @@ QString TFileInfoEx::linkTarget() const
    \remarks Если объект не является ссылкой, возвращается пустая строка.
    \remarks Объект с возвращённым именем может не существовать.
 
-   \sa isLink, linkTarget.
+   \sa isLink, isCyclicLink, linkTarget.
  */
 
 QString TFileInfoEx::fullyResolvedLink() const
@@ -825,8 +852,7 @@ QString TFileInfoEx::fullyResolvedLink() const
 
 bool TFileInfoEx::exists(const QString& Name)
 {
-    TFileInfoEx Info(Name);
-    return Info.exists();
+    return TFileInfoEx(Name).exists();
 }
 
 //------------------------------------------------------------------------------

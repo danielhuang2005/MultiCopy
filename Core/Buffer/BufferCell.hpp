@@ -36,8 +36,8 @@
 
 *******************************************************************************/
 
-#ifndef __BUFFERCELL__HPP__
-#define __BUFFERCELL__HPP__
+#ifndef __BUFFERCELL__HPP__3F1C3FDD_2FEF_4C18_B08C_A54A914DD9D1__
+#define __BUFFERCELL__HPP__3F1C3FDD_2FEF_4C18_B08C_A54A914DD9D1__
 
 //------------------------------------------------------------------------------
 
@@ -54,11 +54,10 @@ class TBufferCell
         bool     m_Locked;    //!< Флаг блокировки памяти.
         TCommand m_Command;   //!< Команда.
 
-        // Скрываем копирующий конструктор и оператор присваивания.
-        TBufferCell(const TBufferCell&);
-        TBufferCell& operator=(const TBufferCell&);
+        Q_DISABLE_COPY(TBufferCell)
+
     public:
-        TCommandData CommandData;
+        TCommandData CommandData;  //! Данные команды.
 
         explicit TBufferCell(int Size, bool Lock);
         ~TBufferCell();
@@ -69,11 +68,11 @@ class TBufferCell
         //! Указатель на блок данных.
         inline char* data() { return m_pData; }
 
-        //! Возвращает true, если память успешно выделена.
-        inline bool isAllocated() { return m_pData != 0; }
-
-        //! Указатель на блок данных.
+        //! Указатель на константный блок данных.
         inline const char* data() const { return m_pData; }
+
+        //! Возвращает true, если память успешно выделена.
+        inline bool isAllocated() const { return m_pData != 0; }
 
         //! Использованный объём буфера.
         inline int usedSize() const { return m_UsedSize; }
@@ -87,10 +86,13 @@ class TBufferCell
         */
         inline void setUsedSize(int UsedSize) { m_UsedSize = UsedSize; }
 
+        //! Команда.
         inline TCommand command() const { return m_Command; }
+
+        //! Установка команды.
         inline void setCommand(TCommand Command) { m_Command = Command; }
 };
 
 //------------------------------------------------------------------------------
 
-#endif // __BUFFERCELL__HPP__
+#endif // __BUFFERCELL__HPP__3F1C3FDD_2FEF_4C18_B08C_A54A914DD9D1__

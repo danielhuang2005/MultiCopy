@@ -109,17 +109,17 @@ class TFileInfoExData : public QSharedData
             void set(const QString& _Name, const WIN32_FIND_DATAW* _FindData);
             void init(const QString& _DirName, const WIN32_FIND_DATAW* _FindData);
         #else
-            QByteArray NativeName;
-            struct stat64 Stat;
+            QByteArray    NativeName;  //!< Системное имя.
+            struct stat64 Stat;        //!< Параметры объекта.
 
             void set(const struct stat64* _Stat = NULL);
         #endif
 
-        QString Name;                      //!< Имя объекта.
-        mutable QString LinkTarget;        //!< Назначение ссылки.
-        mutable QString ResolvedName;      //!< Полностью разыменованное имя.
-        mutable TFileInfoExAnalyzedFlags AnalyzedFlags;
-        mutable TFileInfoExTypeFlags     TypeFlags;
+                QString Name;          //!< Имя объекта.
+        mutable QString LinkTarget;    //!< Назначение ссылки.
+        mutable QString ResolvedName;  //!< Полностью разыменованное имя.
+        mutable TFileInfoExAnalyzedFlags AnalyzedFlags;  //!< Список проанализированных свойств.
+        mutable TFileInfoExTypeFlags     TypeFlags;      //!< Флаги типа объекта.
 
         TFileInfoExData();
         void clear();

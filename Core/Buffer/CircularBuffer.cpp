@@ -41,15 +41,14 @@
 //------------------------------------------------------------------------------
 //! Конструктор.
 /*!
- * \param CellsCount Число ячеек.
- * \param CellSize Объём ячейки (байт).
+   \param CellsCount Число ячеек.
+   \param CellSize   Объём ячейки (байт).
  */
 
 TCircularBuffer::TCircularBuffer(int CellsCount, int CellSize, bool Lock)
     : TBuffer(CellsCount, CellSize, Lock),
       TSynchronizer(CellsCount)
 {
-
 }
 
 //------------------------------------------------------------------------------
@@ -57,7 +56,6 @@ TCircularBuffer::TCircularBuffer(int CellsCount, int CellSize, bool Lock)
 
 TCircularBuffer::~TCircularBuffer()
 {
-
 }
 
 //------------------------------------------------------------------------------
@@ -71,7 +69,7 @@ TBufferCell* TCircularBuffer::firstFreeBlock()
 //------------------------------------------------------------------------------
 //! Указатель на первую готовую для потребителя ячейку.
 /*!
- * \param pConsumer Указатель на потребителя.
+   \param pConsumer Указатель на потребителя.
  */
 
 TBufferCell* TCircularBuffer::firstUsedBlock(void* pConsumer)

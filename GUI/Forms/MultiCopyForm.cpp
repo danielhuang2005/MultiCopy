@@ -45,6 +45,7 @@
 #include <QSettings>
 #include <QCloseEvent>
 
+#include "Core/Resources.hpp"
 #include "Core/Common/CommonFn.hpp"
 #include "Core/Task/GlobalStatistics.hpp"
 #include "GUI/Forms/SettingsForm.hpp"
@@ -476,9 +477,10 @@ void TMultiCopy::on_DestList_currentRowChanged(int currentRow)
 
 void TMultiCopy::on_actionAbout_triggered()
 {
+    int Bits = sizeof(void*) * 8;
     QString Text = tr(
-        "<p align='center'>MultiCopy, version 2.0.0</p>"
-    );
+        "<p align='center'>MultiCopy, version %1 (%2-bit)</p>"
+    ).arg(version()).arg(Bits);
     QString InformativeText = tr(
         "<p align='center'>This product licensed under GNU GPL version 3. For details see "
         "<a href='http://www.gnu.org/copyleft/gpl.html'>http://www.gnu.org/copyleft/gpl.html</a>.</p>"
@@ -616,6 +618,7 @@ void TMultiCopy::progressFormHidden()
 }
 
 //------------------------------------------------------------------------------
+//! Загрузка задания в форму.
 
 void TMultiCopy::loadTask(TSharedConstTask Task)
 {
@@ -715,11 +718,12 @@ void TMultiCopy::on_actionTaskSettings_triggered()
 void TMultiCopy::on_actionStatistics_triggered()
 {
     TGlobalStatistics* pGS = TGlobalStatistics::instance();
-    QString Text = tr("Readed: %1 from %n file(s)", "", pGS->FilesReaded)
-                     .arg(sizeToStr(pGS->BytesReaded)) + "\n\n" +
-                   tr("Writed: %1 to %n file(s)", "", pGS->FilesWrited)
-                     .arg(sizeToStr(pGS->BytesWrited)) + "\n\n" +
-                   tr("Tasks completed: %1").arg(pGS->TasksCompleted);
+    TGlobalStatistics::TStat Stat = pGS->get();
+    QString Text = tr("Readed: %1 from %n file(s)", "", Stat.FilesReaded)
+                     .arg(sizeToStr(Stat.BytesReaded)) + "\n\n" +
+                   tr("Writed: %1 to %n file(s)", "", Stat.FilesWrited)
+                     .arg(sizeToStr(Stat.BytesWrited)) + "\n\n" +
+                   tr("Tasks completed: %1").arg(Stat.TasksCompleted);
 
     QMessageBox *pBox = new QMessageBox(this);
     pBox->setAttribute(Qt::WA_DeleteOnClose);;

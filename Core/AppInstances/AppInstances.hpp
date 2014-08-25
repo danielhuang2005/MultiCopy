@@ -100,8 +100,8 @@ class TAppInstances : public TCoreAppInstances
 {
     Q_OBJECT
     private :
-        QWidget* m_pActivationWidget;  //!< Виджет для активации.
-        bool     m_ActivateOnMessage;  //!< Активировать при получении сообщения.
+        QWidget* m_pActivationWidget; //!< Виджет для активации.
+        bool     m_ActivateOnMessage; //!< Активировать при получении сообщения.
 
         void init();
 

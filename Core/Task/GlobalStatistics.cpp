@@ -39,28 +39,92 @@
 #include "GlobalStatistics.hpp"
 
 #include <QSettings>
+#include <QCoreApplication>
 
+#include "../Common/SharedMemory.hpp"
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//
+//         T G l o b a l S t a t i s t i c s : : T S t a t
+//
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//! Очистка.
+
+void TGlobalStatistics::TStat::clear()
+{
+    BytesReaded = 0;     BytesWrited = 0;
+    FilesReaded = 0;     FilesWrited = 0;
+    TasksCompleted = 0;
+}
+
+//------------------------------------------------------------------------------
+//! Конструктор.
+
+TGlobalStatistics::TStat::TStat()
+{
+    clear();
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//
+//        T G l o b a l S t a t i s t i c s : : T S t a t 2
+//
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//! Очистка.
+
+void TGlobalStatistics::TStat2::clear()
+{
+    TStat::clear();
+    Readed = false;
+}
+
+//------------------------------------------------------------------------------
+//! Конструктор.
+
+TGlobalStatistics::TStat2::TStat2()
+{
+    clear();
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//
+//                T G l o b a l S t a t i s t i c s
+//
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
 #define WRITE(Field) \
-    pSettings->setValue(#Field, Field);
+    pSettings->setValue(#Field, m_pStat2->Field);
 
 #define READ(Field, Type) \
-    Field = pSettings->value(#Field, Field).value<Type>();
+    m_pStat2->Field = pSettings->value(#Field, m_pStat2->Field).value<Type>();
 
 //------------------------------------------------------------------------------
 //! Имя группы в настройках по умолчанию.
 
-const QString TGlobalStatistics::DefaultGroup = "GlobalStatistics";
+const QString TGlobalStatistics::DefaultGroup = QLatin1String("GlobalStatistics");
 
 //------------------------------------------------------------------------------
 //! Конструктор.
 
 TGlobalStatistics::TGlobalStatistics()
-    : BytesReaded(0), BytesWrited(0),
-      FilesReaded(0), FilesWrited(0),
-      TasksCompleted(0)
+    : m_pSharedMemory(NULL),
+      m_pStat2(NULL)
 {
+    QString AppId = QCoreApplication::applicationFilePath();
+    #ifdef Q_OS_WIN
+        AppId = AppId.toLower();
+    #endif
+    AppId = QLatin1String("MultiCopy-GlobalStatistics-") + AppId.toUtf8().toHex();
+    m_pSharedMemory = new TSharedMemory<TStat2>(AppId);
+    m_pStat2 = m_pSharedMemory->data();
 }
 
 //------------------------------------------------------------------------------
@@ -68,6 +132,7 @@ TGlobalStatistics::TGlobalStatistics()
 
 TGlobalStatistics::~TGlobalStatistics()
 {
+    delete m_pSharedMemory;
 }
 
 //------------------------------------------------------------------------------
@@ -88,16 +153,34 @@ TGlobalStatistics* TGlobalStatistics::instance()
 
 void TGlobalStatistics::read(QSettings* pSettings, QString Group)
 {
-    if (Group.isEmpty())
-        Group = DefaultGroup;
+    TSharedMemoryLocker Locker(m_pSharedMemory);
+    Q_UNUSED(Locker);
 
-    pSettings->beginGroup(Group);
-    READ(BytesReaded,    qint64);
-    READ(BytesWrited,    qint64);
-    READ(FilesReaded,    qint64);
-    READ(FilesWrited,    qint64);
-    READ(TasksCompleted, qint64);
-    pSettings->endGroup();
+    if (m_pStat2 != NULL)
+    {
+        if (!m_pStat2->Readed)
+        {
+            if (Group.isEmpty())
+                Group = DefaultGroup;
+
+            pSettings->beginGroup(Group);
+            READ(BytesReaded,    qint64);
+            READ(BytesWrited,    qint64);
+            READ(FilesReaded,    qint64);
+            READ(FilesWrited,    qint64);
+            READ(TasksCompleted, qint64);
+            pSettings->endGroup();
+
+            m_pStat2->Readed = true;
+        }
+        else {
+            qWarning("TGlobalStatistics::read. Data already readed.");
+        }
+
+    }
+    else {
+        qWarning("TGlobalStatistics::read. Data pointer is NULL.");
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -109,16 +192,76 @@ void TGlobalStatistics::read(QSettings* pSettings, QString Group)
 
 void TGlobalStatistics::write(QSettings* pSettings, QString Group)
 {
-    if (Group.isEmpty())
-        Group = DefaultGroup;
+    TSharedMemoryLocker Locker(m_pSharedMemory);
+    Q_UNUSED(Locker);
 
-    pSettings->beginGroup(Group);
-    WRITE(BytesReaded);
-    WRITE(BytesWrited);
-    WRITE(FilesReaded);
-    WRITE(FilesWrited);
-    WRITE(TasksCompleted);
-    pSettings->endGroup();
+    if (m_pStat2 != NULL)
+    {
+        if (m_pStat2->Readed)
+        {
+            if (Group.isEmpty())
+                Group = DefaultGroup;
+
+            pSettings->beginGroup(Group);
+            WRITE(BytesReaded);
+            WRITE(BytesWrited);
+            WRITE(FilesReaded);
+            WRITE(FilesWrited);
+            WRITE(TasksCompleted);
+            pSettings->endGroup();
+        }
+        else {
+            qWarning("TGlobalStatistics::write. Data not readed.");
+        }
+    }
+    else {
+        qWarning("TGlobalStatistics::write. Data pointer is NULL.");
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Добавление статистики.
+
+void TGlobalStatistics::append(const TStat& Stat)
+{
+    TSharedMemoryLocker Locker(m_pSharedMemory);
+    Q_UNUSED(Locker);
+
+    if (m_pStat2 != NULL)
+    {
+        if (m_pStat2->Readed)
+        {
+            m_pStat2->BytesReaded += Stat.BytesReaded;
+            m_pStat2->BytesWrited += Stat.BytesWrited;
+            m_pStat2->FilesReaded += Stat.FilesReaded;
+            m_pStat2->FilesWrited += Stat.FilesWrited;
+            m_pStat2->TasksCompleted += Stat.TasksCompleted;
+        }
+        else {
+            qWarning("TGlobalStatistics::append. Data not readed.");
+        }
+    }
+    else {
+        qWarning("TGlobalStatistics::append. Data pointer is NULL.");
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Получение статистики.
+
+TGlobalStatistics::TStat TGlobalStatistics::get() const
+{
+    TSharedMemoryLocker Locker(m_pSharedMemory);
+    Q_UNUSED(Locker);
+
+    TStat Result;
+
+    if (m_pStat2 != NULL)
+        Result = *m_pStat2;
+    else
+        qWarning("TGlobalStatistics::get. Data pointer is NULL.");
+
+    return Result;
 }
 
 //------------------------------------------------------------------------------

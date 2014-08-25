@@ -39,6 +39,8 @@
 #ifndef __TASK__HPP__
 #define __TASK__HPP__
 
+//------------------------------------------------------------------------------
+
 #include <QStringList>
 #include <QSharedPointer>
 
@@ -60,21 +62,23 @@ struct TTaskSize {
 
 struct TTaskSettings
 {
-    bool BufferSizeAutoselect;  //!< Автовыбор объёма буфера.
-    int  RAMCellSize;           //!< Объём ячейки буфера.
-    int  RAMCellCount;          //!< Число ячеек буфера.
-    bool LockMemory;            //!< Блокировать страницы памяти.
-    bool NoUseCache;            //!< Не использовать системный кэш.
-    bool TotalCalc;             //!< Подсчитывать размер задания.
-    bool CheckFreeSpace;        //!< Проверять свободное место.
-    bool NoCreateRootDir;       //!< Не создавать корневой каталог.
-    int  SubDirsDepth;          //!< Глубина обхода подкаталогов.
-    bool CopyDateTime;          //!< Копировать дату и время.
-    bool CopyAttr;              //!< Копировать атрибуты.
-    bool CopyHidden;            //!< Копировать скрытые файлы и каталоги.
-    bool CopySystem;            //!< Копировать системные файлы и каталоги.
-    bool FollowShortcuts;       //!< Следовать по ярлыкам Windows.
-    bool CopyEmptyDirs;         //!< Копировать пустые каталоги.
+    bool   BufferSizeAutoselect;  //!< Автовыбор объёма буфера.
+    int    RAMCellSize;           //!< Объём ячейки буфера (байт).
+    int    RAMCellCount;          //!< Число ячеек буфера.
+    bool   LockMemory;            //!< Блокировать страницы памяти.
+    bool   NoUseCache;            //!< Не использовать системный кэш.
+    qint64 NoUseCacheFor;         //!< Не использовать системный кэш для файлов
+                                  //!< больших чем указано в этом параметре (байт).
+    bool   TotalCalc;             //!< Подсчитывать размер задания.
+    bool   CheckFreeSpace;        //!< Проверять свободное место.
+    bool   NoCreateRootDir;       //!< Не создавать корневой каталог.
+    int    SubDirsDepth;          //!< Глубина обхода подкаталогов.
+    bool   CopyDateTime;          //!< Копировать дату и время.
+    bool   CopyAttr;              //!< Копировать атрибуты.
+    bool   CopyHidden;            //!< Копировать скрытые файлы и каталоги.
+    bool   CopySystem;            //!< Копировать системные файлы и каталоги.
+    bool   FollowShortcuts;       //!< Следовать по ярлыкам Windows.
+    bool   CopyEmptyDirs;         //!< Копировать пустые каталоги.
 
     TTaskSettings();
     void setDefault();

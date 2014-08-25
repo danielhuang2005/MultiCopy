@@ -39,12 +39,9 @@
 #ifndef __FASTFILE__HPP__55EF0A7A_D675_4D11_B523_F04184A36AFF__
 #define __FASTFILE__HPP__55EF0A7A_D675_4D11_B523_F04184A36AFF__
 
-#ifndef _NO_FAST_FILE
-
-//------------------------------------------------------------------------------
-
 #include <QtGlobal>
-#include <QIODevice>
+#include <QString>
+//#include <QIODevice>
 
 #ifdef Q_OS_WIN
     #include <windows.h>
@@ -57,75 +54,59 @@
 
    \remarks Все методы класса выполняют те же функции, что и соответствующие
      методы класса QFile.
-
-   \remarks Если определён макрос _NO_FAST_FILE, то класс становится
-     эквивалентным классу QFile.
  */
 
 class TFastFile
 {
     private :
+        QString m_FileName;      //!< Имя файла.
+        QString m_ErrorString;   //!< Строка с сообщением об ошибке.
+        bool    m_DirectAccess;  //!< Флаг прямого доступа к файлу (без кэша).
+        int     m_BlockSize;     //!< Размер блока при прямом доступе.
         #ifdef Q_OS_WIN
             HANDLE m_Handle;    //!< Дескриптор файла.
         #else
             int m_fd;           //!< Дескриптор файла.
         #endif
-        QString m_FileName;     //!< Имя файла.
-        QString m_ErrorString;  //!< Строка с сообщением об ошибке.
 
         void setErrorString();
     public:
+        //! Режимы открытия файла.
+        enum OpenModeFlag {
+            omRead  = 0,  //!< Чтение.
+            omWrite = 1   //!< Запись.
+        };
+        typedef QFlags<OpenModeFlag> OpenMode;
+
         TFastFile();
         ~TFastFile();
 
         QString fileName() const;
         void setFileName(const QString& FileName);
-        virtual bool open(QIODevice::OpenMode Mode, bool UseCache = false);
-        virtual void close();
+        bool open(OpenMode Mode, bool DirectAccess = false, int BlockSize = -1);
+        void close();
         QString errorString() const;
         bool isOpen() const;
         qint64 read(char* data, qint64 maxSize);
         qint64 write(const char* data, qint64 maxSize);
-        virtual qint64 pos();
-        virtual bool seek(qint64 pos);
+        qint64 pos();
+        bool seek(qint64 pos);
         bool resize(qint64 Size);
         qint64 size();
         bool remove();
 
+        //! Прямой доступ к файлу (без кэша).
+        inline bool directAccess() const { return m_DirectAccess; }
+        //! Размер блока при прямом доступе.
+        /*!
+           \remarks Если прямой доступ отключен, метод возвращает -1.
+         */
+        inline int blockSize() const { return m_BlockSize; }
+
         static bool remove(const QString& FileName, QString* pErrorString = NULL);
+        static bool resize(const QString& FileName, qint64 Size);
 };
 
 //------------------------------------------------------------------------------
-
-#else
-
-//------------------------------------------------------------------------------
-
-#include <QFile>
-
-class TFastFile : public QFile
-{
-    public :
-        TFastFile() : QFile() { }
-        virtual ~TFastFile() { }
-        virtual bool open(QIODevice::OpenMode Mode, bool UseCache = false)
-        {
-            Q_UNUSED(UseCache);
-            return QFile::open(Mode);
-        }
-        static bool remove(const QString& FileName, QString* pErrorString = NULL)
-        {
-            QFile File(FileName);
-            bool Result = File.remove();
-            if (pErrorString != NULL)
-                *pErrorString = File.errorString();
-            return Result;
-        }
-
-};
-
-//------------------------------------------------------------------------------
-
-#endif // _NO_FAST_FILE
 
 #endif // __FASTFILE__HPP__55EF0A7A_D675_4D11_B523_F04184A36AFF__

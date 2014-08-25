@@ -243,8 +243,9 @@ bool TWriter::newFile(TFileData* pFileData, const QString &FileName)
 
     // Открываем файл.
     do {
-        if (!pFile->open(QIODevice::WriteOnly,
-                         !m_Task->TaskSettings.NoUseCache))
+        bool NoUseCache = m_Task->TaskSettings.NoUseCache &&
+                          (m_Size > m_Task->TaskSettings.NoUseCacheFor);
+        if (!pFile->open(TFastFile::omWrite, NoUseCache, IO_BLOCK_SIZE))
         {
             // Открыть файл не удалось.
 
@@ -261,8 +262,13 @@ bool TWriter::newFile(TFileData* pFileData, const QString &FileName)
         else {
             // Файл успешно открыт.
             pFileData->WritedBytes = 0;
-            if (m_Size >= 0)
-                pFile->resize(m_Size);
+            if (m_Size >= 0) {
+                qint64 Size = m_Size / IO_BLOCK_SIZE;
+                if (m_Size % IO_BLOCK_SIZE != 0)
+                    ++Size;
+                Size = Size * IO_BLOCK_SIZE;
+                pFile->resize(Size);
+            }
             break;
         }
     } while (true);
@@ -353,7 +359,9 @@ void TWriter::writeBlock(TFileData* pFileData, const TBufferCell *pCell)
     Q_ASSERT(isRunning());
     Q_ASSERT(pFileData != NULL);
     Q_ASSERT(pCell != NULL);
-    Q_ASSERT(pCell->command() == cmdWriteBlock);
+    Q_ASSERT(pCell->command() == cmdWriteBlock ||
+             pCell->command() == cmdCloseFile);
+    Q_ASSERT(pCell->usedSize() > 0);
 
     if (pFileData->Skip)
         return;
@@ -364,16 +372,24 @@ void TWriter::writeBlock(TFileData* pFileData, const TBufferCell *pCell)
     TFastFile* pFile = &pFileData->File;
     int Size = pCell->usedSize();  // Объем данных для записи.
 
-    if (Size <= 0) {
-        qWarning("TWriter::writeBlock. "
-                 "Attempt to write block with nonpositive size (%i).", Size);
-        return;
-    }
-
     if (!pFile->isOpen()) {
         if (m_pTaskStatus)
             m_pTaskStatus->writerSkip(this, pFile, Size);
         return;
+    }
+
+    // Коррекция размера для прямой записи.
+    if (pFile->blockSize() > 0)
+    {
+        if (Size % pFile->blockSize() != 0)
+        {
+            /* Если запись идёт блоками, неполный блок может быть только при
+               немедленном закрытии файла. */
+            Q_ASSERT(pCell->command() == cmdCloseFile);
+        }
+
+        Size = (Size / pFile->blockSize() + (Size % pFile->blockSize() != 0 ? 1 : 0)) * pFile->blockSize();
+        Q_ASSERT(Size <= pCell->size());
     }
 
     int Written = 0;                    // Записано байт за одну итерацию цикла.
@@ -431,6 +447,11 @@ void TWriter::writeBlock(TFileData* pFileData, const TBufferCell *pCell)
         }
     } while (true);
 
+    Q_ASSERT(WrittenTotal <= pCell->size());
+
+    if (WrittenTotal > pCell->usedSize())
+        WrittenTotal = pCell->usedSize();
+
     if (WrittenTotal > 0) {
         pFileData->WritedBytes += WrittenTotal;
         if (m_pTaskStatus)
@@ -442,7 +463,6 @@ void TWriter::writeBlock(TFileData* pFileData, const TBufferCell *pCell)
         if (Delta > 0)
             m_pTaskStatus->writerSkip(this, pFile, Delta);
     }
-
 }
 
 //------------------------------------------------------------------------------
@@ -451,7 +471,19 @@ void TWriter::writeBlock(TFileData* pFileData, const TBufferCell *pCell)
 void TWriter::writeBlock(const TBufferCell* pCell)
 {
     Q_ASSERT(isRunning());
-    Q_ASSERT(pCell->command() == cmdWriteBlock);
+    Q_ASSERT(pCell != NULL);
+    Q_ASSERT(pCell->command() == cmdWriteBlock ||
+             pCell->command() == cmdCloseFile);
+
+    if (pCell->usedSize() == 0)
+        return;
+
+    if (pCell->usedSize() < 0) {
+        qWarning("TWriter::writeBlock. "
+                 "Attempt to write block with negative size (%i).",
+                 pCell->usedSize());
+        return;
+    }
 
     for (int i = 0; i < m_FileData.count(); ++i)
         writeBlock(m_FileData[i], pCell);
@@ -479,10 +511,15 @@ void TWriter::closeFile(TFileData* pFileData, const TBufferCell* pCell)
     if (pCell != NULL && pCell->CommandData.Size >= 0)
         m_Size = pCell->CommandData.Size;
 
-    if (m_Size >= 0 && pFileData->WritedBytes != m_Size) {
-        // Удаление файлов, записанных не полностью.
-        pFileData->File.remove();
-        // TODO: Выдать сообщение об удалённом файле.
+    if (m_Size >= 0) {
+        if (pFileData->WritedBytes < m_Size) {
+            // Удаление файлов, записанных не полностью.
+            pFileData->File.remove();
+            // TODO: Выдать сообщение об удалённом файле.
+        }
+        else {
+            TFastFile::resize(pFileData->File.fileName(), m_Size);
+        }
     }
 
     if (m_pTaskStatus)
@@ -741,6 +778,7 @@ void TWriter::process()
                 writeBlock(pCell);
                 break;
             case cmdCloseFile :
+                writeBlock(pCell);
                 closeFiles(pCell);
                 break;
             case cmdSetFileStat :

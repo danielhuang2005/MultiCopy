@@ -165,7 +165,7 @@ void TTaskModel::retranslate()
 }
 
 //------------------------------------------------------------------------------
-//! Добавление задачи.
+//! Добавление задания.
 
 void TTaskModel::newTask(TSharedConstTask Task)
 {
@@ -193,6 +193,10 @@ void TTaskModel::newTask(TSharedConstTask Task)
 }
 
 //------------------------------------------------------------------------------
+//! Начало задания.
+/*!
+   Метод должен быть вызван при начале выполнения задания.
+ */
 
 void TTaskModel::beginTask(TSharedConstTask Task)
 {
@@ -212,13 +216,17 @@ void TTaskModel::beginTask(TSharedConstTask Task)
 }
 
 //------------------------------------------------------------------------------
-
+//! Завершение задания.
+/*!
+   Метод должен быть вызван при завершении выполнения задания.
+ */
 void TTaskModel::endTask(TSharedConstTask Task)
 {
     deleteTask(Task);
 }
 
 //------------------------------------------------------------------------------
+//! Удаление задания.
 
 void TTaskModel::deleteTask(TSharedConstTask Task)
 {
@@ -234,6 +242,7 @@ void TTaskModel::deleteTask(TSharedConstTask Task)
 }
 
 //------------------------------------------------------------------------------
+//! Удаление задания, расположенного в строке row.
 
 void TTaskModel::deleteTask(int row)
 {
@@ -255,6 +264,7 @@ void TTaskModel::deleteTask(int row)
 }
 
 //------------------------------------------------------------------------------
+//! Удаление списка заданий.
 
 void TTaskModel::deleteTasks(TTaskList TaskList)
 {
@@ -263,6 +273,7 @@ void TTaskModel::deleteTasks(TTaskList TaskList)
 }
 
 //------------------------------------------------------------------------------
+//! Определение номера задания по его индексу в модели.
 
 int TTaskModel::taskNumberForIndex(const QModelIndex& Index) const
 {
@@ -280,6 +291,10 @@ int TTaskModel::taskNumberForIndex(const QModelIndex& Index) const
 }
 
 //------------------------------------------------------------------------------
+//! Возвращает задание, расположенное в строке с номером row.
+/*!
+   \remarks Если номер неверный, возвращает пустое задание.
+ */
 
 TSharedConstTask TTaskModel::taskForNumber(int row) const
 {
@@ -295,6 +310,10 @@ TSharedConstTask TTaskModel::taskForNumber(int row) const
 }
 
 //------------------------------------------------------------------------------
+//! Возвращает задание, соответствующее индексу в модели.
+/*!
+   \remarks Если индекс неверный, возвращает пустое задание.
+ */
 
 TSharedConstTask TTaskModel::taskForIndex(const QModelIndex& Index) const
 {
@@ -302,6 +321,16 @@ TSharedConstTask TTaskModel::taskForIndex(const QModelIndex& Index) const
 }
 
 //------------------------------------------------------------------------------
+//! Перемещение задания.
+/*!
+   Метод перемещает задание, расположенное в строке с номером row на delta
+   позиций (отрицательное delta соответствует перемещению вверх, положительное -
+   вниз).
+
+   \remarks Если номер строки неверный, ничего не делает. Если новый номер
+     (row+delta) выходит за допустимые границы, он приводится к допустимому
+     диапазону.
+ */
 
 void TTaskModel::moveTask(int row, int delta)
 {

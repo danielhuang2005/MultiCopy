@@ -47,28 +47,48 @@
 //------------------------------------------------------------------------------
 
 class QSettings;
+template<typename T> class TSharedMemory;
 
 //------------------------------------------------------------------------------
 //! Класс для подсчёта общей статистики работы программы.
 
 class TGlobalStatistics
 {
+    public :
+        struct TStat {
+            qint64 BytesReaded;     //!< Число прочитанных байт.
+            qint64 BytesWrited;     //!< Число записанных байт.
+            qint64 FilesReaded;     //!< Число прочитанных файлов.
+            qint64 FilesWrited;     //!< Число записанных файлов.
+            qint64 TasksCompleted;  //!< Число завершённых задач.
+
+            void clear();
+            TStat();
+        };
+
     private :
+        struct TStat2 : public TStat {
+            bool Readed;  //!< Флаг заполнения структуры данными.
+            void clear();
+            TStat2();
+        };
+
         static const QString DefaultGroup;
+
+        TSharedMemory<TStat2>* m_pSharedMemory;  //!< Общая память.
+        TStat2*                m_pStat2;         //!< Данные в общей памяти.
 
         Q_DISABLE_COPY(TGlobalStatistics)
         explicit TGlobalStatistics();
         virtual ~TGlobalStatistics();
+
     public:
         static TGlobalStatistics* instance();
         void read(QSettings* pSettings, QString Group = QString());
         void write(QSettings* pSettings, QString Group = QString());
 
-        qint64 BytesReaded;     //!< Число прочитанных байт.
-        qint64 BytesWrited;     //!< Число записанных байт.
-        qint64 FilesReaded;     //!< Число прочитанных файлов.
-        qint64 FilesWrited;     //!< Число записанных файлов.
-        qint64 TasksCompleted;  //!< Число завершённых задач.
+        void append(const TStat& Stat);
+        TStat get() const;
 };
 
 //------------------------------------------------------------------------------

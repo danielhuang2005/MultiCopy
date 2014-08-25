@@ -40,6 +40,7 @@
 #define __CIRCULARBUFFER__HPP__3C99125C_A754_4B7C_AA1D_A46CC6BB65E9__
 
 #include "Buffer.hpp"
+
 #include "Core/Sync/Synchronizer.hpp"
 
 //------------------------------------------------------------------------------
@@ -51,6 +52,7 @@ class TCircularBuffer : public TBuffer, public TSynchronizer
         // Скрываем потенциально опасные методы.
         void clear();
         void resize(int);
+
     public:
         TCircularBuffer(int CellsCount, int CellSize, bool Lock);
         ~TCircularBuffer();

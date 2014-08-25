@@ -38,7 +38,6 @@
 
 #include "DirEnumerator.hpp"
 
-//#include <QDirIterator>
 #include <QDir>
 #include "Core/Common/CommonFn.hpp"
 
@@ -143,17 +142,12 @@ bool TDirEnumerator::start()
     /* Инициализация фильтра для QDirIterator. Флаг QDir::Dirs здесь не
        устанавливается, поскольку его необходимость зависит от глубины
        вложения просматриваемого подкаталога. */
-
-    // TODO: ???
-    //m_DirFilters = QDir::NoDotAndDotDot;
     if (m_Params.filter.testFlag(Files))
         m_DirFilters |= TDirIterator::Files;
     if (m_Params.filter.testFlag(Hidden))
         m_DirFilters |= TDirIterator::Hidden;
     if (m_Params.filter.testFlag(System))
         m_DirFilters |= TDirIterator::System;
-    /*if (!m_Params.filter.testFlag(SymLinks))
-        m_DirFilters |= QDir::NoSymLinks;*/
 
     m_RelPath.clear();
     m_RelPathValid = true;
@@ -178,6 +172,11 @@ bool TDirEnumerator::start()
 }
 
 //------------------------------------------------------------------------------
+//! Начало перечисления элементов каталога.
+/*!
+   \arg pAltName Указатель на строку с альтернативным именем каталога (имя,
+     полученное перечислителем, будет заменено на альтернативное).
+ */
 
 void TDirEnumerator::startDir(const QString* pAltName)
 {
@@ -263,6 +262,9 @@ bool TDirEnumerator::start(const TDirEnumerator::TParams *pParams)
 
 //------------------------------------------------------------------------------
 //! Запуск перечисления с указанными параметрами.
+/*!
+   \overload
+ */
 
 bool TDirEnumerator::start(const TDirEnumerator::TParams& Params)
 {
@@ -272,6 +274,9 @@ bool TDirEnumerator::start(const TDirEnumerator::TParams& Params)
 
 //------------------------------------------------------------------------------
 //! Запуск перечисления с указанными параметрами.
+/*!
+   \overload
+ */
 
 bool TDirEnumerator::start(const QString& StartPath,
                            const TDirEnumerator::TFilters Filter,
@@ -340,7 +345,7 @@ void TDirEnumerator::finish()
     m_InIterators.clear();
     m_OutIterators.clear();
     m_FileInfoEx.clear();
-    m_Started  = false;
+    m_Started = false;
 }
 
 //------------------------------------------------------------------------------
@@ -355,9 +360,11 @@ void TDirEnumerator::finish()
 
 QString TDirEnumerator::relPath() const
 {
-    if (!m_RelPathValid) {
+    if (!m_RelPathValid)
+    {
         m_RelPath.clear();
-        if (!m_Iterators.isEmpty()) {
+        if (!m_Iterators.isEmpty())
+        {
             if (m_RelNameWithRoot)
                 m_RelPath = m_Iterators[0].Name;
             for (int i = 1; i < m_Iterators.count(); ++i)
@@ -390,6 +397,12 @@ QString TDirEnumerator::relName() const
 }
 
 //------------------------------------------------------------------------------
+//! Относительное имя каталога для текущего элемента.
+/*!
+   \remarks При неверном индексе i возвращает пустую строку.
+
+   \sa subdirCount, relName, relPath, relNameWithRoot
+ */
 
 QString TDirEnumerator::subdirRelName(int i) const
 {
@@ -572,6 +585,7 @@ QStringList TDirEnumerator::subdirPaths() const
 }
 
 //------------------------------------------------------------------------------
+//! Список имён "каталогов входа".
 
 QStringList TDirEnumerator::subdirInPaths() const
 {
@@ -582,6 +596,7 @@ QStringList TDirEnumerator::subdirInPaths() const
 }
 
 //------------------------------------------------------------------------------
+//! Список имён "каталогов выхода".
 
 QStringList TDirEnumerator::subdirOutPaths() const
 {
@@ -704,7 +719,7 @@ int TDirEnumerator::subdirInCount() const
 }
 
 //------------------------------------------------------------------------------
-//! Число "новых" каталогов.
+//! Число "старых" каталогов.
 /*!
    Метод возвращает число каталогов, из которых был произведён выход при
    получении текущего элемента.

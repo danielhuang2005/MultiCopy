@@ -39,6 +39,8 @@
 #ifndef __LASTACTIONS__HPP__
 #define __LASTACTIONS__HPP__
 
+//------------------------------------------------------------------------------
+
 #include <QMap>
 
 #include "ErrorsAndActions.hpp"

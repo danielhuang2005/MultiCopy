@@ -39,6 +39,8 @@
 #ifndef __DIRITERATOR__HPP__4F804DD9_F806_4C0C_AE53_83FC68C494B8__
 #define __DIRITERATOR__HPP__4F804DD9_F806_4C0C_AE53_83FC68C494B8__
 
+//------------------------------------------------------------------------------
+
 #include <QString>
 #include <QFlags>
 
@@ -68,21 +70,21 @@ class TDirIterator
         typedef QFlags<TFilter> TFilters;
 
     private :
-        //! Статус экземпляра класса.
+        //! Перечисление статусов экземпляра класса.
         enum TStatus {
             stNotStarted,  //!< Перечисление ещё не запущено.
             stStarted,     //!< Перечисление запущено.
             stFinished     //!< Перечисление завершено.
         };
 
-        QString     m_StartPath;
-        TFilters    m_Filters;
-        TFileInfoEx m_FileInfoEx;
-        TStatus     m_Status;
+        QString     m_StartPath;   //!< Начальный путь перечисления.
+        TFilters    m_Filters;     //!< Фильтр выборки объектов.
+        TFileInfoEx m_FileInfoEx;  //!< Информация о текущем объекте.
+        TStatus     m_Status;      //!< Статус экземпляра класса.
 
         #ifdef Q_OS_WIN
-            HANDLE m_hFind;
-            WIN32_FIND_DATAW m_FindData;
+            HANDLE m_hFind;               //!< Дескриптор поиска.
+            WIN32_FIND_DATAW m_FindData;  //!< Данные текущего объекта.
         #else
             DIR* m_pDir;
         #endif
@@ -91,6 +93,7 @@ class TDirIterator
         bool nextRequired();
         void getNext();
         void finish();
+
     public:
         TDirIterator(const QString& StartPath, TFilters Filters);
         virtual ~TDirIterator();
@@ -99,9 +102,11 @@ class TDirIterator
 
         QString fileName() const;
         QString filePath() const;
-        QString path() const;
+        QString startPath() const;
         TFileInfoEx info() const;
 };
+
+//------------------------------------------------------------------------------
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(TDirIterator::TFilters)
 

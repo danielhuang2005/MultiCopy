@@ -45,22 +45,26 @@
 
 #include "Core/FastIO/FileInfoEx.hpp"
 
+//------------------------------------------------------------------------------
+
 enum TCommand {
-    cmdNoOp = -1,
-    cmdNewFile,
-    cmdNewDir,
-    cmdWriteBlock,
-    cmdCloseFile,
-    cmdSetFileStat,
-    cmdSetDirStat,
-    cmdUncompleteFile,
-    cmdEnd
+    cmdNoOp = -1,       //!< Нет операции.
+    cmdNewFile,         //!< Новый файл.
+    cmdNewDir,          //!< Новый каталог.
+    cmdWriteBlock,      //!< Запись блока.
+    cmdCloseFile,       //!< Закрытие файла.
+    cmdSetFileStat,     //!< Установка параметров файла.
+    cmdSetDirStat,      //!< Установка параметров каталога.
+    cmdUncompleteFile,  //!< Незавершённый файл.
+    cmdEnd              //!< Завершение задания.
 };
 
+//------------------------------------------------------------------------------
+
 struct TCommandData {
-    qint64    Size;
-    QString   ObjName;
-    TFileStat Stat;
+    qint64    Size;     //!< Размер файла.
+    QString   ObjName;  //!< Имя объекта.
+    TFileStat Stat;     //!< Параметры объекта.
 
     TCommandData();
     void clear();

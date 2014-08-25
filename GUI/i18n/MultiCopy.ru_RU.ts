@@ -246,7 +246,7 @@
     <message>
         <location filename="../../Core/Errors/ErrorHandler.cpp" line="96"/>
         <source>Error writing file.</source>
-        <translation>Ошибка при записи файл.</translation>
+        <translation>Ошибка при записи файла.</translation>
     </message>
     <message>
         <location filename="../../Core/Errors/ErrorHandler.cpp" line="99"/>
@@ -272,77 +272,77 @@
 <context>
     <name>TMultiCopy</name>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="346"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="347"/>
         <source>Add source file(s)</source>
         <translation>Добавить файл(ы) для копирования</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="363"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="364"/>
         <source>Add source folder</source>
         <translation>Добавить копируемый каталог</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="380"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="381"/>
         <source>Add destination folder</source>
         <translation>Добавить каталог-назначение</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="479"/>
-        <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 2.0.0&lt;/p&gt;</source>
-        <translation>&lt;p align=&apos;center&apos;&gt;MultiCopy, версия 2.0.0&lt;/p&gt;</translation>
+        <location filename="../Forms/MultiCopyForm.cpp" line="481"/>
+        <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version %1 (%2-bit)&lt;/p&gt;</source>
+        <translation>&lt;p align=&apos;center&apos;&gt;MultiCopy, версия %1 (%2-бит)&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="482"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="484"/>
         <source>&lt;p align=&apos;center&apos;&gt;This product licensed under GNU GPL version 3. For details see &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012 Yuri&amp;nbsp;Krugloff.&lt;br&gt; All rights reserved.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.org&apos;&gt;http://www.tver-soft.org&lt;/a&gt;&lt;/p&gt;</source>
-        <translation>&lt;p align=&apos;center&apos;&gt;Этот продукт распространяется под лицензией GNU GPL версии 3. Для получения подробностей обратитесь к &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012&amp;nbsp;Юрий Круглов. Все права защищены.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.org&apos;&gt;http://www.tver-soft.ru&lt;/a&gt;&lt;/p&gt;</translation>
+        <translation>&lt;p align=&apos;center&apos;&gt;Этот продукт распространяется под лицензией GNU GPL версии 3. Для получения подробностей обратитесь к &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012&amp;nbsp;Юрий Круглов. Все права защищены.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.org&apos;&gt;http://www.tver-soft.org&lt;/a&gt;&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="506"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="508"/>
         <source>Load sources list</source>
         <translation>Загрузить список источников</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="508"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="529"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="549"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="567"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="510"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="531"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="551"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="569"/>
         <source>Lists (*.lst);;All files (*.*)</source>
         <oldsource>Lists (*.lst);;All files(*.*)</oldsource>
         <translation>Списки (*.lst);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="527"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="529"/>
         <source>Load destinations list</source>
         <translation>Загрузить список назначений</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="547"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="549"/>
         <source>Save sources list</source>
         <translation>Сохранить список источников</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="565"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="567"/>
         <source>Save destinations list</source>
         <translation>Сохранить список назначений</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="644"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="647"/>
         <source>Save task</source>
         <translation>Сохранить задание</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="646"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="665"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="649"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="668"/>
         <source>Copy tasks (*.copy-task);;All files (*.*)</source>
         <translation>Задания копирования (*.copy-task);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="663"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="666"/>
         <source>Load task</source>
         <translation>Загрузить задание</translation>
     </message>
     <message numerus="yes">
-        <location filename="../Forms/MultiCopyForm.cpp" line="718"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="722"/>
         <source>Readed: %1 from %n file(s)</source>
         <translation>
             <numerusform>Прочитано: %1 из %n файла</numerusform>
@@ -351,7 +351,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../Forms/MultiCopyForm.cpp" line="720"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="724"/>
         <source>Writed: %1 to %n file(s)</source>
         <translation>
             <numerusform>Записано: %1 в %n файл</numerusform>
@@ -360,17 +360,17 @@
         </translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="722"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="726"/>
         <source>Tasks completed: %1</source>
         <translation>Завершено заданий: %1</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="726"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="730"/>
         <source>MultiCopy - Statistics</source>
         <translation>MultiCopy - Статистика</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="491"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="493"/>
         <source>MultiCopy - About</source>
         <translation>MultiCopy - О программе</translation>
     </message>
@@ -722,7 +722,7 @@
 <context>
     <name>TReader</name>
     <message>
-        <location filename="../../Core/Threads/Reader.cpp" line="352"/>
+        <location filename="../../Core/Threads/Reader.cpp" line="374"/>
         <source>(According to link &quot;%1&quot;)</source>
         <translation>(По ссылке &quot;%1&quot;)</translation>
     </message>
@@ -923,7 +923,7 @@
     </message>
     <message>
         <location filename="../Forms/TaskSettingsForm.ui" line="246"/>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="189"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="234"/>
         <source> MB</source>
         <translation> МБ</translation>
     </message>
@@ -955,32 +955,57 @@
         <translation>Не использовать системный кэш</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.ui" line="352"/>
+        <location filename="../Forms/TaskSettingsForm.ui" line="358"/>
+        <source>For files larger than</source>
+        <translation>Для файлов больше, чем</translation>
+    </message>
+    <message>
+        <location filename="../Forms/TaskSettingsForm.ui" line="373"/>
+        <source>B</source>
+        <translation>Б</translation>
+    </message>
+    <message>
+        <location filename="../Forms/TaskSettingsForm.ui" line="378"/>
+        <source>kB</source>
+        <translation>кБ</translation>
+    </message>
+    <message>
+        <location filename="../Forms/TaskSettingsForm.ui" line="383"/>
+        <source>MB</source>
+        <translation>МБ</translation>
+    </message>
+    <message>
+        <location filename="../Forms/TaskSettingsForm.ui" line="388"/>
+        <source>GB</source>
+        <translation>ГБ</translation>
+    </message>
+    <message>
+        <location filename="../Forms/TaskSettingsForm.ui" line="431"/>
         <source>Default</source>
         <translation>По умолчанию</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.ui" line="372"/>
+        <location filename="../Forms/TaskSettingsForm.ui" line="451"/>
         <source>OK</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.ui" line="379"/>
+        <location filename="../Forms/TaskSettingsForm.ui" line="458"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="193"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="238"/>
         <source> GB</source>
         <translation> ГБ</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="212"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="257"/>
         <source>Task Settings</source>
         <translation>Настройки задания</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="213"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="258"/>
         <source>Do set parameters on this tab to their default values?</source>
         <translation>Установить параметры на этой вкладке в их значения по умолчанию?</translation>
     </message>

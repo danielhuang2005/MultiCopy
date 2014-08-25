@@ -212,6 +212,7 @@ TTaskStatus::TWriterStat::TWriterStat()
 }
 
 //------------------------------------------------------------------------------
+//! Проверка регистрации обработчика.
 
 bool TTaskStatus::TWriterStat::isHandlerRegistered(const void* pHandler) const
 {
@@ -219,6 +220,7 @@ bool TTaskStatus::TWriterStat::isHandlerRegistered(const void* pHandler) const
 }
 
 //------------------------------------------------------------------------------
+//! Число зарегистрированных обработчиков.
 
 int TTaskStatus::TWriterStat::handlersCount() const
 {
@@ -226,6 +228,10 @@ int TTaskStatus::TWriterStat::handlersCount() const
 }
 
 //------------------------------------------------------------------------------
+//! Указатель на счётчики для указанного обработчика.
+/*!
+   \remarks Если обработчик не зарегистрирован, возвращает нулевой указатель.
+ */
 
 TTaskStatus::TCounters* TTaskStatus::TWriterStat::counters(const void* pHandler)
 {
@@ -237,6 +243,12 @@ TTaskStatus::TCounters* TTaskStatus::TWriterStat::counters(const void* pHandler)
 }
 
 //------------------------------------------------------------------------------
+//! Указатель на счётчики для указанного обработчика.
+/*!
+   \remarks Если обработчик не зарегистрирован, возвращает нулевой указатель.
+
+   \overload
+ */
 
 const TTaskStatus::TCounters* TTaskStatus::TWriterStat::counters(const void* pHandler) const
 {
@@ -248,6 +260,12 @@ const TTaskStatus::TCounters* TTaskStatus::TWriterStat::counters(const void* pHa
 }
 
 //------------------------------------------------------------------------------
+//! Регистрация обработчика.
+/*!
+   Метод регистрирует обработчик и возвращает указатель на счётчики, связанные
+   с этим обработчиком. Если обработчик уже зарегистрирован, новая группа
+   счётчиков не создаётся.
+ */
 
 TTaskStatus::TCounters* TTaskStatus::TWriterStat::registerHandler(const void* pHandler)
 {
@@ -255,6 +273,11 @@ TTaskStatus::TCounters* TTaskStatus::TWriterStat::registerHandler(const void* pH
 }
 
 //------------------------------------------------------------------------------
+//! Отмена регистрации обработчика.
+/*!
+   \return true, если обработчик успешно разрегистрирован и false, если
+     обработчик не был зарегистрирован.
+ */
 
 bool TTaskStatus::TWriterStat::unregisterHandler(const void* pHandler)
 {
@@ -262,6 +285,11 @@ bool TTaskStatus::TWriterStat::unregisterHandler(const void* pHandler)
 }
 
 //------------------------------------------------------------------------------
+//! Поиск самого медленного обработчика.
+/*!
+   Метод ищет самый медленный обработчик. Возвращает счётчики, связанные с этим
+   обработчиком и в переменную *ppHandler заносит указатель на обработчик.
+ */
 
 const TTaskStatus::TCounters* TTaskStatus::TWriterStat::slowest(const void** ppHandler) const
 {
@@ -312,6 +340,11 @@ void TTaskStatus::TWriterStat::end()
 }
 
 //------------------------------------------------------------------------------
+//! Начало обработки нового файла.
+/*!
+   \arg RelName Относительное (!) имя файла.
+   \arg Size    Размер файла.
+ */
 
 void TTaskStatus::TWriterStat::newFile(const QString& RelName, qint64 Size)
 {
@@ -333,6 +366,7 @@ void TTaskStatus::TWriterStat::newFile(const QString& RelName, qint64 Size)
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
+//! Конструктор.
 
 TTaskStatus::TTotalStat::TTotalStat()
 {
@@ -340,6 +374,7 @@ TTaskStatus::TTotalStat::TTotalStat()
 }
 
 //------------------------------------------------------------------------------
+//! Добавление записанных байт.
 
 void TTaskStatus::TTotalStat::addWritedBytes(qint64 WritedBytes)
 {
@@ -347,6 +382,7 @@ void TTaskStatus::TTotalStat::addWritedBytes(qint64 WritedBytes)
 }
 
 //------------------------------------------------------------------------------
+//! Добавление записанных файлов.
 
 void TTaskStatus::TTotalStat::addWritedFiles(int Count)
 {
@@ -605,13 +641,15 @@ qint64 TTaskStatus::slowestWriter(const TWriterStat** ppWriterStat,
 }
 
 //------------------------------------------------------------------------------
+//! Внутренний метод отмены регистрации потока записи.
 
 void TTaskStatus::unregisterWriter_Private(const void* pWriter, const TCounters* pCounters)
 {
     Q_ASSERT(!m_WritersMutex.tryLock());
     Q_ASSERT(m_WritersStat.contains(pWriter));
 
-    if (m_WritersStat.count() == 1) {
+    if (m_WritersStat.count() == 1)
+    {
         // Отмена регистрации последнего потока записи.
         const TCounters* pLastCounters;
         if (pCounters != NULL)
@@ -839,8 +877,7 @@ bool TTaskStatus::isWriterRegistered(const void* pWriter) const
 }
 
 //------------------------------------------------------------------------------
-//! Проверка регистрации комбинации потока записи pWriter с
-//! обработчиком pHandler.
+//! Проверка регистрации комбинации потока записи pWriter с обработчиком pHandler.
 
 bool TTaskStatus::isWriterRegistered(const void* pWriter,
                                      const void* pHandler) const
@@ -893,6 +930,7 @@ int TTaskStatus::handlersCount(const void* pWriter) const
 }
 
 //------------------------------------------------------------------------------
+//! Общее число обработчиков.
 
 int TTaskStatus::handlersCount() const
 {
@@ -1013,6 +1051,7 @@ void TTaskStatus::readerEndTask()
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+//! Начало обработки задания потоком записи.
 
 void TTaskStatus::writerBeginTask(const void* pWriter)
 {
@@ -1302,11 +1341,13 @@ void TTaskStatus::end()
 
     TGlobalStatistics* pGS = TGlobalStatistics::instance();
     if (pGS != NULL) {
-        ++pGS->TasksCompleted;
-        pGS->BytesReaded += m_ReaderStat.counters()->totalProcessedBytes();
-        pGS->FilesReaded += m_ReaderStat.counters()->filesCompleted();
-        pGS->BytesWrited += m_TotalStat.writedBytes();
-        pGS->FilesWrited += m_TotalStat.writedFiles();
+        TGlobalStatistics::TStat Stat;
+        Stat.BytesReaded    = m_ReaderStat.counters()->totalProcessedBytes();
+        Stat.FilesReaded    = m_ReaderStat.counters()->filesCompleted();
+        Stat.BytesWrited    = m_TotalStat.writedBytes();
+        Stat.FilesWrited    = m_TotalStat.writedFiles();
+        Stat.TasksCompleted = 1;
+        pGS->append(Stat);
     }
     else {
         qWarning("TTaskStatus::end. Can't get global statistics.");
@@ -1351,6 +1392,7 @@ void TTaskStatus::resume()
 }
 
 //------------------------------------------------------------------------------
+//! Флаг запуска таймеров.
 
 bool  TTaskStatus::isStarted() const
 {
@@ -1367,9 +1409,18 @@ bool TTaskStatus::isPaused() const
 
 //------------------------------------------------------------------------------
 //! Скорость и время обработки.
+/*!
+   Метод заполняет поля структуры \c TSpeedAndTime, переданной в метод
+   по указателю.
+ */
 
 void TTaskStatus::speedAndTime(TSpeedAndTime* pSpeedAndTime) const
 {
+    if (pSpeedAndTime == NULL) {
+        qWarning("TTaskStatus::speedAndTime. Pointer to TSpeedAndTime is NULL.");
+        return;
+    }
+
     QMutexLocker Locker(&m_WritersMutex);
     Q_UNUSED(Locker);
 
@@ -1378,13 +1429,13 @@ void TTaskStatus::speedAndTime(TSpeedAndTime* pSpeedAndTime) const
     if (pCounters) {
         pSpeedAndTime->ElapsedTime = m_TimeCounter.msec();
 
-        qint64 speed = -1;
+        qint64 speed = 0;
         if (pSpeedAndTime->ElapsedTime > 0) {
             speed = pCounters->totalProcessedBytes() / pSpeedAndTime->ElapsedTime;
             pSpeedAndTime->Speed = 1000 * speed;
         }
         else
-            pSpeedAndTime->Speed = -1;
+            pSpeedAndTime->Speed = 0;
 
         if (speed > 0)
             pSpeedAndTime->RemainingTime = (m_TaskSize.TotalSize - pCounters->totalBytes()) / speed;
@@ -1394,7 +1445,7 @@ void TTaskStatus::speedAndTime(TSpeedAndTime* pSpeedAndTime) const
     else {
         pSpeedAndTime->ElapsedTime   = -1;
         pSpeedAndTime->RemainingTime = -1;
-        pSpeedAndTime->Speed         = -1;
+        pSpeedAndTime->Speed         = 0;
     }
 }
 
@@ -1424,6 +1475,7 @@ QString TTaskStatus::readedFileName() const
 }
 
 //------------------------------------------------------------------------------
+//! Относительное имя текущего файла-источника.
 
 QString TTaskStatus::readedFileRelName() const
 {
@@ -1434,6 +1486,7 @@ QString TTaskStatus::readedFileRelName() const
 }
 
 //------------------------------------------------------------------------------
+//! Имя каталога текущего файла-источника.
 
 QString TTaskStatus::readedFileDirName() const
 {

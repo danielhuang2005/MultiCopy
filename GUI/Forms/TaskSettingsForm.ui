@@ -179,7 +179,7 @@
       <attribute name="title">
        <string>Memory</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
@@ -328,6 +328,85 @@ Icon</string>
         </widget>
        </item>
        <item>
+        <widget class="QWidget" name="widget" native="true">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Minimum</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>10</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>For files larger than</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="NoUseCacheForNum">
+            <property name="maximum">
+             <number>1023</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="NoUseCacheForUnit">
+            <item>
+             <property name="text">
+              <string>B</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>kB</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>MB</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>GB</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -415,8 +494,8 @@ Icon</string>
    <slot>calculateRAM()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>119</x>
-     <y>74</y>
+     <x>237</x>
+     <y>139</y>
     </hint>
     <hint type="destinationlabel">
      <x>179</x>
@@ -431,12 +510,12 @@ Icon</string>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>119</x>
-     <y>74</y>
+     <x>140</x>
+     <y>113</y>
     </hint>
     <hint type="destinationlabel">
-     <x>112</x>
-     <y>74</y>
+     <x>133</x>
+     <y>139</y>
     </hint>
    </hints>
   </connection>
@@ -447,8 +526,8 @@ Icon</string>
    <slot>calculateRAM()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>119</x>
-     <y>74</y>
+     <x>127</x>
+     <y>139</y>
     </hint>
     <hint type="destinationlabel">
      <x>82</x>
@@ -469,6 +548,22 @@ Icon</string>
     <hint type="destinationlabel">
      <x>74</x>
      <y>74</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>NoUseCache</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>61</x>
+     <y>188</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>352</x>
+     <y>223</y>
     </hint>
    </hints>
   </connection>

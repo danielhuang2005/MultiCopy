@@ -71,6 +71,7 @@ void TTaskSettings2::read(QSettings *pS, const QString &Group)
     READ(RAMCellCount,         int);
     READ(LockMemory,           bool);
     READ(NoUseCache,           bool);
+    READ(NoUseCacheFor,        qint64);
     READ(TotalCalc,            bool);
     READ(CheckFreeSpace,       bool)
     READ(NoCreateRootDir,      bool);
@@ -105,6 +106,7 @@ void TTaskSettings2::write(QSettings *pS, const QString &Group)
     WRITE(RAMCellCount);
     WRITE(LockMemory);
     WRITE(NoUseCache);
+    WRITE(NoUseCacheFor);
     WRITE(TotalCalc);
     WRITE(CheckFreeSpace);
     WRITE(NoCreateRootDir);

@@ -39,6 +39,8 @@
 #ifndef __FILEINFOEX__HPP__
 #define __FILEINFOEX__HPP__
 
+//------------------------------------------------------------------------------
+
 #include <QString>
 #include <QSharedData>
 
@@ -48,7 +50,6 @@
     #include <windows.h>
 #else
     #include <utime.h>
-//    #include <sys/stat.h>
 #endif
 
 //------------------------------------------------------------------------------
@@ -67,7 +68,7 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(TFileStatOptions)
 //! Статистическая информация о файлах/каталогах.
 
 struct TFileStat {
-    TFileStatOptions Options;
+    TFileStatOptions Options;     //!< Параметры.
     #ifdef Q_OS_WIN
         FILETIME CreationTime;    //!< Время создания.
         FILETIME LastAccessTime;  //!< Время последнего доступа.
@@ -89,17 +90,20 @@ struct TFileStat {
 class TFileInfoExData;
 
 //------------------------------------------------------------------------------
+//! Класс предоставляет расширенную информацию об объектах файловой системы.
 
 class TFileInfoEx
 {
     private :
         friend class TDirIterator;
-        QSharedDataPointer<TFileInfoExData> m_Data;
+
+        QSharedDataPointer<TFileInfoExData> m_Data;  //!< Данные.
 
         void getInfo(const QString& Name);
         void resolveLink() const;
         void fullResolveLink() const;
         void analyzeCyclicLink() const;
+
     public:
         TFileInfoEx();
         TFileInfoEx(const TFileInfoEx& other);
