@@ -122,6 +122,7 @@ void TAppInstances::activateWindow()
             }
     }
     if (pWindow) {
+        pWindow = pWindow->window();
         pWindow->setWindowState(pWindow->windowState() & ~Qt::WindowMinimized);
         pWindow->raise();
         pWindow->activateWindow();

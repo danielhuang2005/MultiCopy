@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>TProgressForm</class>
- <widget class="QDialog" name="TProgressForm">
+ <widget class="QWidget" name="TProgressForm">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>423</width>
-    <height>377</height>
+    <width>405</width>
+    <height>358</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MultiCopy - Progress</string>
+   <string>%1 - Progress</string>
   </property>
   <property name="windowIcon">
    <iconset resource="MultiCopy.qrc">
-    <normaloff>:/MainIcon_16x16</normaloff>:/MainIcon_16x16</iconset>
+    <normaloff>:/MainIcon_32x32</normaloff>:/MainIcon_32x32</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
@@ -268,43 +268,122 @@
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <item>
-         <widget class="QPushButton" name="Task_Up">
+         <widget class="QToolButton" name="Task_Up">
           <property name="enabled">
            <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
           </property>
           <property name="text">
            <string>Up</string>
           </property>
+          <property name="icon">
+           <iconset resource="Resources.qrc">
+            <normaloff>:/ArrowUp_16x16</normaloff>:/ArrowUp_16x16</iconset>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextBesideIcon</enum>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="Task_Down">
+         <widget class="QToolButton" name="Task_Down">
           <property name="enabled">
            <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
           </property>
           <property name="text">
            <string>Down</string>
           </property>
+          <property name="icon">
+           <iconset resource="Resources.qrc">
+            <normaloff>:/ArrowDown_16x16</normaloff>:/ArrowDown_16x16</iconset>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextBesideIcon</enum>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="Task_Delete">
+         <widget class="QToolButton" name="Task_Delete">
           <property name="enabled">
            <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
           </property>
           <property name="text">
            <string>Delete</string>
           </property>
+          <property name="icon">
+           <iconset resource="Resources.qrc">
+            <normaloff>:/Delete_16x16</normaloff>:/Delete_16x16</iconset>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextBesideIcon</enum>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="Task_Edit">
+         <widget class="QToolButton" name="Task_Edit">
           <property name="enabled">
            <bool>false</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
           <property name="text">
            <string>Edit</string>
+          </property>
+          <property name="icon">
+           <iconset resource="Resources.qrc">
+            <normaloff>:/Edit_16x16</normaloff>:/Edit_16x16</iconset>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextBesideIcon</enum>
           </property>
          </widget>
         </item>
@@ -353,6 +432,10 @@
        <property name="text">
         <string>&amp;Pause</string>
        </property>
+       <property name="icon">
+        <iconset resource="Resources.qrc">
+         <normaloff>:/Pause_16x16</normaloff>:/Pause_16x16</iconset>
+       </property>
        <property name="checkable">
         <bool>true</bool>
        </property>
@@ -366,6 +449,10 @@
        <property name="text">
         <string>&amp;Cancel</string>
        </property>
+       <property name="icon">
+        <iconset resource="Resources.qrc">
+         <normaloff>:/Cancel_16x16</normaloff>:/Cancel_16x16</iconset>
+       </property>
       </widget>
      </item>
     </layout>
@@ -374,6 +461,7 @@
  </widget>
  <resources>
   <include location="MultiCopy.qrc"/>
+  <include location="Resources.qrc"/>
  </resources>
  <connections/>
 </ui>

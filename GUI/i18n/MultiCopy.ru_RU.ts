@@ -4,27 +4,27 @@
 <context>
     <name>Common::sizeToStr</name>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="343"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="404"/>
         <source>B</source>
         <translation>Б</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="347"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="408"/>
         <source>kB</source>
         <translation>кБ</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="351"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="412"/>
         <source>MB</source>
         <translation>МБ</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="355"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="416"/>
         <source>GB</source>
         <translation>ГБ</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="358"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="419"/>
         <source>TB</source>
         <translation>ТБ</translation>
     </message>
@@ -32,27 +32,27 @@
 <context>
     <name>Common::speedToStr</name>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="319"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="375"/>
         <source>B/s</source>
         <translation>Б/с</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="323"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="379"/>
         <source>kB/s</source>
         <translation>кБ/с</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="327"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="383"/>
         <source>MB/s</source>
         <translation>МБ/с</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="331"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="387"/>
         <source>GB/s</source>
         <translation>ГБ/с</translation>
     </message>
     <message>
-        <location filename="../../Core/Common/CommonFn.cpp" line="334"/>
+        <location filename="../../Core/Common/CommonFn.cpp" line="390"/>
         <source>TB/s</source>
         <translation>ТБ/с</translation>
     </message>
@@ -60,12 +60,12 @@
 <context>
     <name>LanguageDef</name>
     <message>
-        <location filename="../Forms/SettingsForm.cpp" line="101"/>
+        <location filename="../Forms/SettingsForm.cpp" line="103"/>
         <source>English</source>
         <translation>Русский</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.cpp" line="102"/>
+        <location filename="../Forms/SettingsForm.cpp" line="104"/>
         <source>en_US</source>
         <translation>ru_RU</translation>
     </message>
@@ -73,37 +73,37 @@
 <context>
     <name>QListWidget2</name>
     <message>
-        <location filename="../Widgets/QListWidget2.cpp" line="182"/>
+        <location filename="../Widgets/QListWidget2.cpp" line="175"/>
         <source>This element is not folder and won&apos;t be added.</source>
         <translation>Этот элемент - не каталог и не может быть добавлен.</translation>
     </message>
     <message>
-        <location filename="../Widgets/QListWidget2.cpp" line="186"/>
+        <location filename="../Widgets/QListWidget2.cpp" line="179"/>
         <source>Some elements is not folders and won&apos;t be added.</source>
         <translation>Некоторые элементы - не каталоги и не могут быть добавлены.</translation>
     </message>
     <message>
-        <location filename="../Widgets/QListWidget2.cpp" line="221"/>
+        <location filename="../Widgets/QListWidget2.cpp" line="214"/>
         <source>This element already added.</source>
         <translation>Этот элемент уже добавлен.</translation>
     </message>
     <message>
-        <location filename="../Widgets/QListWidget2.cpp" line="226"/>
+        <location filename="../Widgets/QListWidget2.cpp" line="219"/>
         <source>Some elements already added.</source>
         <translation>Некоторые элементы уже добавлены.</translation>
     </message>
     <message>
-        <location filename="../Widgets/QListWidget2.cpp" line="228"/>
+        <location filename="../Widgets/QListWidget2.cpp" line="221"/>
         <source>All elements already added.</source>
         <translation>Все элементы уже добавлены.</translation>
     </message>
     <message>
-        <location filename="../Widgets/QListWidget2.cpp" line="246"/>
+        <location filename="../Widgets/QListWidget2.cpp" line="239"/>
         <source>Continue?</source>
         <translation>Продолжать?</translation>
     </message>
     <message>
-        <location filename="../Widgets/QListWidget2.cpp" line="251"/>
+        <location filename="../Widgets/QListWidget2.cpp" line="244"/>
         <source>Operation can not be completed.</source>
         <translation>Операция не может быть завершена.</translation>
     </message>
@@ -272,77 +272,95 @@
 <context>
     <name>TMultiCopy</name>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="347"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="357"/>
+        <source>The next source folders are root folders:
+
+%1
+
+Is turn on the option &quot;Don&apos;t create root folders&quot; and continue?</source>
+        <translation>Следующие каталоги-источники являются корневыми:
+
+%1
+
+Включить опцию &quot;Не создавать корневые каталоги&quot; и продолжить?</translation>
+    </message>
+    <message>
+        <location filename="../Forms/MultiCopyForm.cpp" line="400"/>
         <source>Add source file(s)</source>
         <translation>Добавить файл(ы) для копирования</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="364"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="417"/>
         <source>Add source folder</source>
         <translation>Добавить копируемый каталог</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="381"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="434"/>
         <source>Add destination folder</source>
         <translation>Добавить каталог-назначение</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="481"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="529"/>
         <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version %1 (%2-bit)&lt;/p&gt;</source>
         <translation>&lt;p align=&apos;center&apos;&gt;MultiCopy, версия %1 (%2-бит)&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="484"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="532"/>
         <source>&lt;p align=&apos;center&apos;&gt;This product licensed under GNU GPL version 3. For details see &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012 Yuri&amp;nbsp;Krugloff.&lt;br&gt; All rights reserved.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.org&apos;&gt;http://www.tver-soft.org&lt;/a&gt;&lt;/p&gt;</source>
         <translation>&lt;p align=&apos;center&apos;&gt;Этот продукт распространяется под лицензией GNU GPL версии 3. Для получения подробностей обратитесь к &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012&amp;nbsp;Юрий Круглов. Все права защищены.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.org&apos;&gt;http://www.tver-soft.org&lt;/a&gt;&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="508"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="541"/>
+        <source>%1 - About</source>
+        <translation>%1 - О программе</translation>
+    </message>
+    <message>
+        <location filename="../Forms/MultiCopyForm.cpp" line="556"/>
         <source>Load sources list</source>
         <translation>Загрузить список источников</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="510"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="531"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="551"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="569"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="558"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="579"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="599"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="617"/>
         <source>Lists (*.lst);;All files (*.*)</source>
         <oldsource>Lists (*.lst);;All files(*.*)</oldsource>
         <translation>Списки (*.lst);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="529"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="577"/>
         <source>Load destinations list</source>
         <translation>Загрузить список назначений</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="549"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="597"/>
         <source>Save sources list</source>
         <translation>Сохранить список источников</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="567"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="615"/>
         <source>Save destinations list</source>
         <translation>Сохранить список назначений</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="647"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="696"/>
         <source>Save task</source>
         <translation>Сохранить задание</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="649"/>
-        <location filename="../Forms/MultiCopyForm.cpp" line="668"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="698"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="717"/>
         <source>Copy tasks (*.copy-task);;All files (*.*)</source>
         <translation>Задания копирования (*.copy-task);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="666"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="715"/>
         <source>Load task</source>
         <translation>Загрузить задание</translation>
     </message>
     <message numerus="yes">
-        <location filename="../Forms/MultiCopyForm.cpp" line="722"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="766"/>
         <source>Readed: %1 from %n file(s)</source>
         <translation>
             <numerusform>Прочитано: %1 из %n файла</numerusform>
@@ -351,7 +369,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../Forms/MultiCopyForm.cpp" line="724"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="768"/>
         <source>Writed: %1 to %n file(s)</source>
         <translation>
             <numerusform>Записано: %1 в %n файл</numerusform>
@@ -360,211 +378,214 @@
         </translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="726"/>
+        <location filename="../Forms/MultiCopyForm.cpp" line="770"/>
+        <source>Working time: %1</source>
+        <translation>Время работы: %1</translation>
+    </message>
+    <message>
+        <location filename="../Forms/MultiCopyForm.cpp" line="772"/>
         <source>Tasks completed: %1</source>
         <translation>Завершено заданий: %1</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="730"/>
-        <source>MultiCopy - Statistics</source>
-        <translation>MultiCopy - Статистика</translation>
+        <location filename="../Forms/MultiCopyForm.cpp" line="776"/>
+        <source>%1 - Statistics</source>
+        <translation>%1 - Статистика</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="493"/>
+        <source>MultiCopy - Statistics</source>
+        <translation type="obsolete">MultiCopy - Статистика</translation>
+    </message>
+    <message>
         <source>MultiCopy - About</source>
-        <translation>MultiCopy - О программе</translation>
+        <translation type="obsolete">MultiCopy - О программе</translation>
     </message>
 </context>
 <context>
     <name>TMultiCopyForm</name>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="14"/>
-        <source>MultiCopy</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="32"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="29"/>
         <source>Source(s)</source>
         <translation>Источник(и)</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="47"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="65"/>
         <source>&amp;Add File(s)</source>
         <translation>Ф&amp;айл(ы)</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="54"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="91"/>
         <source>Add F&amp;older</source>
         <oldsource>Add &amp;Folder</oldsource>
         <translation>&amp;Каталог</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="64"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="120"/>
         <source>&amp;Remove</source>
         <translation>&amp;Удалить</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="74"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="149"/>
         <source>&amp;Clear</source>
         <translation>&amp;Очистить</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="97"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="191"/>
         <source>&amp;Up</source>
         <translation>В&amp;верх</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="107"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="220"/>
         <source>Do&amp;wn</source>
         <oldsource>&amp;Down</oldsource>
         <translation>В&amp;низ</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="119"/>
-        <location filename="../Forms/MultiCopyForm.ui" line="187"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="251"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="401"/>
         <source>Add</source>
         <translation>Добавить</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="127"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="266"/>
         <source>Destination(s)</source>
         <translation>Назначение(-ия)</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="142"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="299"/>
         <source>A&amp;dd Folder</source>
         <translation>Ка&amp;талог</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="152"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="328"/>
         <source>Re&amp;move</source>
         <translation>Уда&amp;лить</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="162"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="357"/>
         <source>C&amp;lear</source>
         <translation>О&amp;чистить</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="200"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="421"/>
         <source>Task S&amp;ettings</source>
         <translation>Наст&amp;ройки задания</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="223"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="448"/>
         <source>&amp;Start</source>
         <translation>&amp;Запуск</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="242"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="471"/>
         <source>&amp;File</source>
         <oldsource>File</oldsource>
         <translation>&amp;Файл</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="255"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="484"/>
         <source>&amp;Help</source>
         <oldsource>Help</oldsource>
         <translation>&amp;Справка</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="264"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="493"/>
         <source>&amp;Tools</source>
         <translation>&amp;Инструменты</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="280"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="509"/>
         <source>About...</source>
         <translation>О программе...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="289"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="518"/>
         <source>About Qt...</source>
         <translation>О библиотеке Qt...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="294"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="527"/>
         <source>Quit</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="299"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="532"/>
         <source>Load sources list...</source>
         <translation>Загрузить список источников...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="302"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="535"/>
         <source>Load sources list from file</source>
         <translation>Загрузить список источников из файла</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="307"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="540"/>
         <source>Load destinations list...</source>
         <translation>Загрузить список назначений...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="310"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="543"/>
         <source>Load destinations list from file</source>
         <translation>Загрузить список назначений из файла</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="315"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="548"/>
         <source>Save sources list...</source>
         <translation>Сохранить список источников...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="318"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="551"/>
         <source>Save sources list to file</source>
         <translation>Сохранить список источников в файл</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="323"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="556"/>
         <source>Save destinations list...</source>
         <translation>Сохранить список назначений...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="326"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="559"/>
         <source>Save destinations list to file</source>
         <translation>Сохранить список назначений в файл</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="331"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="568"/>
         <source>Load task...</source>
         <translation>Загрузить задание...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="334"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="571"/>
         <source>Load task from file</source>
         <translation>Загрузить задание из файла</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="339"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="580"/>
         <source>Save task...</source>
         <translation>Сохранить задание...</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="342"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="583"/>
         <source>Save task to file</source>
         <translation>Сохранить задание в файл</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="352"/>
-        <location filename="../Forms/MultiCopyForm.ui" line="355"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="601"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="604"/>
         <source>Task Settings</source>
         <translation>Настройки задания</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="360"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="609"/>
         <source>Statistics</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="363"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="612"/>
         <source>Statistics of a program runtime</source>
         <translation>Статистика работы программы</translation>
     </message>
     <message>
-        <location filename="../Forms/MultiCopyForm.ui" line="347"/>
+        <location filename="../Forms/MultiCopyForm.ui" line="592"/>
         <source>General Settings</source>
         <translation>Общие настройки</translation>
     </message>
@@ -572,9 +593,8 @@
 <context>
     <name>TProgressForm</name>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="14"/>
         <source>MultiCopy - Progress</source>
-        <translation>MultiCopy - Выполнение</translation>
+        <translation type="obsolete">MultiCopy - Выполнение</translation>
     </message>
     <message>
         <location filename="../Forms/ProgressForm.ui" line="42"/>
@@ -612,6 +632,11 @@
         <translation>Скорость:</translation>
     </message>
     <message>
+        <location filename="../Forms/ProgressForm.ui" line="14"/>
+        <source>%1 - Progress</source>
+        <translation>%1 - Выполнение</translation>
+    </message>
+    <message>
         <location filename="../Forms/ProgressForm.ui" line="73"/>
         <source>Reading</source>
         <translation>Чтение</translation>
@@ -622,101 +647,99 @@
         <translation>Запись</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="277"/>
+        <location filename="../Forms/ProgressForm.ui" line="292"/>
         <source>Up</source>
         <translation>Вверх</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="287"/>
+        <location filename="../Forms/ProgressForm.ui" line="321"/>
         <source>Down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="297"/>
+        <location filename="../Forms/ProgressForm.ui" line="350"/>
         <source>Delete</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="307"/>
+        <location filename="../Forms/ProgressForm.ui" line="379"/>
         <source>Edit</source>
         <translation>Изменить</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="334"/>
+        <location filename="../Forms/ProgressForm.ui" line="413"/>
         <source>Don&apos;t close after finished</source>
         <translation>Не закрывать после завершения</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="354"/>
-        <location filename="../Forms/ProgressForm.cpp" line="660"/>
+        <location filename="../Forms/ProgressForm.ui" line="433"/>
         <source>&amp;Pause</source>
         <translation>&amp;Пауза</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.ui" line="367"/>
+        <location filename="../Forms/ProgressForm.ui" line="450"/>
         <source>&amp;Cancel</source>
         <translation>&amp;Отменить</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="238"/>
+        <location filename="../Forms/ProgressForm.cpp" line="370"/>
         <source>Unknown</source>
         <translation>Неизвестно</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="296"/>
-        <location filename="../Forms/ProgressForm.cpp" line="306"/>
+        <location filename="../Forms/ProgressForm.cpp" line="428"/>
+        <location filename="../Forms/ProgressForm.cpp" line="438"/>
         <source>%1 of %2</source>
         <translation>%1 из %2</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="381"/>
+        <location filename="../Forms/ProgressForm.cpp" line="515"/>
         <source>Cancel all tasks and close window?</source>
         <translation>Отменить все задания и закрыть окно?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="382"/>
+        <location filename="../Forms/ProgressForm.cpp" line="516"/>
         <source>Cancel task and close window?</source>
         <translation>Отменить задание и закрыть окно?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="385"/>
+        <location filename="../Forms/ProgressForm.cpp" line="521"/>
         <source>Cancel all tasks and close application?</source>
         <translation>Отменить все задания и закрыть приложение?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="386"/>
+        <location filename="../Forms/ProgressForm.cpp" line="522"/>
         <source>Cancel copy and close application?</source>
         <translation>Отменить копирование и закрыть приложение?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="406"/>
+        <location filename="../Forms/ProgressForm.cpp" line="550"/>
         <source>Do you really want to cancel a copy?</source>
         <translation>Вы действительно хотите отменить копирование?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="484"/>
+        <location filename="../Forms/ProgressForm.cpp" line="624"/>
         <source>Out of Memory!</source>
         <translation>Недостаточно памяти!</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="529"/>
+        <location filename="../Forms/ProgressForm.cpp" line="669"/>
         <source>Calculate task size...</source>
         <translation>Вычисление размера задания...</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="596"/>
+        <location filename="../Forms/ProgressForm.cpp" line="736"/>
         <source>All tasks are completed!</source>
         <translation>Все задачи завершены!</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="565"/>
+        <location filename="../Forms/ProgressForm.cpp" line="705"/>
         <source>Preparing...</source>
         <translation>Подготовка...</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="656"/>
         <source>&amp;Resume</source>
-        <translation>&amp;Продолжить</translation>
+        <translation type="obsolete">&amp;Продолжить</translation>
     </message>
 </context>
 <context>
@@ -730,14 +753,13 @@
 <context>
     <name>TSettingsForm</name>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="42"/>
+        <location filename="../Forms/SettingsForm.ui" line="97"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="17"/>
         <source>MultiCopy - General Settings</source>
-        <translation>MultiCopy - Общие настройки</translation>
+        <translation type="obsolete">MultiCopy - Общие настройки</translation>
     </message>
     <message>
         <location filename="../Forms/SettingsForm.ui" line="34"/>
@@ -745,57 +767,112 @@
         <translation>Вид</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="69"/>
+        <location filename="../Forms/SettingsForm.ui" line="124"/>
         <source>Show file and folder icons</source>
         <translation>Показывать значки файлов и каталогов</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="79"/>
-        <location filename="../Forms/SettingsForm.ui" line="160"/>
+        <location filename="../Forms/SettingsForm.ui" line="134"/>
+        <location filename="../Forms/SettingsForm.ui" line="215"/>
         <source>Also for network</source>
         <translation>Также для сетевых</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="101"/>
+        <location filename="../Forms/SettingsForm.ui" line="156"/>
         <source>Fields for manual files and folders name input</source>
         <oldsource>Fields for manual file name input</oldsource>
         <translation>Поля ручного ввода имён файлов и каталогов</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="122"/>
+        <location filename="../Forms/SettingsForm.ui" line="40"/>
+        <source>Tool Buttons</source>
+        <translation>Кнопки панелей инструментов</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="17"/>
+        <source>%1 - General Settings</source>
+        <translation>%1 - Общие настройки</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="52"/>
+        <source>Icon only</source>
+        <translation>Только значки</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="57"/>
+        <source>Text only</source>
+        <translation>Только текст</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="62"/>
+        <source>Icon &amp; Text</source>
+        <translation>Значки и текст</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="70"/>
+        <source>Flat</source>
+        <translation>Плоские</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="177"/>
         <source>System</source>
         <translation>Система</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="128"/>
+        <location filename="../Forms/SettingsForm.ui" line="183"/>
         <source>Run only one instance of program</source>
         <translation>Только одна копия программы</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="137"/>
+        <location filename="../Forms/SettingsForm.ui" line="192"/>
         <source>Check destinations folders</source>
         <translation>Проверять каталоги назначения</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="188"/>
+        <location filename="../Forms/SettingsForm.ui" line="224"/>
+        <source>After task start</source>
+        <translation>После запуска задания</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="230"/>
+        <source>Clear sources list</source>
+        <translation>Очистить список источников</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="237"/>
+        <source>Clear destinations list</source>
+        <translation>Очистить список назначений</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.ui" line="266"/>
         <source>Default</source>
         <translation>По умолчанию</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="208"/>
+        <location filename="../Forms/SettingsForm.ui" line="286"/>
         <source>OK</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.ui" line="215"/>
+        <location filename="../Forms/SettingsForm.ui" line="293"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../Forms/SettingsForm.cpp" line="87"/>
+        <location filename="../Forms/SettingsForm.cpp" line="89"/>
         <source>Autodetect</source>
         <comment>Specify here language name</comment>
         <translation>Автоматически</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.cpp" line="221"/>
+        <source>General Settings</source>
+        <translation>Общие настройки</translation>
+    </message>
+    <message>
+        <location filename="../Forms/SettingsForm.cpp" line="222"/>
+        <source>Do set parameters on this tab to their default values?</source>
+        <translation>Установить параметры на этой вкладке в их значения по умолчанию?</translation>
     </message>
 </context>
 <context>
@@ -832,9 +909,8 @@
 <context>
     <name>TTaskSettingsForm</name>
     <message>
-        <location filename="../Forms/TaskSettingsForm.ui" line="17"/>
         <source>MultiCopy - Task Settings</source>
-        <translation>MultiCopy - Настройки задания</translation>
+        <translation type="obsolete">MultiCopy - Настройки задания</translation>
     </message>
     <message>
         <location filename="../Forms/TaskSettingsForm.ui" line="77"/>
@@ -897,6 +973,11 @@
         <translation>Копировать системные файлы и каталоги</translation>
     </message>
     <message>
+        <location filename="../Forms/TaskSettingsForm.ui" line="17"/>
+        <source>%1 - Task Settings</source>
+        <translation>%1 - Настройки задания</translation>
+    </message>
+    <message>
         <location filename="../Forms/TaskSettingsForm.ui" line="180"/>
         <source>Memory</source>
         <translation>Память</translation>
@@ -923,7 +1004,7 @@
     </message>
     <message>
         <location filename="../Forms/TaskSettingsForm.ui" line="246"/>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="234"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="248"/>
         <source> MB</source>
         <translation> МБ</translation>
     </message>
@@ -995,17 +1076,17 @@
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="238"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="252"/>
         <source> GB</source>
         <translation> ГБ</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="257"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="271"/>
         <source>Task Settings</source>
         <translation>Настройки задания</translation>
     </message>
     <message>
-        <location filename="../Forms/TaskSettingsForm.cpp" line="258"/>
+        <location filename="../Forms/TaskSettingsForm.cpp" line="272"/>
         <source>Do set parameters on this tab to their default values?</source>
         <translation>Установить параметры на этой вкладке в их значения по умолчанию?</translation>
     </message>

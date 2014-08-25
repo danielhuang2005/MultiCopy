@@ -44,6 +44,7 @@
 //------------------------------------------------------------------------------
 
 class QSettings;
+class QWidget;
 
 //------------------------------------------------------------------------------
 //! Потомок класса TTaskSettings с возможностью сохранения настроек.
@@ -59,12 +60,20 @@ struct TTaskSettings2 : public TTaskSettings
 
 struct TGeneralSettings
 {
-    bool SingleInstance;        //!< Только один экземпляр приложения.
-    bool ShowFileIcons;         //!< Показывать иконки файлов и каталогов.
-    bool ShowNetworkIcons;      //!< Показывать иконки для сетевых объектов.
-    bool ShowNameEditors;       //!< Показывать поля ручного ввода имён.
-    bool CheckDestDirs;         //!< Проверять объекты назначения на тип "каталог".
-    bool CheckNetworkDestDirs;  //!< Проверять также сетевые объекты назначения.
+    bool SingleInstance;           //!< Только один экземпляр приложения.
+    bool ShowFileIcons;            //!< Показывать иконки файлов и каталогов.
+    bool ShowNetworkIcons;         //!< Показывать иконки для сетевых объектов.
+    bool ShowNameEditors;          //!< Показывать поля ручного ввода имён.
+    bool CheckDestDirs;            //!< Проверять объекты назначения на тип
+                                   //!< "каталог".
+    bool CheckNetworkDestDirs;     //!< Проверять также сетевые объекты
+                                   //!< назначения на тип "каталог".
+    bool FlatToolButtons;          //!< Плоские кнопки панелей инструментов.
+    int  ToolButtonStyle;          //!< Стиль кнопок панелей инструментов.
+    bool AfterStartClearSrcList;   //!< Очищать список источников
+                                   //!< после запуска задания.
+    bool AfterStartClearDestList;  //!< Очищать список назначений
+                                   //!< после запуска задания.
 
     void setDefault();
     void read(QSettings* pS, const QString& Group = QString());
@@ -101,6 +110,10 @@ class TSettings
         //! Возвращает указатель на внутренний объект типа QSettings.
         inline QSettings* getQSettings() { return m_pQSettings; }
 };
+
+//------------------------------------------------------------------------------
+
+void setToolButtonsSettings(QWidget* pForm);
 
 //------------------------------------------------------------------------------
 

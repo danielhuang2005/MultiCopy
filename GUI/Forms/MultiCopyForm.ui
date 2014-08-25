@@ -6,12 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>344</width>
-    <height>466</height>
+    <width>336</width>
+    <height>500</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>MultiCopy</string>
   </property>
   <property name="windowIcon">
    <iconset resource="MultiCopy.qrc">
@@ -37,41 +34,126 @@
           <property name="acceptDrops">
            <bool>true</bool>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
          </widget>
         </item>
         <item row="0" column="1">
          <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMaximumSize</enum>
+          </property>
           <item>
-           <widget class="QPushButton" name="SrcAddFile">
+           <widget class="QToolButton" name="SrcAddFile">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
             <property name="text">
              <string>&amp;Add File(s)</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="SrcAddFolder">
-            <property name="text">
-             <string>Add F&amp;older</string>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/AddFile_16x16</normaloff>:/AddFile_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="SrcRemove">
+           <widget class="QToolButton" name="SrcAddFolder">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Add F&amp;older</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/AddFolder_16x16</normaloff>:/AddFolder_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="SrcRemove">
             <property name="enabled">
              <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
             </property>
             <property name="text">
              <string>&amp;Remove</string>
             </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/Delete_16x16</normaloff>:/Delete_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="SrcClear">
+           <widget class="QToolButton" name="SrcClear">
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
             <property name="text">
              <string>&amp;Clear</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/Clear_16x16</normaloff>:/Clear_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
            </widget>
           </item>
@@ -89,22 +171,60 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="SrcUp">
+           <widget class="QToolButton" name="SrcUp">
             <property name="enabled">
              <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
             </property>
             <property name="text">
              <string>&amp;Up</string>
             </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/ArrowUp_16x16</normaloff>:/ArrowUp_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="SrcDown">
+           <widget class="QToolButton" name="SrcDown">
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
             <property name="text">
              <string>Do&amp;wn</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/ArrowDown_16x16</normaloff>:/ArrowDown_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
            </widget>
           </item>
@@ -114,9 +234,28 @@
          <widget class="QLineEdit" name="SrcCustom"/>
         </item>
         <item row="1" column="1">
-         <widget class="QPushButton" name="SrcAddCustom">
+         <widget class="QToolButton" name="SrcAddCustom">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
           <property name="text">
            <string>Add</string>
+          </property>
+          <property name="icon">
+           <iconset resource="Resources.qrc">
+            <normaloff>:/Add_16x16</normaloff>:/Add_16x16</iconset>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextBesideIcon</enum>
           </property>
          </widget>
         </item>
@@ -132,34 +271,97 @@
           <property name="acceptDrops">
            <bool>true</bool>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
          </widget>
         </item>
         <item row="0" column="1">
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QPushButton" name="DestAddFolder">
+           <widget class="QToolButton" name="DestAddFolder">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
             <property name="text">
              <string>A&amp;dd Folder</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/AddFolder_16x16</normaloff>:/AddFolder_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="DestRemove">
+           <widget class="QToolButton" name="DestRemove">
             <property name="enabled">
              <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
             </property>
             <property name="text">
              <string>Re&amp;move</string>
             </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/Delete_16x16</normaloff>:/Delete_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="DestClear">
+           <widget class="QToolButton" name="DestClear">
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
             <property name="text">
              <string>C&amp;lear</string>
+            </property>
+            <property name="icon">
+             <iconset resource="Resources.qrc">
+              <normaloff>:/Clear_16x16</normaloff>:/Clear_16x16</iconset>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
            </widget>
           </item>
@@ -182,9 +384,28 @@
          <widget class="QLineEdit" name="DestCustom"/>
         </item>
         <item row="1" column="1">
-         <widget class="QPushButton" name="DestAddCustom">
+         <widget class="QToolButton" name="DestAddCustom">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>24</height>
+           </size>
+          </property>
           <property name="text">
            <string>Add</string>
+          </property>
+          <property name="icon">
+           <iconset resource="Resources.qrc">
+            <normaloff>:/Add_16x16</normaloff>:/Add_16x16</iconset>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextBesideIcon</enum>
           </property>
          </widget>
         </item>
@@ -198,6 +419,10 @@
        <widget class="QPushButton" name="TaskSettings">
         <property name="text">
          <string>Task S&amp;ettings</string>
+        </property>
+        <property name="icon">
+         <iconset resource="Resources.qrc">
+          <normaloff>:/TaskSettings_16x16</normaloff>:/TaskSettings_16x16</iconset>
         </property>
        </widget>
       </item>
@@ -222,6 +447,10 @@
         <property name="text">
          <string>&amp;Start</string>
         </property>
+        <property name="icon">
+         <iconset resource="Resources.qrc">
+          <normaloff>:/Start_16x16</normaloff>:/Start_16x16</iconset>
+        </property>
        </widget>
       </item>
      </layout>
@@ -233,7 +462,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>344</width>
+     <width>336</width>
      <height>21</height>
     </rect>
    </property>
@@ -282,7 +511,7 @@
   </action>
   <action name="actionAbout_Qt">
    <property name="icon">
-    <iconset resource="MultiCopy.qrc">
+    <iconset resource="Resources.qrc">
      <normaloff>:/qt_16x16</normaloff>:/qt_16x16</iconset>
    </property>
    <property name="text">
@@ -290,6 +519,10 @@
    </property>
   </action>
   <action name="actionQuit">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/Exit_16x16</normaloff>:/Exit_16x16</iconset>
+   </property>
    <property name="text">
     <string>Quit</string>
    </property>
@@ -327,6 +560,10 @@
    </property>
   </action>
   <action name="actionLoadTask">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/LoadTask_16x16</normaloff>:/LoadTask_16x16</iconset>
+   </property>
    <property name="text">
     <string>Load task...</string>
    </property>
@@ -335,6 +572,10 @@
    </property>
   </action>
   <action name="actionSaveTask">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/SaveTask_16x16</normaloff>:/SaveTask_16x16</iconset>
+   </property>
    <property name="text">
     <string>Save task...</string>
    </property>
@@ -343,11 +584,19 @@
    </property>
   </action>
   <action name="actionGeneralSettings">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/GeneralSettings_16x16</normaloff>:/GeneralSettings_16x16</iconset>
+   </property>
    <property name="text">
     <string>General Settings</string>
    </property>
   </action>
   <action name="actionTaskSettings">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/TaskSettings_16x16</normaloff>:/TaskSettings_16x16</iconset>
+   </property>
    <property name="text">
     <string>Task Settings</string>
    </property>
@@ -394,6 +643,7 @@
  </tabstops>
  <resources>
   <include location="MultiCopy.qrc"/>
+  <include location="Resources.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -413,46 +663,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>SrcAddCustom</sender>
-   <signal>clicked()</signal>
-   <receiver>TMultiCopyForm</receiver>
-   <slot>addCustomSrc()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>295</x>
-     <y>248</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>268</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>DestAddCustom</sender>
-   <signal>clicked()</signal>
-   <receiver>TMultiCopyForm</receiver>
-   <slot>addCustomDest()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>294</x>
-     <y>404</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>253</x>
-     <y>431</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>SrcCustom</sender>
    <signal>returnPressed()</signal>
    <receiver>TMultiCopyForm</receiver>
    <slot>addCustomSrc()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>30</x>
-     <y>244</y>
+     <x>49</x>
+     <y>229</y>
     </hint>
     <hint type="destinationlabel">
      <x>94</x>
@@ -467,8 +685,8 @@
    <slot>addCustomDest()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>35</x>
-     <y>401</y>
+     <x>54</x>
+     <y>446</y>
     </hint>
     <hint type="destinationlabel">
      <x>66</x>
@@ -515,12 +733,76 @@
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>47</x>
-     <y>444</y>
+     <x>57</x>
+     <y>489</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>SrcAddCustom</sender>
+   <signal>clicked()</signal>
+   <receiver>TMultiCopyForm</receiver>
+   <slot>addCustomSrc()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>273</x>
+     <y>222</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>433</x>
+     <y>219</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>DestAddCustom</sender>
+   <signal>clicked()</signal>
+   <receiver>TMultiCopyForm</receiver>
+   <slot>addCustomDest()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>271</x>
+     <y>434</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>335</x>
+     <y>435</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>SrcList</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>TMultiCopyForm</receiver>
+   <slot>srcChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>186</x>
+     <y>156</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>6</x>
+     <y>69</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>DestList</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>TMultiCopyForm</receiver>
+   <slot>destChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>162</x>
+     <y>353</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>332</x>
+     <y>374</y>
     </hint>
    </hints>
   </connection>

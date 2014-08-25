@@ -76,6 +76,7 @@ class TSettingsForm : public QDialog
         void writeData_ViewParams(TGeneralSettings* pGS);
         void writeData_SystemParams(TGeneralSettings* pGS);
         void writeData(TGeneralSettings* pGS);
+        void retranslateTitle();
 
     protected :
         virtual void closeEvent(QCloseEvent *Event);

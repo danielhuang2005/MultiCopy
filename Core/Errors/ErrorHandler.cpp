@@ -222,7 +222,7 @@ void TErrorHandler::errorReceiver(TErrorData* pErrorData)
 
 
     // Запрос действия у пользователя.
-    userPrompt(pErrorData);
+    pErrorData->Action = userPrompt(pErrorData);
     emit errorProcessed(pErrorData);
 }
 

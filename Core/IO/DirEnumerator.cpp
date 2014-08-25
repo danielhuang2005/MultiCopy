@@ -349,27 +349,53 @@ void TDirEnumerator::finish()
 }
 
 //------------------------------------------------------------------------------
+//! Полное имя элемента (включает путь).
+
+QString TDirEnumerator::name() const
+{
+    return m_FileInfoEx.name();
+}
+
+//------------------------------------------------------------------------------
 //! Относительный путь элемента.
 /*!
    Метод возвращает относительный путь текущего элемента перечисления. Путь
    строится относительно стартового каталога. Имя элемента в путь не
    включается.
 
-   \sa startDirPath, relName, info, pInfo
+   \arg WithRoot Если true, то в относительный путь добавляется имя корневого
+     каталога, если false - не добавляется. Подробнее см. в описании метода
+     \c setRelNameWithRoot.
+
+   \sa relPath, startDirPath, name, relName, relNameWithRoot
+ */
+
+QString TDirEnumerator::relPath(bool WithRoot) const
+{
+    QString Result;
+    if (!m_Iterators.isEmpty()) {
+        if (WithRoot)
+            Result = m_Iterators[0].Name;
+        for (int i = 1, c = m_Iterators.count(); i < c; ++i)
+            AddWithSeparator(&Result, m_Iterators[i].Name);
+    }
+    return Result;
+}
+
+//------------------------------------------------------------------------------
+//! Относительный путь элемента.
+/*!
+   Метод возвращает относительный путь текущего элемента перечисления. Путь
+   строится относительно стартового каталога. Имя элемента в путь не
+   включается.
+
+   \sa relPath(bool), startDirPath, relName, relNameWithRoot
  */
 
 QString TDirEnumerator::relPath() const
 {
-    if (!m_RelPathValid)
-    {
-        m_RelPath.clear();
-        if (!m_Iterators.isEmpty())
-        {
-            if (m_RelNameWithRoot)
-                m_RelPath = m_Iterators[0].Name;
-            for (int i = 1; i < m_Iterators.count(); ++i)
-                AddWithSeparator(&m_RelPath, m_Iterators[i].Name);
-        }
+    if (!m_RelPathValid) {
+        m_RelPath = relPath(m_RelNameWithRoot);
         m_RelPathValid = true;
     }
     return m_RelPath;
@@ -381,12 +407,16 @@ QString TDirEnumerator::relPath() const
    Метод возвращает относительный путь с именем текущего элемента перечисления.
    Путь строится относительно стартового каталога.
 
-   \sa startDirPath, relPath, info, pInfo
+   \arg WithRoot Если true, то в относительный путь добавляется имя корневого
+     каталога, если false - не добавляется. Подробнее см. в описании метода
+     \c setRelNameWithRoot.
+
+   \sa relName, startDirPath, relPath(bool)
  */
 
-QString TDirEnumerator::relName() const
+QString TDirEnumerator::relName(bool WithRoot) const
 {
-    QString Path = relPath();
+    QString Path = relPath(WithRoot);
     if (m_FileInfoEx.isFile())
     {
         if (!Path.isEmpty() && !Path.endsWith(QDir::separator()))
@@ -394,6 +424,20 @@ QString TDirEnumerator::relName() const
         Path += m_FileInfoEx.fileName();
     }
     return Path;
+}
+
+//------------------------------------------------------------------------------
+//! Относительный путь и имя элемента.
+/*!
+   Метод возвращает относительный путь с именем текущего элемента перечисления.
+   Путь строится относительно стартового каталога.
+
+   \sa startDirPath, relPath, relNameWithRoot
+ */
+
+QString TDirEnumerator::relName() const
+{
+    return relName(m_RelNameWithRoot);
 }
 
 //------------------------------------------------------------------------------

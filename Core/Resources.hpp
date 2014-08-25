@@ -46,20 +46,14 @@
 //------------------------------------------------------------------------------
 
 #define MAJOR_VERSION       2
-#define MINOR_VERSION       0
-#define MAINTERANCE_VERSION 1
+#define MINOR_VERSION       1
+#define MAINTERANCE_VERSION 0
 #define VERSION_POSTFIX     ""
 
 //------------------------------------------------------------------------------
 
-QString version()
-{
-    static QString Version = QString::number(MAJOR_VERSION) + "." +
-                             QString::number(MINOR_VERSION) + "." +
-                             QString::number(MAINTERANCE_VERSION) +
-                             QString(VERSION_POSTFIX);
-    return Version;
-}
+QString version();
+QString baseAppName();
 
 //------------------------------------------------------------------------------
 

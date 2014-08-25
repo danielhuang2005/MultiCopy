@@ -51,9 +51,9 @@
 //------------------------------------------------------------------------------
 //! "Укорачивание" длинных строк.
 /*!
- * Если строка Str длиннее чем MaxSymbols, возвращает строку длиной не более
- * MaxSymbols, полученную из Str заменой лишних символов в середине на
- * многоточие ("..."). Если MaxSymbols <= 3, вернёт только многоточие.
+   Если строка Str длиннее чем MaxSymbols, возвращает строку длиной не более
+   MaxSymbols, полученную из Str заменой лишних символов в середине на
+   многоточие ("..."). Если MaxSymbols <= 3, вернёт только многоточие.
  */
 
 QString ElideText(const QString& Str, int MaxSymbols)
@@ -68,13 +68,6 @@ QString ElideText(const QString& Str, int MaxSymbols)
     return Str.left(n) % QString("...") % Str.right(n);
 }
 
-//------------------------------------------------------------------------------
-/*
-bool isNetworkPath(const QString& Path)
-{
-    return Path.startsWith("\\\\") || Path.startsWith("//");
-}
-*/
 
 
 //------------------------------------------------------------------------------
@@ -126,18 +119,18 @@ void QListWidget2::updateIcons()
 //------------------------------------------------------------------------------
 //! Проверка возможности добавления списка элементов.
 /*!
- * Метод проверяет возможность добавления списка элементов.
- * Вначале производится очистка входного списка от дублируемых элементов.
- * Затем выполняется поиск элементов, уже присутствующих в экземпляре класса.
- * Если таковые найдены, выводится диалоговое окно с сообщением о дубликатах
- * и запросом дальнейших действий у пользователя. Если пользователь выбрал
- * продолжение операции, возвращает true и очищает список от дублируемых
- * элементов, если же пользователь отказался от добавления или все элементы уже
- * присутствуют, возвращает false.
- *
- * \remarks Исходный список будет изменён! По меньшей мере, из него будут
- *   исключены дублируемые элементы.
- * \remarks Пути должны быть абсолютными.
+   Метод проверяет возможность добавления списка элементов.
+   Вначале производится очистка входного списка от дублируемых элементов.
+   Затем выполняется поиск элементов, уже присутствующих в экземпляре класса.
+   Если таковые найдены, выводится диалоговое окно с сообщением о дубликатах
+   и запросом дальнейших действий у пользователя. Если пользователь выбрал
+   продолжение операции, возвращает true и очищает список от дублируемых
+   элементов, если же пользователь отказался от добавления или все элементы уже
+   присутствуют, возвращает false.
+
+   \remarks Исходный список будет изменён! По меньшей мере, из него будут
+     исключены дублируемые элементы.
+   \remarks Пути должны быть абсолютными.
  */
 
 bool QListWidget2::checkNewItems(QStringList* pList)
@@ -268,8 +261,8 @@ bool QListWidget2::checkNewItems(QStringList* pList)
 //------------------------------------------------------------------------------
 //! Проверка возможности добавления элемента.
 /*!
- * Метод возвращает false если добавляемый элемент уже присутствует в списке
- * и true если он отсутствует.
+   Метод возвращает false если добавляемый элемент уже присутствует в списке
+   и true если он отсутствует.
  */
 
 bool QListWidget2::checkNewItem(const QString& Item)
@@ -280,8 +273,8 @@ bool QListWidget2::checkNewItem(const QString& Item)
 
 //------------------------------------------------------------------------------
 /*!
- * Перегруженный вариант функции. Возвращает список элементов, готовый для
- * добавления. Если добавление отменено, возвращает пустой список.
+   Перегруженный вариант функции. Возвращает список элементов, готовый для
+   добавления. Если добавление отменено, возвращает пустой список.
  */
 
 QStringList QListWidget2::checkNewItems(const QStringList& List)
@@ -301,7 +294,7 @@ void QListWidget2::dropEventSlot(QStringList Files)
 
 //------------------------------------------------------------------------------
 
-void QListWidget2::dragEnterEvent(QDragEnterEvent *Event)
+void QListWidget2::dragEnterEvent(QDragEnterEvent* Event)
 {
     if (Event->mimeData()->hasUrls())
         Event->acceptProposedAction();
@@ -309,7 +302,7 @@ void QListWidget2::dragEnterEvent(QDragEnterEvent *Event)
 
 //------------------------------------------------------------------------------
 
-void QListWidget2::dragMoveEvent(QDragMoveEvent *Event)
+void QListWidget2::dragMoveEvent(QDragMoveEvent* Event)
 {
     if (Event->mimeData()->hasUrls())
         Event->acceptProposedAction();
@@ -317,7 +310,7 @@ void QListWidget2::dragMoveEvent(QDragMoveEvent *Event)
 
 //------------------------------------------------------------------------------
 
-void QListWidget2::dropEvent(QDropEvent *Event)
+void QListWidget2::dropEvent(QDropEvent* Event)
 {
     QList<QUrl> urls = Event->mimeData()->urls();
     if (!urls.isEmpty())
@@ -331,6 +324,29 @@ void QListWidget2::dropEvent(QDropEvent *Event)
             emit dropEventSignal(Files);
         }
     }
+}
+
+//------------------------------------------------------------------------------
+
+void QListWidget2::keyPressEvent(QKeyEvent* Event)
+{
+    // Кнопка "Delete"
+    if (Event->key() == Qt::Key_Delete && Event->modifiers() == 0) {
+        Event->accept();
+        deleteSelected();
+        emit listChanged();
+        return;
+    }
+
+    // Комбинация "Ctrl+A"
+    if (Event->key() == Qt::Key_A && Event->modifiers() == Qt::ControlModifier)
+    {
+        Event->accept();
+        selectAll();
+        emit listChanged();
+        return;
+    }
+
 }
 
 //------------------------------------------------------------------------------
@@ -386,6 +402,109 @@ bool QListWidget2::checkAndAddItems(QStringList* pList)
         return true;
     }
     return false;
+}
+
+//------------------------------------------------------------------------------
+
+bool QListWidget2::canMoveSelection(int Delta)
+{
+    if (Delta == 0)
+        return false;
+    if (count() <= 0)
+        return false;
+
+    QList<QListWidgetItem*> Selected = selectedItems();
+    if (Selected.isEmpty())
+        return false;
+    if (Selected.count() == count())
+        return false;
+
+    if (Delta < 0) {
+        int Index = -1;
+        for (int i = 0; i < count(); ++i) {
+            Q_ASSERT(item(i) != NULL);
+            if (item(i)->isSelected()) {
+                Index = i;
+                break;
+            }
+        }
+        Q_ASSERT(Index >= 0);
+        if (Index + Delta < 0)
+            return false;
+    }
+    else {
+        Q_ASSERT(Delta > 0);
+        int Index = -1;
+        for (int i = count() - 1; i >= 0; --i) {
+            Q_ASSERT(item(i) != NULL);
+            if (item(i)->isSelected()) {
+                Index = i;
+                break;
+            }
+        }
+        Q_ASSERT(Index >= 0);
+        if (Index + Delta >= count())
+            return false;
+    }
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
+//! Перемещение выделенных элементов на Delta позиций.
+/*!
+   \remarks Положительное значение Delta означает перемещение вниз,
+     отрицательное - вверх.
+ */
+
+void QListWidget2::moveSelected(int Delta)
+{
+    if (!canMoveSelection(Delta)) {
+        qWarning("QListWidget2::moveSelected. Cannot moving selection on %i.",
+                 Delta);
+        return;
+    }
+
+    QListWidgetItem* pCurrent = currentItem();
+    QList<QListWidgetItem*> SelectedItems = selectedItems();
+
+    Q_ASSERT(Delta != 0);
+
+    int Begin = (Delta < 0) ? 0 : count() - 1;
+    int End   = (Delta < 0) ? count() : -1;
+    int Step  = (Delta < 0) ? +1 : -1;
+
+    for (int i = Begin; i != End; i = i + Step)
+    {
+        QListWidgetItem* pItem = item(i);
+        Q_ASSERT(pItem != NULL);
+        pItem->setSelected(false);
+        if (SelectedItems.contains(pItem)) {
+            pItem = takeItem(i);
+            insertItem(i + Delta, pItem);
+        }
+    }
+
+    setCurrentItem(pCurrent);
+    for (int i = 0; i < count(); ++i)
+    {
+        QListWidgetItem* pItem = item(i);
+        pItem->setSelected(SelectedItems.contains(pItem));
+    }
+}
+
+//------------------------------------------------------------------------------
+
+bool QListWidget2::canMoveUpSelected()
+{
+    return canMoveSelection(-1);
+}
+
+//------------------------------------------------------------------------------
+
+bool QListWidget2::canMoveDownSelected()
+{
+    return canMoveSelection(+1);
 }
 
 //------------------------------------------------------------------------------
@@ -480,6 +599,81 @@ QStringList QListWidget2::toStringList() const
     QStringList Result;
     toStringList(&Result);
     return Result;
+}
+
+//------------------------------------------------------------------------------
+
+void QListWidget2::moveUpSelected()
+{
+    moveSelected(-1);
+/*    if (count() <= 0) {
+        qWarning("QListWidget2::moveUpSelected. List is Empty.");
+        return;
+    }
+
+    if (count() == 1) {
+        qWarning("QListWidget2::moveUpSelected. Single element cannot be moved.");
+        return;
+    }
+
+    Q_ASSERT(count() > 1);
+
+    if (item(0)->isSelected()) {
+        qWarning("QListWidget2::moveUpSelected. First element cannot be moved up.");
+        return;
+    }
+
+    // Сохраняем выделенные элементы.
+    QList<QListWidgetItem*> SelectedItems = selectedItems();
+    if (SelectedItems.isEmpty()) {
+        qWarning("QListWidget2::moveUpSelected. No selected items.");
+        return;
+    }
+
+    // Сохраняем текущий элемент.
+    QListWidgetItem* pCurrent = currentItem();
+
+    for (int i = 1; i < count(); ++i)
+    {
+        QListWidgetItem* pItem = item(i);
+        Q_ASSERT(pItem != NULL);
+        if (SelectedItems.contains(pItem)) {
+            pItem = takeItem(i);
+            insertItem(i - 1, pItem);
+        }
+    }
+
+    for (int i = 0; i < count(); ++i)
+    {
+        QListWidgetItem* pItem = item(i);
+        if (pItem == pCurrent)
+            setCurrentItem(pItem);
+
+        pItem->setSelected(SelectedItems.contains(pItem));
+    }
+*/
+}
+
+//------------------------------------------------------------------------------
+
+void QListWidget2::moveDownSelected()
+{
+    moveSelected(+1);
+}
+
+//------------------------------------------------------------------------------
+
+void QListWidget2::deleteSelected()
+{
+    QList<QListWidgetItem*> SelectedItems = selectedItems();
+
+    if (!SelectedItems.isEmpty()) {
+        for (int i = SelectedItems.count() - 1; i >= 0; --i)
+            delete SelectedItems.at(i);
+    }
+    else {
+        qWarning("QListWidget2::deleteSelected. No selected items.");
+    }
 }
 
 //------------------------------------------------------------------------------

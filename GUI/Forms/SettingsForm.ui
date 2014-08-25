@@ -10,15 +10,15 @@
     <x>0</x>
     <y>0</y>
     <width>281</width>
-    <height>196</height>
+    <height>257</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MultiCopy - General Settings</string>
+   <string>%1 - General Settings</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>:/MainIcon_16</normaloff>:/MainIcon_16</iconset>
+   <iconset resource="Resources.qrc">
+    <normaloff>:/GeneralSettings_16x16</normaloff>:/GeneralSettings_16x16</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -34,6 +34,61 @@
        <string>View</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Tool Buttons</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QComboBox" name="ToolButtonStyle">
+              <property name="currentIndex">
+               <number>-1</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>Icon only</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Text only</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Icon &amp; Text</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="FlatToolButtons">
+              <property name="text">
+               <string>Flat</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
@@ -103,7 +158,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_2">
+        <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -164,14 +219,37 @@
         </layout>
        </item>
        <item>
-        <spacer name="verticalSpacer_3">
+        <widget class="QGroupBox" name="AfterTaskStart">
+         <property name="title">
+          <string>After task start</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QCheckBox" name="AfterStartClearSrcList">
+            <property name="text">
+             <string>Clear sources list</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="AfterStartClearDestList">
+            <property name="text">
+             <string>Clear destinations list</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>103</height>
+           <height>40</height>
           </size>
          </property>
         </spacer>
@@ -224,7 +302,9 @@
   <tabstop>OK</tabstop>
   <tabstop>Cancel</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="Resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>OK</sender>

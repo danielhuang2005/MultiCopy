@@ -42,16 +42,17 @@
 #include <QListWidget>
 
 //------------------------------------------------------------------------------
+//! Модификация класса QListWidget для списков источников и назначений.
 
 class QListWidget2 : public QListWidget
 {
     Q_OBJECT
     private :
-        bool m_ShowIcons;
-        bool m_ShowNetworkIcons;
-        bool m_DirsOnly;
-        bool m_CheckDirs;
-        bool m_checkNetworkDirs;
+        bool m_ShowIcons;          //!< Показывать иконки объектов.
+        bool m_ShowNetworkIcons;   //!< Показывать иконки сетевых объектов.
+        bool m_DirsOnly;           //!< Воспринимать только каталоги.
+        bool m_CheckDirs;          //!< Проверять объекты на тип "каталог".
+        bool m_checkNetworkDirs;   //!< Проверять сетевые объекты на тип "каталог".
 
         void addIcon(QListWidgetItem* pItem, const QString& FileName);
         void updateIcons();
@@ -59,12 +60,16 @@ class QListWidget2 : public QListWidget
         bool checkNewItems(QStringList* pList);
         bool checkNewItem(const QString& Item);
         QStringList checkNewItems(const QStringList& List);
+
     private slots :
         void dropEventSlot(QStringList Files);
+
     protected :
-        virtual void dragEnterEvent(QDragEnterEvent *Event);
-        virtual void dragMoveEvent(QDragMoveEvent *Event);
-        virtual void dropEvent(QDropEvent *Event);
+        virtual void dragEnterEvent(QDragEnterEvent* Event);
+        virtual void dragMoveEvent(QDragMoveEvent* Event);
+        virtual void dropEvent(QDropEvent* Event);
+        virtual void keyPressEvent(QKeyEvent* Event);
+
     public:
         explicit QListWidget2(QWidget *parent = 0);
 
@@ -73,13 +78,17 @@ class QListWidget2 : public QListWidget
         bool checkAndAddItem(const QString& Name);
         bool checkAndAddItems(const QStringList& Names);
         bool checkAndAddItems(QStringList* pList);
+        bool canMoveSelection(int Delta);
+        void moveSelected(int Delta);
+        bool canMoveUpSelected();
+        bool canMoveDownSelected();
 
         bool showIcons() const;
         void setShowIcons(bool Show);
-        bool dirsOnly() const;
-        void setDirsOnly(bool DirsOnly);
         bool showNetworkIcons() const;
         void setShowNetworkIcons(bool Show);
+        bool dirsOnly() const;
+        void setDirsOnly(bool DirsOnly);
         bool checkDirs() const;
         void setCheckDirs(bool Check);
         bool checkNetworkDirs() const;
@@ -87,6 +96,12 @@ class QListWidget2 : public QListWidget
 
         void toStringList(QStringList* pList) const;
         QStringList toStringList() const;
+
+    public slots :
+        void moveUpSelected();
+        void moveDownSelected();
+        void deleteSelected();
+
     signals :
         void dropEventSignal(QStringList Files);
         void listChanged();

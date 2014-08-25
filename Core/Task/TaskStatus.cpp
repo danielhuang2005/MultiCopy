@@ -1347,6 +1347,8 @@ void TTaskStatus::end()
         Stat.BytesWrited    = m_TotalStat.writedBytes();
         Stat.FilesWrited    = m_TotalStat.writedFiles();
         Stat.TasksCompleted = 1;
+        Q_ASSERT(m_TimeCounter.isStopped());
+        Stat.WorkTime       = m_TimeCounter.msec() / 1000;
         pGS->append(Stat);
     }
     else {

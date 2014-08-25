@@ -46,11 +46,12 @@
 
 //------------------------------------------------------------------------------
 
+class QSettings;
+
 namespace Ui {
     class TMultiCopyForm;
 }
 class TSettings;
-class QSettings;
 class TProgressForm;
 
 //------------------------------------------------------------------------------
@@ -71,6 +72,8 @@ class TMultiCopy : public QMainWindow
         bool loadTaskFromFile(const QString& FileName);
         bool saveTaskToFile(const QString& FileName);
         void setShowNameEditors(bool Show);
+        void viewChange();
+        bool checkStart(TTask* pTask);
 
     protected :
         virtual void changeEvent(QEvent *e);
@@ -87,7 +90,7 @@ class TMultiCopy : public QMainWindow
         void destChanged();
         void addCustomSrc();
         void addCustomDest();
-        void progressFormHidden();
+        void progressFormClosed();
         void loadTask(TSharedConstTask Task);
 
         void on_SrcAddFile_clicked();

@@ -69,6 +69,7 @@ class TTaskSettingsForm : public QDialog
         void writeData_GeneralParams(TTaskSettings* pTS);
         void writeData_RAMParams(TTaskSettings* pTS);
         void writeData(TTaskSettings* pTS);
+        void retranslateTitle();
 
     protected :
         virtual void changeEvent(QEvent *e);

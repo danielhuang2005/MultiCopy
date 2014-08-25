@@ -84,8 +84,7 @@ void loadTranslators(QString LangId)
     }
     for (int i = 0; i < LangPath.count(); ++i)
     {
-        if (appTranslator.load(qApp->applicationName() + "." + LangId,
-                               LangPath[i]))
+        if (appTranslator.load("MultiCopy." + LangId, LangPath[i]))
         {
             QCoreApplication::installTranslator(&appTranslator);
             break;

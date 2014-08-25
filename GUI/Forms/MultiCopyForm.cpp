@@ -44,10 +44,12 @@
 #include <QTextStream>
 #include <QSettings>
 #include <QCloseEvent>
+#include <QTime>
 
 #include "Core/Resources.hpp"
 #include "Core/Common/CommonFn.hpp"
 #include "Core/Task/GlobalStatistics.hpp"
+#include "GUI/FileDialogs/FileDialogs.hpp"
 #include "GUI/Forms/SettingsForm.hpp"
 #include "GUI/Forms/TaskSettingsForm.hpp"
 #include "GUI/Forms/ProgressForm.hpp"
@@ -90,6 +92,7 @@ TMultiCopy::TMultiCopy(QWidget *parent) :
     m_pProgressForm(new TProgressForm())
 {
     ui->setupUi(this);
+    setWindowTitle(QApplication::applicationName());
     ui->SrcList->setDirsOnly(false);
     ui->DestList->setDirsOnly(true);
 
@@ -97,25 +100,17 @@ TMultiCopy::TMultiCopy(QWidget *parent) :
     ui->DestList->setCheckDirs(pGS->CheckDestDirs);
     ui->DestList->setCheckNetworkDirs(pGS->CheckNetworkDestDirs);
 
-    setShowNameEditors(pGS->ShowNameEditors);
+    viewChange();
 
     // "Сложные" соединения (дизайнер сделать не позволяет).
     connect(ui->actionAbout_Qt, SIGNAL(triggered()),
             qApp, SLOT(aboutQt()));
-    connect(m_pProgressForm, SIGNAL(hidden()),
-            SLOT(progressFormHidden()));
+    connect(m_pProgressForm, SIGNAL(closed()),
+            SLOT(progressFormClosed()));
     connect(m_pProgressForm, SIGNAL(taskNeedEditing(TSharedConstTask)),
             SLOT(loadTask(TSharedConstTask)));
 
     restoreSession();
-
-    bool ShowIcons = pGS->ShowFileIcons;
-    ui->SrcList->setShowIcons(ShowIcons);
-    ui->DestList->setShowIcons(ShowIcons);
-
-    ShowIcons = pGS->ShowNetworkIcons;
-    ui->SrcList->setShowNetworkIcons(ShowIcons);
-    ui->DestList->setShowNetworkIcons(ShowIcons);
 
     ui->SrcList->setCurrentRow(0);
     ui->DestList->setCurrentRow(0);
@@ -135,20 +130,16 @@ TMultiCopy::~TMultiCopy()
 void TMultiCopy::srcChanged()
 {
     // Кнопка "Remove".
-    ui->SrcRemove->setEnabled(ui->SrcList->currentRow() >= 0);
+    ui->SrcRemove->setEnabled(!ui->SrcList->selectedItems().isEmpty());
 
     //Кнопка "Clear".
     ui->SrcClear->setEnabled(ui->SrcList->count() > 0);
 
     // Кнопка "Up".
-    ui->SrcUp->setEnabled(ui->SrcList->currentRow() > 0);
+    ui->SrcUp->setEnabled(ui->SrcList->canMoveUpSelected());
 
     // Кнопка "Down".
-    bool Enabled = ui->SrcList->currentRow() >= 0;
-    if (Enabled)
-        Enabled = ui->SrcList->currentRow() <
-                  ui->SrcList->count() - 1;
-    ui->SrcDown->setEnabled(Enabled);
+    ui->SrcDown->setEnabled(ui->SrcList->canMoveDownSelected());
 
     // Кнопка "Start".
     ui->Start->setEnabled((ui->SrcList->count() > 0) &&
@@ -163,7 +154,7 @@ void TMultiCopy::destChanged()
     ui->DestClear->setEnabled(ui->DestList->count() > 0);
 
     // Кнопка "Remove".
-    ui->DestRemove->setEnabled(ui->DestList->currentRow() >= 0);
+    ui->DestRemove->setEnabled(!ui->DestList->selectedItems().isEmpty());
 
     // Кнопка "Start".
     ui->Start->setEnabled((ui->SrcList->count() > 0) &&
@@ -327,6 +318,68 @@ void TMultiCopy::setShowNameEditors(bool Show)
 
 //------------------------------------------------------------------------------
 
+void TMultiCopy::viewChange()
+{
+    TGeneralSettings* pGS = &m_pSettings->GeneralSettings;
+
+    bool ShowIcons = pGS->ShowFileIcons;
+    ui->SrcList->setShowIcons(ShowIcons);
+    ui->DestList->setShowIcons(ShowIcons);
+
+    ShowIcons = pGS->ShowNetworkIcons;
+    ui->SrcList->setShowNetworkIcons(ShowIcons);
+    ui->DestList->setShowNetworkIcons(ShowIcons);
+
+    setToolButtonsSettings(this);
+    setShowNameEditors(pGS->ShowNameEditors);
+}
+
+//------------------------------------------------------------------------------
+//! Проверка возможности запуска задания.
+
+bool TMultiCopy::checkStart(TTask* pTask)
+{
+    #ifdef Q_OS_WIN
+        // Проверка корневых каталогов дисков.
+        if (!pTask->TaskSettings.NoCreateRootDir)
+        {
+            const QStringList* pList = &pTask->SrcList;
+            QStringList RootDirs;
+            for (int i = 0; i < pList->count(); ++i)
+            {
+                if (isRootDir(pList->at(i))) {
+                    RootDirs.append(pList->at(i));
+                }
+            }
+
+            if (!RootDirs.isEmpty())
+            {
+                QString Message = tr("The next source folders are root folders:\n"
+                                     "\n"
+                                     "%1\n"
+                                     "\n"
+                                     "Is turn on the option \"Don't create root folders\" and continue?");
+                Message = Message.arg(RootDirs.join("\n"));
+                if (QMessageBox::question(this,
+                                          QApplication::applicationName(),
+                                          Message,
+                                          QMessageBox::Yes | QMessageBox::No)
+                        == QMessageBox::Yes)
+                {
+                    pTask->TaskSettings.NoCreateRootDir = true;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+    #endif
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
+
 void TMultiCopy::loadListsFromSettings(QSettings* pS)
 {
     if (pS == NULL)
@@ -360,13 +413,13 @@ void TMultiCopy::on_SrcAddFolder_clicked()
 {
     static const char* key = "SrcAddFolder";
     QSettings* pS = m_pSettings->getQSettings();
-    QString Dir = QFileDialog::getExistingDirectory(this,
-                      tr("Add source folder"),
-                      pS->value(key).toString());
-    if (!Dir.isEmpty())
+    QStringList Dirs = getExistingDirectories(this,
+                           tr("Add source folder"),
+                           pS->value(key).toString());
+    if (!Dirs.isEmpty())
     {
-        pS->setValue(key, Dir);
-        if (ui->SrcList->checkAndAddItem(Dir))
+        pS->setValue(key, ParentDir(Dirs.first()));
+        if (ui->SrcList->checkAndAddItems(&Dirs))
             srcChanged();
     }
 }
@@ -377,13 +430,13 @@ void TMultiCopy::on_DestAddFolder_clicked()
 {
     static const char* key = "DestAddFolder";
     QSettings* pS = m_pSettings->getQSettings();
-    QString Dir = QFileDialog::getExistingDirectory(this,
-                      tr("Add destination folder"),
-                      pS->value(key).toString());
-    if (!Dir.isEmpty())
+    QStringList Dirs = getExistingDirectories(this,
+                           tr("Add destination folder"),
+                           pS->value(key).toString());
+    if (!Dirs.isEmpty())
     {
-        pS->setValue(key, Dir);
-        ui->DestList->checkAndAddItem(Dir);
+        pS->setValue(key, ParentDir(Dirs.first()));
+        ui->DestList->checkAndAddItems(&Dirs);
     }
 }
 
@@ -391,7 +444,7 @@ void TMultiCopy::on_DestAddFolder_clicked()
 
 void TMultiCopy::on_SrcRemove_clicked()
 {
-    delete ui->SrcList->item(ui->SrcList->currentRow());
+    ui->SrcList->deleteSelected();
     srcChanged();
 }
 
@@ -419,34 +472,29 @@ void TMultiCopy::on_Start_clicked()
     pTask->SrcList = ui->SrcList->toStringList();
     pTask->DestList = ui->DestList->toStringList();
     pTask->TaskSettings = m_pSettings->TaskSettings;
-    m_pProgressForm->addTask(TSharedConstTask(pTask));
+
+    if (checkStart(pTask)) {
+        m_pProgressForm->addTask(TSharedConstTask(pTask));
+        TGeneralSettings* pGS = &m_pSettings->GeneralSettings;
+        if (pGS->AfterStartClearSrcList)
+            on_SrcClear_clicked();
+        if (pGS->AfterStartClearDestList)
+            on_DestClear_clicked();
+    }
 }
 
 //------------------------------------------------------------------------------
 
 void TMultiCopy::on_SrcUp_clicked()
 {
-    int Index = ui->SrcList->currentRow();
-    if (Index <= 0) return;
-
-    QListWidgetItem* Item = ui->SrcList->takeItem(Index);
-    --Index;
-    ui->SrcList->insertItem(Index, Item);
-    ui->SrcList->setCurrentRow(Index);
+    ui->SrcList->moveUpSelected();
 }
 
 //------------------------------------------------------------------------------
 
 void TMultiCopy::on_SrcDown_clicked()
 {
-    int Index = ui->SrcList->currentRow();
-    if ((Index < 0) || (Index >= ui->SrcList->count() - 1))
-        return;
-
-    QListWidgetItem* Item = ui->SrcList->takeItem(Index);
-    ++Index;
-    ui->SrcList->insertItem(Index, Item);
-    ui->SrcList->setCurrentRow(Index);
+    ui->SrcList->moveDownSelected();
 }
 
 //------------------------------------------------------------------------------
@@ -461,7 +509,7 @@ void TMultiCopy::on_DestClear_clicked()
 
 void TMultiCopy::on_DestRemove_clicked()
 {
-    delete ui->DestList->item(ui->DestList->currentRow());
+    ui->DestList->deleteSelected();
     destChanged();
 }
 
@@ -477,7 +525,7 @@ void TMultiCopy::on_DestList_currentRowChanged(int currentRow)
 
 void TMultiCopy::on_actionAbout_triggered()
 {
-    int Bits = sizeof(void*) * 8;
+    const int Bits = sizeof(void*) * 8;
     QString Text = tr(
         "<p align='center'>MultiCopy, version %1 (%2-bit)</p>"
     ).arg(version()).arg(Bits);
@@ -490,7 +538,7 @@ void TMultiCopy::on_actionAbout_triggered()
     );
     QMessageBox *pBox = new QMessageBox(this);
     pBox->setAttribute(Qt::WA_DeleteOnClose);;
-    pBox->setWindowTitle(tr("MultiCopy - About"));
+    pBox->setWindowTitle(tr("%1 - About").arg(QApplication::applicationName()));
     pBox->setInformativeText(InformativeText);
     pBox->setText(Text);
     QPixmap Pixmap(":/MainIcon");
@@ -610,8 +658,9 @@ void TMultiCopy::addCustomDest()
 //------------------------------------------------------------------------------
 //! Обработчик сигнала скрытия формы прогресса.
 
-void TMultiCopy::progressFormHidden()
+void TMultiCopy::progressFormClosed()
 {
+    // TODO : В отдельный метод.
     setWindowState(windowState() & ~Qt::WindowMinimized);
     raise();
     activateWindow();
@@ -633,7 +682,7 @@ void TMultiCopy::loadTask(TSharedConstTask Task)
     TTaskSettings* pTS = &m_pSettings->TaskSettings;
     *pTS = Task->TaskSettings;
 
-    progressFormHidden();
+    progressFormClosed();
 }
 
 //------------------------------------------------------------------------------
@@ -688,17 +737,12 @@ void TMultiCopy::on_actionGeneralSettings_triggered()
         ui->DestList->setCheckNetworkDirs(pGS->CheckNetworkDestDirs);
 
         // Обновление внешнего вида формы.
-        bool ShowIcons = pGS->ShowNetworkIcons;
-        ui->SrcList->setShowNetworkIcons(ShowIcons);
-        ui->DestList->setShowNetworkIcons(ShowIcons);
+        viewChange();
 
-        ShowIcons = pGS->ShowFileIcons;
-        ui->SrcList->setShowIcons(ShowIcons);
-        ui->DestList->setShowIcons(ShowIcons);
+        m_pProgressForm->viewChange();
 
-        setShowNameEditors(pGS->ShowNameEditors);
-
-        // Изменение языка формы выполнят обработчики формы настроек.
+        // Изменение языка форм выполнят обработчики события
+        // QEvent::LanguageChange.
     }
 }
 
@@ -723,11 +767,13 @@ void TMultiCopy::on_actionStatistics_triggered()
                      .arg(sizeToStr(Stat.BytesReaded)) + "\n\n" +
                    tr("Writed: %1 to %n file(s)", "", Stat.FilesWrited)
                      .arg(sizeToStr(Stat.BytesWrited)) + "\n\n" +
-                   tr("Tasks completed: %1").arg(Stat.TasksCompleted);
-
+                   tr("Working time: %1")
+                     .arg(QTime().addSecs(Stat.WorkTime).toString("H:mm:ss")) + "\n\n" +
+                   tr("Tasks completed: %1")
+                     .arg(Stat.TasksCompleted);
     QMessageBox *pBox = new QMessageBox(this);
     pBox->setAttribute(Qt::WA_DeleteOnClose);;
-    pBox->setWindowTitle(tr("MultiCopy - Statistics"));
+    pBox->setWindowTitle(tr("%1 - Statistics").arg(QApplication::applicationName()));
     pBox->setText(Text);
     QPixmap Pixmap(":/MainIcon");
     pBox->setIconPixmap(Pixmap);
@@ -764,4 +810,3 @@ void TMultiCopy::changeEvent(QEvent *e)
 }
 
 //------------------------------------------------------------------------------
-

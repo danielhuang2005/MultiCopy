@@ -276,7 +276,7 @@ void TReader::processFile()
            команду в объект TaskStatus до регистрации в нём файла. */
         if (m_pTaskStatus != NULL) {
             m_pTaskStatus->readerNewFile(m_pDirEnumerator->startDirPath(),
-                                         m_FileRelName,
+                                         m_pDirEnumerator->relName(false),
                                          FileSize);
         }
         releaseCell();

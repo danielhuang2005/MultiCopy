@@ -41,6 +41,10 @@
 #include <QApplication>
 #include <QDir>
 #include <QSettings>
+#include <QWidget>
+#include <QToolButton>
+
+#include "../../Core/Resources.hpp"
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -128,12 +132,16 @@ void TTaskSettings2::write(QSettings *pS, const QString &Group)
 
 void TGeneralSettings::setDefault()
 {
-    SingleInstance   = true;
-    ShowFileIcons    = true;
-    ShowNetworkIcons = false;
-    ShowNameEditors  = false;
-    CheckDestDirs        = true;
-    CheckNetworkDestDirs = false;
+    SingleInstance          = true;
+    ShowFileIcons           = true;
+    ShowNetworkIcons        = false;
+    ShowNameEditors         = false;
+    CheckDestDirs           = true;
+    CheckNetworkDestDirs    = false;
+    FlatToolButtons         = true;
+    ToolButtonStyle         = static_cast<int>(Qt::ToolButtonIconOnly);
+    AfterStartClearSrcList  = false;
+    AfterStartClearDestList = false;
 }
 
 //------------------------------------------------------------------------------
@@ -151,12 +159,16 @@ void TGeneralSettings::read(QSettings *pS, const QString &Group)
         pS->beginGroup(Group);
 
     setDefault();
-    READ(SingleInstance,   bool);
-    READ(ShowFileIcons,    bool);
-    READ(ShowNetworkIcons, bool);
-    READ(ShowNameEditors,  bool);
-    READ(CheckDestDirs,        bool);
-    READ(CheckNetworkDestDirs, bool);
+    READ(SingleInstance,          bool);
+    READ(ShowFileIcons,           bool);
+    READ(ShowNetworkIcons,        bool);
+    READ(ShowNameEditors,         bool);
+    READ(CheckDestDirs,           bool);
+    READ(CheckNetworkDestDirs,    bool);
+    READ(FlatToolButtons,         bool);
+    READ(ToolButtonStyle,         int);
+    READ(AfterStartClearSrcList,  bool);
+    READ(AfterStartClearDestList, bool);
 
     if (!Group.isEmpty())
         pS->endGroup();
@@ -182,6 +194,10 @@ void TGeneralSettings::write(QSettings *pS, const QString &Group)
     WRITE(ShowNameEditors);
     WRITE(CheckDestDirs);
     WRITE(CheckNetworkDestDirs);
+    WRITE(FlatToolButtons);
+    WRITE(ToolButtonStyle);
+    WRITE(AfterStartClearSrcList);
+    WRITE(AfterStartClearDestList);
 
     if (!Group.isEmpty())
         pS->endGroup();
@@ -216,18 +232,18 @@ TGeneralSettings::TGeneralSettings()
 TSettings::TSettings()
     : m_pQSettings(NULL)
 {
-    QString IniFile = QApplication::applicationFilePath() + ".portable";
-    if (QFile::exists(IniFile))
+    QString PortableFlag = QApplication::applicationFilePath() + ".portable";
+    if (QFile::exists(PortableFlag))
     {
-        IniFile = QApplication::applicationDirPath() + QDir::separator() +
-                  QApplication::applicationName() + ".settings";
+        QString IniFile = QApplication::applicationDirPath() + QDir::separator() +
+                          baseAppName() + ".settings";
         m_pQSettings = new QSettings(IniFile, QSettings::IniFormat);
     }
     else {
         m_pQSettings = new QSettings(QSettings::IniFormat,
                                      QSettings::UserScope,
                                      QApplication::organizationName(),
-                                     QApplication::applicationName());
+                                     baseAppName());
     }
     read();
 }
@@ -283,4 +299,25 @@ void TSettings::write()
     GeneralSettings.write(m_pQSettings, "GeneralSettings");
     m_pQSettings->sync();
 }
+
+//------------------------------------------------------------------------------
+
+void setToolButtonsSettings(QWidget* pForm)
+{
+    QList<QToolButton*> ToolButtons = pForm->findChildren<QToolButton*>();
+    if (!ToolButtons.isEmpty())
+    {
+        register TGeneralSettings* pGS = &TSettings::instance()->GeneralSettings;
+        bool Flat = pGS->FlatToolButtons;
+        Qt::ToolButtonStyle Style = static_cast<Qt::ToolButtonStyle>(pGS->ToolButtonStyle);
+
+        for (int i = ToolButtons.count() - 1; i >= 0; --i)
+        {
+            register QToolButton* pButton = ToolButtons[i];
+            pButton->setAutoRaise(Flat);
+            pButton->setToolButtonStyle(Style);
+        }
+    }
+}
+
 //------------------------------------------------------------------------------

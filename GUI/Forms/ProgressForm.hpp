@@ -40,7 +40,7 @@
 #define __PROGRESSFORM__HPP__
 
 #include <QTimer>
-#include <QDialog>
+#include <QWidget>
 #include <QModelIndex>
 
 #include "Core/Task/Task.hpp"
@@ -56,13 +56,14 @@ class TSettings;
 class TGUIErrorHandler;
 class TTaskModel;
 class TTaskManager;
+class TTaskbarControl;
 namespace Ui {
     class TProgressForm;
 }
 
 //------------------------------------------------------------------------------
 
-class TProgressForm : public QDialog
+class TProgressForm : public QWidget
 {
     Q_OBJECT
     public :
@@ -75,6 +76,28 @@ class TProgressForm : public QDialog
         };
 
     private:
+        //! Картинка с числом для оверлейной иконки в панели задач.
+        /*!
+           \remarks Для Windows 7 размер должен быть 16x16.
+           \remarks Класс кэширует изображение. При повторном получении того же
+             самого изображения перерисовка не производится.
+         */
+        class TOverlayIcon {
+            private :
+                QString m_FileName;  //!< Имя файла (или ресурса).
+                QPixmap m_Pixmap;    //!< Картинка.
+                int     m_Number;    //!< Число на картинке.
+                void paintImage();
+            public :
+                TOverlayIcon(const QString& FileName);
+                void setNumber(int Number);
+                QPixmap pixmap(int Number);
+                //! Число на картинке.
+                inline int number() const { return m_Number; }
+                //! Картинка с числом.
+                inline QPixmap pixmap() const { return m_Pixmap; }
+        };
+
         Ui::TProgressForm* ui;
 
         bool              m_ForcedHide;        //!< Флаг форсированного скрытия формы.
@@ -82,6 +105,8 @@ class TProgressForm : public QDialog
         TSettings*        m_pSettings;         //!< Настройки.
         TTaskModel*       m_pTaskModel;        //!< Модель с заданиями.
         TGUIErrorHandler* m_pGUIErrorHandler;  //!< Обработчик ошибок.
+        TTaskbarControl*  m_pTaskbarControl;   //!< Управление кнопкой в панели задач.
+        TOverlayIcon      m_OverlayIcon;       //!< Оверлейная иконка на кнопке в панели задач.
         QTimer            m_TimeTimer;         //!< Таймер для обновления времени.
         QTimer            m_ProgressTimer;     //!< Таймер для обновления прогресса.
         QString           m_SrcText;           //!< Наименование источника.
@@ -98,6 +123,8 @@ class TProgressForm : public QDialog
         void taskListChanged();
         void pendingTasksChanged();
         void moveTask(int Delta);
+        void updateTaskbarProgress();
+        void retranslateTitle();
 
         static QString time(qint64 msec);
 
@@ -110,7 +137,6 @@ class TProgressForm : public QDialog
         virtual void changeEvent(QEvent *e);
         virtual void resizeEvent(QResizeEvent *Event);
         virtual void closeEvent(QCloseEvent *Event);
-        virtual void hideEvent(QHideEvent*);
 
     private slots :
         void updateProgress();
@@ -144,11 +170,12 @@ class TProgressForm : public QDialog
         bool exit();
 
     signals :
-        void hidden();
+        void closed();
         void taskNeedEditing(TSharedConstTask Task);
 
     public slots :
         virtual void reject();
+        void viewChange();
 };
 
 //------------------------------------------------------------------------------

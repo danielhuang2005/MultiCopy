@@ -88,8 +88,9 @@ class TTaskManager : public QThread
         QAtomicInt       m_Paused;        //!< Флаг постановки на паузу.
         bool             m_Cancel;        //!< Флаг отмены выполнения.
         TLastActions     m_LastActions;
-        bool             m_ErrorInProcess;
-        bool             m_LockProcessErrors;  //!< Флаг запрета обработки ошибок.
+        bool             m_UserPromptInProcess;  //!< Флаг вызова диалогового
+                                                 //!< запроса пользователю.
+        QAtomicInt       m_LockProcessErrors;    //!< Флаг запрета обработки ошибок.
         TDestsCounter    m_DestsCounter;
 
         TReader*         m_pReader;      //!< Процесс чтения.
@@ -142,6 +143,8 @@ class TTaskManager : public QThread
 
         //! Возвращает true, если текущее задание было отменено.
         inline bool isCancelled() const { return m_Cancel; }
+        //! Возвращает true, если вызывается запрос пользователю.
+        inline bool isUserPromptInProcess() const { return m_UserPromptInProcess; }
         //! Указатель на процесс чтения.
         inline const TReader* reader() const { return m_pReader; }
         //! Указатель на состояние задания.

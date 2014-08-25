@@ -79,6 +79,8 @@ TTaskSettingsForm::TTaskSettingsForm(QWidget *Parent)
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+    //setWindowTitle(windowTitle().arg(QApplication::applicationName()));
+    retranslateTitle();
 
     if (sizeof(void*) >= 8) {
         ui->CellSize->setMaximum(256);
@@ -226,6 +228,18 @@ void TTaskSettingsForm::writeData(TTaskSettings* pTS)
 }
 
 //------------------------------------------------------------------------------
+//! Перевод заголовка окна.
+/*!
+   Метод осуществляет перевод заголовка окна. Должен вызываться после
+   retranslateUi.
+ */
+
+void TTaskSettingsForm::retranslateTitle()
+{
+    setWindowTitle(windowTitle().arg(QApplication::applicationName()));
+}
+
+//------------------------------------------------------------------------------
 
 void TTaskSettingsForm::calculateRAM()
 {
@@ -284,6 +298,7 @@ void TTaskSettingsForm::changeEvent(QEvent *e)
     switch (e->type()) {
         case QEvent::LanguageChange:
             ui->retranslateUi(this);
+            retranslateTitle();
             break;
         default:
             break;

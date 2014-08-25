@@ -39,7 +39,12 @@
 #include <QtGlobal>
 
 #ifdef Q_OS_WIN
-    #define _WIN32_WINNT 0x5000 // Windows 2000 and above.
+    #ifndef _WIN32_WINNT
+        /*#if _WIN32_WINNT < 0x5000
+            #error "This file required _WIN32_WINNT >= 0x5000"
+        #endif*/
+        #define _WIN32_WINNT 0x5000 // Windows 2000 and above.
+    #endif
     #include <windows.h>
 #else
     #include <sys/mman.h>
@@ -264,8 +269,9 @@ QString GetSystemErrorString(
                            0,
                            NULL) != 0)
         {
-            QString Result = QString::fromWCharArray(errStr);
-            if (!LocalFree(errStr)) {
+            QString Result = "[0x" + QString::number(ErrCode, 16) + "] " +
+                             QString::fromWCharArray(errStr);
+            if (LocalFree(errStr) != NULL) {
                 qWarning("GetSystemErrorString. LocalFree error: %li.",
                          GetLastError());
             }
@@ -324,6 +330,35 @@ bool isNetworkPath(const QString& Path)
 {
     return Path.startsWith("\\\\") || Path.startsWith("//");
 }
+
+//------------------------------------------------------------------------------
+//! Возвращает родительский каталог для указанного объекта.
+
+QString ParentDir(const QString& Path)
+{
+    QDir Dir(Path);
+    Dir.cdUp();
+    return Dir.path();
+}
+
+//------------------------------------------------------------------------------
+//! Возвращает true, если каталог является корневым (в Windows - для диска).
+
+bool isRootDir(const QString& Path)
+{
+    #if defined(Q_OS_UNIX)
+        return Path.compare("/") == 0;
+    #elif defined(Q_OS_WIN)
+        QString S = QDir::toNativeSeparators(Path);
+        while (S.endsWith(QDir::separator()))
+            S.chop(1);
+        return (S.length() == 2) && S.endsWith(":");
+    #else
+        qWarning("Function isRootDir is not implemented for this OS.");
+        return false;
+    #endif
+}
+
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

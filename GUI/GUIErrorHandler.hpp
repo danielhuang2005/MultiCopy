@@ -59,7 +59,7 @@ class TGUIErrorHandler : public TErrorHandler
                              //!< центрировано по родительскому виджету.
 
     protected :
-        void userPrompt(TErrorData* pErrorData);
+        TErrorAction userPrompt(const TErrorData* pErrorData);
 
     public:
         TGUIErrorHandler(QWidget* Parent);

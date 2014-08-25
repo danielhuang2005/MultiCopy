@@ -61,9 +61,12 @@ class TGlobalStatistics
             qint64 FilesReaded;     //!< Число прочитанных файлов.
             qint64 FilesWrited;     //!< Число записанных файлов.
             qint64 TasksCompleted;  //!< Число завершённых задач.
+            qint64 WorkTime;        //!< Время работы (секунды).
 
             void clear();
             TStat();
+
+            TStat& operator+=(const TStat& other);
         };
 
     private :

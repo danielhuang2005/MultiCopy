@@ -47,7 +47,7 @@
 //------------------------------------------------------------------------------
 //! Диалоговый обработчик ошибок.
 
-void TGUIErrorHandler::userPrompt(TErrorData* pErrorData)
+TErrorAction TGUIErrorHandler::userPrompt(const TErrorData *pErrorData)
 {
     Q_ASSERT(pErrorData != NULL);
 
@@ -75,7 +75,7 @@ void TGUIErrorHandler::userPrompt(TErrorData* pErrorData)
     Box.exec();
     QPushButton2* pClicked = qobject_cast<QPushButton2*>(Box.clickedButton());
     Q_ASSERT(pClicked != NULL);
-    pErrorData->Action = pClicked->action();
+    return pClicked->action();
 
     // Созданные кнопки разрушаются диалогом, поэтому удалять их оператором
     // delete не нужно.

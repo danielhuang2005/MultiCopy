@@ -57,6 +57,8 @@ TSettingsForm::TSettingsForm(QWidget* Parent)
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+    //setWindowTitle(windowTitle().arg(QApplication::applicationName()));
+    retranslateTitle();
 
     languagesList();
     QString CurrentLangID = m_pSettings->langID();
@@ -137,8 +139,9 @@ void TSettingsForm::readData_ViewParams(const TGeneralSettings* pGS)
     // Вкладка параметров внешнего вида.
     ui->ShowFileIcons->setChecked(pGS->ShowFileIcons);
     ui->ShowNetworkIcons->setChecked(pGS->ShowNetworkIcons);
-    //on_ShowFileIcons_clicked(pGS->ShowFileIcons);
     ui->ShowNameEditors->setChecked(pGS->ShowNameEditors);
+    ui->FlatToolButtons->setChecked(pGS->FlatToolButtons);
+    ui->ToolButtonStyle->setCurrentIndex(pGS->ToolButtonStyle);
 }
 
 //------------------------------------------------------------------------------
@@ -149,12 +152,11 @@ void TSettingsForm::readData_SystemParams(const TGeneralSettings* pGS)
     ui->SingleInstance->setChecked(pGS->SingleInstance);
     ui->CheckDestDirs->setChecked(pGS->CheckDestDirs);
     ui->CheckDestNetworkDirs->setChecked(pGS->CheckNetworkDestDirs);
-    //on_CheckDestDirs_clicked(pGS->CheckDirs);
 }
 
 //------------------------------------------------------------------------------
 
-void TSettingsForm::readData(const TGeneralSettings *pGS)
+void TSettingsForm::readData(const TGeneralSettings* pGS)
 {
     readData_ViewParams(pGS);
     readData_SystemParams(pGS);
@@ -169,6 +171,8 @@ void TSettingsForm::writeData_ViewParams(TGeneralSettings* pGS)
     pGS->ShowFileIcons    = ui->ShowFileIcons->isChecked();
     pGS->ShowNetworkIcons = ui->ShowNetworkIcons->isChecked();
     pGS->ShowNameEditors  = ui->ShowNameEditors->isChecked();
+    pGS->FlatToolButtons  = ui->FlatToolButtons->isChecked();
+    pGS->ToolButtonStyle  = ui->ToolButtonStyle->currentIndex();
 }
 
 //------------------------------------------------------------------------------
@@ -176,22 +180,34 @@ void TSettingsForm::writeData_ViewParams(TGeneralSettings* pGS)
 void TSettingsForm::writeData_SystemParams(TGeneralSettings* pGS)
 {
     // Системные параметры.
-    pGS->SingleInstance   = ui->SingleInstance->isChecked();
+    pGS->SingleInstance       = ui->SingleInstance->isChecked();
     pGS->CheckDestDirs        = ui->CheckDestDirs->isChecked();
     pGS->CheckNetworkDestDirs = ui->CheckDestNetworkDirs->isChecked();
 }
 
 //------------------------------------------------------------------------------
 
-void TSettingsForm::writeData(TGeneralSettings *pGS)
+void TSettingsForm::writeData(TGeneralSettings* pGS)
 {
     writeData_ViewParams(pGS);
     writeData_SystemParams(pGS);
 }
 
 //------------------------------------------------------------------------------
+//! Перевод заголовка окна.
+/*!
+   Метод осуществляет перевод заголовка окна. Должен вызываться после
+   retranslateUi.
+ */
 
-void TSettingsForm::closeEvent(QCloseEvent *Event)
+void TSettingsForm::retranslateTitle()
+{
+    setWindowTitle(windowTitle().arg(QApplication::applicationName()));
+}
+
+//------------------------------------------------------------------------------
+
+void TSettingsForm::closeEvent(QCloseEvent* Event)
 {
     Q_UNUSED(Event);
     reject();
@@ -202,8 +218,8 @@ void TSettingsForm::closeEvent(QCloseEvent *Event)
 void TSettingsForm::on_Default_clicked()
 {
     if (QMessageBox::question(this,
-                              "General Settings",
-                              "Do set parameters on this tab to their default values?",
+                              tr("General Settings"),
+                              tr("Do set parameters on this tab to their default values?"),
                               QMessageBox::Yes | QMessageBox::No,
                               QMessageBox::No) == QMessageBox::Yes)
     {
@@ -259,12 +275,13 @@ void TSettingsForm::reject()
 
 //------------------------------------------------------------------------------
 
-void TSettingsForm::changeEvent(QEvent *e)
+void TSettingsForm::changeEvent(QEvent* e)
 {
     QWidget::changeEvent(e);
     switch (e->type()) {
         case QEvent::LanguageChange:
             ui->retranslateUi(this);
+            retranslateTitle();
             break;
         default:
             break;

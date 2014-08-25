@@ -170,7 +170,10 @@ class TDirEnumerator
         TFileInfoEx info() const;
         const TFileInfoEx* infoPtr() const;
 
+        QString name() const;
+        QString relPath(bool WithRoot) const;
         QString relPath() const;
+        QString relName(bool WithRoot) const;
         QString relName() const;
         QString subdirRelName(int i) const;
         QString subdirInRelName(int i) const;

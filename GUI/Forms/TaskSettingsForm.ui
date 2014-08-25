@@ -14,11 +14,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MultiCopy - Task Settings</string>
+   <string>%1 - Task Settings</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>:/MainIcon_16</normaloff>:/MainIcon_16</iconset>
+   <iconset resource="Resources.qrc">
+    <normaloff>:/TaskSettings_16x16</normaloff>:/TaskSettings_16x16</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -469,7 +469,9 @@ Icon</string>
   <tabstop>OK</tabstop>
   <tabstop>Cancel</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="Resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>Cancel</sender>

@@ -44,6 +44,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QDir>
+#include <QPainter>
 
 #include "Core/Common/CommonFn.hpp"
 #include "Core/Task/TaskStatus.hpp"
@@ -51,21 +52,106 @@
 #include "Core/Threads/TaskManager.hpp"
 #include "GUI/Settings.hpp"
 #include "GUI/GUIErrorHandler.hpp"
+#include "GUI/TaskbarControl/TaskbarControl.hpp"
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//
+//     T P r o g r e s s F o r m : : T O v e r l a y I c o n
+//
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//! Рисование изображения.
+
+void TProgressForm::TOverlayIcon::paintImage()
+{
+    if (m_Number >= 1) {
+        m_Pixmap = QPixmap(m_FileName);
+        QPainter Painter(&m_Pixmap);
+        QFont Font = Painter.font();
+        Painter.setPen(Qt::blue);
+        Font.setBold(true);
+        Painter.setFont(Font);
+
+        QRect Rect(2, 2, m_Pixmap.width() - 4, m_Pixmap.height() - 4);
+        int Alignment = Qt::AlignCenter;
+        QString Text = QString::number(m_Number);
+        QRect BoundingRect = Painter.boundingRect(Rect, Alignment, Text);
+        qreal Factor = (qreal)BoundingRect.width() / (qreal)Rect.width();
+        qreal YFactor = (qreal)BoundingRect.height() / (qreal)Rect.height();
+        if (YFactor > Factor)
+            Factor = YFactor;
+        if (Factor > 1) {
+            int FontSize = Font.pointSize();
+            FontSize = FontSize / Factor;
+            Font.setPointSize(FontSize);
+            Painter.setFont(Font);
+        }
+
+        Painter.drawText(Rect, Alignment, Text);
+    }
+    else {
+        m_Pixmap = QPixmap();
+    }
+}
 
 //------------------------------------------------------------------------------
 //! Конструктор.
+/*!
+   \param FileName Имя файла (или ресурса) с начальным изображением иконки.
+ */
+
+TProgressForm::TOverlayIcon::TOverlayIcon(const QString& FileName)
+    : m_FileName(FileName), m_Number(0)
+{
+}
+
+//------------------------------------------------------------------------------
+//! Установка числа на иконке.
+
+void TProgressForm::TOverlayIcon::setNumber(int Number)
+{
+    if (m_Number != Number) {
+        m_Number = Number;
+        paintImage();
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Возвращает иконку с указанным числом.
+
+QPixmap TProgressForm::TOverlayIcon::pixmap(int Number)
+{
+    setNumber(Number);
+    return m_Pixmap;
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//
+//                   T P r o g r e s s F o r m
+//
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+//! Конструктор.
 
 TProgressForm::TProgressForm(QWidget* parent)
-    : QDialog(parent),
+    : QWidget(parent),
       ui(new Ui::TProgressForm()),
       m_ForcedHide(false),
       m_pTaskManager(new TTaskManager(NULL)),
       m_pSettings(TSettings::instance()),
       m_pTaskModel(new TTaskModel()),
-      m_pGUIErrorHandler(new TGUIErrorHandler(this))
+      m_pGUIErrorHandler(new TGUIErrorHandler(this)),
+      m_pTaskbarControl(new TTaskbarControl(this)),
+      m_OverlayIcon(":/TaskbarOverlay")
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
+    //setWindowTitle(windowTitle().arg(QApplication::applicationName()));
+    retranslateTitle();
+    viewChange();
 
     /* При других значениях этого параметра программа в некоторых случаях
        почему-то падает на QTreeViewPrivate::coordinateForItem, попадая на
@@ -154,7 +240,7 @@ void TProgressForm::elideProgressText()
 //! Установка текста сообщений о прогрессе операции.
 
 void TProgressForm::setProgressText(const QString& SrcText,
-                                           const QString& DestText)
+                                    const QString& DestText)
 {
     m_SrcText  = SrcText;
     m_DestText = DestText;
@@ -215,6 +301,8 @@ void TProgressForm::pendingTasksChanged()
     ui->Pending_Num->setVisible(Visible);
     if (Visible)
         ui->Pending_Num->setText(QString::number(Pending));
+
+    m_pTaskbarControl->overlayIcon()->setPixmap(m_OverlayIcon.pixmap(Pending));
 }
 
 //------------------------------------------------------------------------------
@@ -227,6 +315,50 @@ void TProgressForm::moveTask(int Delta)
     m_pTaskManager->moveTask(row, Delta);
     ui->TaskListTree->setCurrentIndex(m_pTaskModel->index(row + Delta, 0));
     taskListChanged();
+}
+
+//------------------------------------------------------------------------------
+//! Отображение прогресса операции на кнопке в панели задач.
+
+void TProgressForm::updateTaskbarProgress()
+{
+    TTaskbarProgress* pTaskbarProgress = m_pTaskbarControl->progressBar();
+    Q_ASSERT(pTaskbarProgress != NULL);
+
+    // Состояние.
+    TTaskbarProgress::TState State = TTaskbarProgress::Normal;
+    if (m_pTaskManager->isUserPromptInProcess()) {
+        State = TTaskbarProgress::Error;
+    }
+    else {
+        if (m_pTaskManager->isPaused()) {
+            State = TTaskbarProgress::Paused;
+        }
+        else {
+            if (m_pTaskManager->isCalculating()) {
+                State = TTaskbarProgress::Indeterminate;
+            }
+        }
+    }
+    pTaskbarProgress->setState(State);
+
+    // Значение.
+    pTaskbarProgress->setProgress(ui->TotalProgress->minimum(),
+                                  ui->TotalProgress->maximum(),
+                                  ui->TotalProgress->value());
+
+}
+
+//------------------------------------------------------------------------------
+//! Перевод заголовка окна.
+/*!
+   Метод осуществляет перевод заголовка окна. Должен вызываться после
+   retranslateUi.
+ */
+
+void TProgressForm::retranslateTitle()
+{
+    setWindowTitle(windowTitle().arg(QApplication::applicationName()));
 }
 
 //------------------------------------------------------------------------------
@@ -275,7 +407,7 @@ void TProgressForm::updateProgress()
     }
     else {
         const TTaskStatus* pTaskStatus = m_pTaskManager->taskStatus();
-        if (!pTaskStatus) {
+        if (pTaskStatus == NULL) {
             qWarning("TProgressForm::updateProgress. "
                      "TaskManager doesn't have TaskStatus.");
             return;
@@ -315,6 +447,8 @@ void TProgressForm::updateProgress()
 
         setProgressText(SrcText, DestText);
     }
+
+    updateTaskbarProgress();
 }
 
 //------------------------------------------------------------------------------
@@ -376,14 +510,24 @@ bool TProgressForm::cancelDialog(TCancelReason CancelReason)
 
     if (CancelReason == crCloseForm || CancelReason == crCloseApplication) {
         QString Message;
-        if (CancelReason == crCloseForm)
+        if (CancelReason == crCloseForm) {
             Message = m_pTaskModel->tasksCount() > 1 ?
                           tr("Cancel all tasks and close window?") :
                           tr("Cancel task and close window?");
-        else // crCloseApplication
+        }
+        else {
+            Q_ASSERT(CancelReason == crCloseApplication);
             Message = m_pTaskModel->tasksCount() > 1 ?
                           tr("Cancel all tasks and close application?") :
                           tr("Cancel copy and close application?");
+        }
+
+        // TODO : В отдельный метод.
+        setWindowState(windowState() & ~Qt::WindowMinimized);
+        raise();
+        activateWindow();
+
+        //QApplication::processEvents();
 
         if (QMessageBox::question(this,
                                   QApplication::applicationName(),
@@ -433,23 +577,24 @@ bool TProgressForm::cancelDialog(TCancelReason CancelReason)
 //------------------------------------------------------------------------------
 //! Обработчик смены состояний.
 
-void TProgressForm::changeEvent(QEvent *e)
+void TProgressForm::changeEvent(QEvent* e)
 {
     QWidget::changeEvent(e);
     switch (e->type()) {
         case QEvent::LanguageChange:
             ui->retranslateUi(this);
+            retranslateTitle();
             m_pTaskModel->retranslate();
             break;
         default:
-            break;
+            ;
     }
 }
 
 //------------------------------------------------------------------------------
 //! Обработчик изменения размера.
 
-void TProgressForm::resizeEvent(QResizeEvent *Event)
+void TProgressForm::resizeEvent(QResizeEvent* Event)
 {
     if (Event->size().width() != Event->oldSize().width())
         elideProgressText();
@@ -458,20 +603,15 @@ void TProgressForm::resizeEvent(QResizeEvent *Event)
 //------------------------------------------------------------------------------
 //! Обработчик события закрытия формы.
 
-void TProgressForm::closeEvent(QCloseEvent *Event)
+void TProgressForm::closeEvent(QCloseEvent* Event)
 {
     if (m_pTaskManager->isRunning()) {
         Event->ignore();
         m_ForcedHide = cancelDialog(crCloseForm);
     }
-}
-
-//------------------------------------------------------------------------------
-//! Обработчик события скрытия формы.
-
-void TProgressForm::hideEvent(QHideEvent*)
-{
-    emit hidden();
+    else {
+        emit closed();
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -591,9 +731,10 @@ void TProgressForm::endTask(TSharedConstTask Task)
 void TProgressForm::end()
 {
     if (m_ForcedHide || !ui->DoNotClose->isChecked())
-        hide();
+        close();
     else
         ui->SourceName->setText(tr("All tasks are completed!"));
+
     ui->DestName->clear();
     ui->ReadProgress->setRange(0, 100);
     ui->ReadProgress->setValue(100);
@@ -604,6 +745,12 @@ void TProgressForm::end()
     ui->Cancel->setEnabled(false);
     ui->Pause->setEnabled(false);
     ui->Remaining->clear();
+
+    TTaskbarProgress* pTaskbarProgress = m_pTaskbarControl->progressBar();
+    Q_ASSERT(pTaskbarProgress != NULL);
+    pTaskbarProgress->setState(TTaskbarProgress::NoProgress);
+
+    QApplication::alert(this);
 }
 
 //------------------------------------------------------------------------------
@@ -630,6 +777,10 @@ bool TProgressForm::exit()
 {
     bool Exited = cancelDialog(crCloseApplication);
     if (Exited && m_pTaskManager != NULL) {
+        if (m_pTaskManager->isPaused()) {
+            qWarning("TProgressForm::exit. Task manager is paused. Possible deadlock!");
+            //m_pTaskManager->resume();
+        }
         // TODO: Возможно "замерзание" графического интерфейса.
         m_pTaskManager->wait();
         close();
@@ -651,14 +802,9 @@ void TProgressForm::on_Cancel_clicked()
 void TProgressForm::on_Pause_clicked()
 {
     if (ui->Pause->isChecked())
-    {
         m_pTaskManager->pause();
-        ui->Pause->setText(tr("&Resume"));
-    }
-    else {
+    else
         m_pTaskManager->resume();
-        ui->Pause->setText(tr("&Pause"));
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -666,6 +812,13 @@ void TProgressForm::on_Pause_clicked()
 void TProgressForm::reject()
 {
     cancelDialog(crCancelButton);
+}
+
+//------------------------------------------------------------------------------
+
+void TProgressForm::viewChange()
+{
+    setToolButtonsSettings(this);
 }
 
 //------------------------------------------------------------------------------

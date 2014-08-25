@@ -450,7 +450,7 @@ void TTaskManager::processNextError(TErrorData *pErrorData)
                 m_pTaskStatus->pause();
             pause();
             // Флаг должен сбросить метод errorProcessed.
-            m_ErrorInProcess = true;
+            m_UserPromptInProcess = true;
             emit error(pErrorData);
             return;
         }
@@ -458,12 +458,9 @@ void TTaskManager::processNextError(TErrorData *pErrorData)
             qWarning("TTaskManager::processNextError. "
                      "No receivers for error signal.");
             pErrorData->Action = eaIgnore;
-            finishProcessError(pErrorData);
         }
     }
-    else {
-        finishProcessError(pErrorData);
-    }
+    finishProcessError(pErrorData);
 }
 
 //------------------------------------------------------------------------------
@@ -471,7 +468,7 @@ void TTaskManager::processNextError(TErrorData *pErrorData)
 void TTaskManager::processNextError()
 {
     // Защита от вывода одновременно двух диалоговых окон.
-    if (m_ErrorInProcess || m_LockProcessErrors)
+    if (m_UserPromptInProcess || (m_LockProcessErrors != 0))
         return;
 
     while (!m_ErrorsQueue.isEmpty())
@@ -594,8 +591,8 @@ void TTaskManager::run()
 TTaskManager::TTaskManager(QObject* Parent)
     : QThread(Parent),
       m_Cancel(false),
-      m_ErrorInProcess(false),
-      m_LockProcessErrors(false),
+      m_UserPromptInProcess(false),
+      m_LockProcessErrors(0),
       m_pReader(new TReader()),
       m_pSizeCalc(new TSizeCalculator()),
       m_pTaskStatus(new TTaskStatus()),
@@ -816,12 +813,14 @@ void TTaskManager::cancelAllTasks()
 
 void TTaskManager::lockProcessErrors()
 {
-    if (!m_LockProcessErrors) {
+    /*if (!m_LockProcessErrors) {
         m_LockProcessErrors = true;
     }
     else {
         qWarning("TTaskManager::lockProcessErrors. Already locked.");
-    }
+    }*/
+    if (!m_LockProcessErrors.testAndSetRelaxed(0, 1))
+        qWarning("TTaskManager::lockProcessErrors. Already locked.");
 }
 
 //------------------------------------------------------------------------------
@@ -829,13 +828,15 @@ void TTaskManager::lockProcessErrors()
 
 void TTaskManager::unlockProcessErrors()
 {
-    if (m_LockProcessErrors) {
+    /*if (m_LockProcessErrors) {
         m_LockProcessErrors = false;
         processNextError();
     }
     else {
         qWarning("TTaskManager::unlockProcessErrors. Already unlocked.");
-    }
+    }*/
+    if (!m_LockProcessErrors.testAndSetRelaxed(1, 0))
+        qWarning("TTaskManager::unlockProcessErrors. Already unlocked.");
 }
 
 //------------------------------------------------------------------------------
@@ -867,21 +868,11 @@ void TTaskManager::errorProcessed(TErrorData* pErrorData)
     // Вызывать напрямую нельзя, только через сигналы.
     Q_ASSERT(sender() != NULL);
 
-    //! Проверка некритичных условий.
-    /*if (m_ErrorsQueue.isEmpty()) {
-        qWarning("TTaskManager::errorProcessed. Errors queue is empty.");
-    }
-    else {
-        if (m_ErrorsQueue.head() != pErrorData) {
-            qWarning("TTaskManager::errorProcessed. "
-                     "Processed error is not first in queue.");
-        }
-    }*/
-
     m_LastActions.addAction(pErrorData->ErrorCode, pErrorData->Action);
     if (m_pTaskStatus != NULL) {
         if (m_pTaskStatus->isStarted() && !m_pTaskStatus->isPaused()) {
-            qWarning("TTaskManager::errorProcessed. TaskStatus started, but is not paused.");
+            qWarning("TTaskManager::errorProcessed. "
+                     "TaskStatus started, but is not paused.");
         }
         m_pTaskStatus->resume();
     }
@@ -891,7 +882,7 @@ void TTaskManager::errorProcessed(TErrorData* pErrorData)
     else
         qWarning("TTaskManager::errorProcessed. Threads is not paused.");
 
-    m_ErrorInProcess = false;
+    m_UserPromptInProcess = false;
 
     finishProcessError(pErrorData);
     processNextError();

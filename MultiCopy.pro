@@ -37,14 +37,17 @@
 
 include(Core/AppInstances/AppInstances.pri)
 include(Core/FastIO/FastIO.pri)
+include(GUI/FileDialogs/FileDialogs.pri)
+include(GUI/TaskbarControl/TaskbarControl.pri)
 #include(profiler.pri)
 
 QT += core gui
 
+TARGET = MultiCopy
+
 CONFIG(debug, debug|release){
-    TARGET = MultiCopy_d
+    TARGET = $$join(TARGET, , , _d)
 } else {
-    TARGET = MultiCopy
     DEFINES += QT_NO_WARNING_OUTPUT \
                QT_NO_DEBUG_OUTPUT \
                QT_NO_DEBUG
@@ -121,7 +124,8 @@ SOURCES += main.cpp\
     GUI/Widgets/QPushButton2.cpp \
     GUI/GUIErrorHandler.cpp \
     GUI/Settings.cpp \
-    GUI/Translator.cpp
+    GUI/Translator.cpp \
+    Core/Resources.cpp
 
 FORMS += \
     GUI/Forms/MultiCopyForm.ui \

@@ -42,6 +42,7 @@
 #include <QCoreApplication>
 
 #include "../Common/SharedMemory.hpp"
+#include "../Resources.hpp"
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -56,7 +57,7 @@ void TGlobalStatistics::TStat::clear()
 {
     BytesReaded = 0;     BytesWrited = 0;
     FilesReaded = 0;     FilesWrited = 0;
-    TasksCompleted = 0;
+    TasksCompleted = 0;  WorkTime    = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -65,6 +66,19 @@ void TGlobalStatistics::TStat::clear()
 TGlobalStatistics::TStat::TStat()
 {
     clear();
+}
+
+//------------------------------------------------------------------------------
+
+TGlobalStatistics::TStat &TGlobalStatistics::TStat::operator+=(const TStat& other)
+{
+    BytesReaded    += other.BytesReaded;
+    BytesWrited    += other.BytesWrited;
+    FilesReaded    += other.FilesReaded;
+    FilesWrited    += other.FilesWrited;
+    TasksCompleted += other.TasksCompleted;
+    WorkTime       += other.WorkTime;
+    return *this;
 }
 
 
@@ -122,7 +136,7 @@ TGlobalStatistics::TGlobalStatistics()
     #ifdef Q_OS_WIN
         AppId = AppId.toLower();
     #endif
-    AppId = QLatin1String("MultiCopy-GlobalStatistics-") + AppId.toUtf8().toHex();
+    AppId = baseAppName() + QLatin1String("-GlobalStatistics-") + AppId.toUtf8().toHex();
     m_pSharedMemory = new TSharedMemory<TStat2>(AppId);
     m_pStat2 = m_pSharedMemory->data();
 }
@@ -169,6 +183,7 @@ void TGlobalStatistics::read(QSettings* pSettings, QString Group)
             READ(FilesReaded,    qint64);
             READ(FilesWrited,    qint64);
             READ(TasksCompleted, qint64);
+            READ(WorkTime,       qint64);
             pSettings->endGroup();
 
             m_pStat2->Readed = true;
@@ -208,6 +223,7 @@ void TGlobalStatistics::write(QSettings* pSettings, QString Group)
             WRITE(FilesReaded);
             WRITE(FilesWrited);
             WRITE(TasksCompleted);
+            WRITE(WorkTime);
             pSettings->endGroup();
         }
         else {
@@ -230,16 +246,9 @@ void TGlobalStatistics::append(const TStat& Stat)
     if (m_pStat2 != NULL)
     {
         if (m_pStat2->Readed)
-        {
-            m_pStat2->BytesReaded += Stat.BytesReaded;
-            m_pStat2->BytesWrited += Stat.BytesWrited;
-            m_pStat2->FilesReaded += Stat.FilesReaded;
-            m_pStat2->FilesWrited += Stat.FilesWrited;
-            m_pStat2->TasksCompleted += Stat.TasksCompleted;
-        }
-        else {
+            *m_pStat2 += Stat;
+        else
             qWarning("TGlobalStatistics::append. Data not readed.");
-        }
     }
     else {
         qWarning("TGlobalStatistics::append. Data pointer is NULL.");

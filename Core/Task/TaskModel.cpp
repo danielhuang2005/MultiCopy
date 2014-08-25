@@ -113,7 +113,7 @@ void TTaskModel::QStandardItem2::retranslate(bool WithChildren)
             break;
         default :
             qWarning("TTaskModel::QStandardItem2::retranslate. "
-                     "Nnknown item type (%i).", m_ItemType);
+                     "Unknown item type (%i).", m_ItemType);
     }
 
     if (WithChildren) {

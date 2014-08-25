@@ -1,5 +1,22 @@
 <RCC>
     <qresource prefix="/">
+        <file alias="Add_16x16">../../3rdParty/OpenIconLibrary/edit-add-2.png</file>
+        <file alias="AddFile_16x16">../../3rdParty/OpenIconLibrary/document-new-6.png</file>
+        <file alias="AddFolder_16x16">../../3rdParty/OpenIconLibrary/folder-new-7.png</file>
+        <file alias="ArrowDown_16x16">../../3rdParty/OpenIconLibrary/go-down-5.png</file>
+        <file alias="ArrowUp_16x16">../../3rdParty/OpenIconLibrary/go-up-5.png</file>
+        <file alias="Cancel_16x16">../../3rdParty/OpenIconLibrary/dialog-cancel-4.png</file>
+        <file alias="Clear_16x16">../../3rdParty/OpenIconLibrary/edit-delete-2.png</file>
+        <file alias="Delete_16x16">../../3rdParty/OpenIconLibrary/edit-delete-6.png</file>
+        <file alias="Edit_16x16">../../3rdParty/OpenIconLibrary/document-edit.png</file>
+        <file alias="Exit_16x16">../../3rdParty/OpenIconLibrary/application-exit-4.png</file>
+        <file alias="GeneralSettings_16x16">../../3rdParty/OpenIconLibrary/configure-2.png</file>
+        <file alias="LoadTask_16x16">../../3rdParty/OpenIconLibrary/document-import-2.png</file>
+        <file alias="Pause_16x16">../../3rdParty/OpenIconLibrary/media-playback-pause-7.png</file>
+        <file alias="SaveTask_16x16">../../3rdParty/OpenIconLibrary/document-export-4.png</file>
+        <file alias="Start_16x16">../../3rdParty/OpenIconLibrary/media-playback-start-7.png</file>
+        <file alias="TaskSettings_16x16">../../3rdParty/OpenIconLibrary/document-properties-4.png</file>
         <file alias="qt_16x16">../Resources/qt_16x16.png</file>
+        <file alias="TaskbarOverlay">../Resources/TaskbarOverlay.png</file>
     </qresource>
-</RCC> 
+</RCC>

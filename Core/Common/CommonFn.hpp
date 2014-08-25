@@ -61,6 +61,8 @@ void AddWithSeparator(QString* Initial, const QString& Added);
 QString AddWithSeparator(const QString& Initial, const QString& Added);
 QString PathToLongWinPath(const QString& Path);
 bool isNetworkPath(const QString& Path);
+QString ParentDir(const QString& Path);
+bool isRootDir(const QString& Path);
 
 //------------------------------------------------------------------------------
 
