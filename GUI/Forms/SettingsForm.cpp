@@ -152,6 +152,8 @@ void TSettingsForm::readData_SystemParams(const TGeneralSettings* pGS)
     ui->SingleInstance->setChecked(pGS->SingleInstance);
     ui->CheckDestDirs->setChecked(pGS->CheckDestDirs);
     ui->CheckDestNetworkDirs->setChecked(pGS->CheckNetworkDestDirs);
+    ui->AfterStartClearSrcList->setChecked(pGS->AfterStartClearSrcList);
+    ui->AfterStartClearDestList->setChecked(pGS->AfterStartClearDestList);
 }
 
 //------------------------------------------------------------------------------
@@ -183,6 +185,9 @@ void TSettingsForm::writeData_SystemParams(TGeneralSettings* pGS)
     pGS->SingleInstance       = ui->SingleInstance->isChecked();
     pGS->CheckDestDirs        = ui->CheckDestDirs->isChecked();
     pGS->CheckNetworkDestDirs = ui->CheckDestNetworkDirs->isChecked();
+    pGS->AfterStartClearSrcList  = ui->AfterStartClearSrcList->isChecked();
+    pGS->AfterStartClearDestList = ui->AfterStartClearDestList->isChecked();
+
 }
 
 //------------------------------------------------------------------------------
