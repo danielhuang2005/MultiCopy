@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 
               Copyright (С) 2012 Юрий Владимирович Круглов
 
@@ -36,55 +36,53 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __JOBSETTINGSFORM__HPP__
+#define __JOBSETTINGSFORM__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QDialog>
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
-
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
+namespace Ui {
+    class TTaskSettingsForm;
 }
+class TSettings;
+struct TTaskSettings;
 
 //------------------------------------------------------------------------------
+
+class TMultiCopy;
+
+class TTaskSettingsForm : public QDialog
+{
+    Q_OBJECT
+    private:
+        Ui::TTaskSettingsForm *ui;
+        TSettings* m_pSettings;
+
+        void saveSession();
+        void restoreSession();
+
+        void readData_GeneralParams(const TTaskSettings* pTS);
+        void readData_RAMParams(const TTaskSettings *pTS);
+        void readData(const TTaskSettings* pTS);
+        void writeData_GeneralParams(TTaskSettings* pTS);
+        void writeData_RAMParams(TTaskSettings* pTS);
+        void writeData(TTaskSettings* pTS);
+
+    protected :
+        virtual void changeEvent(QEvent *e);
+
+    public:
+        explicit TTaskSettingsForm(QWidget* Parent = NULL);
+        ~TTaskSettingsForm();
+
+    private slots :
+        void calculateRAM();
+        void on_OK_clicked();
+        void on_Default_clicked();
+};
+
+//------------------------------------------------------------------------------
+
+#endif // __JOBSETTINGSFORM__HPP__

@@ -36,55 +36,89 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#include "GlobalStatistics.hpp"
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QSettings>
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+#define WRITE(Field) \
+    pSettings->setValue(#Field, Field);
+
+#define READ(Field, Type) \
+    Field = pSettings->value(#Field, Field).value<Type>();
+
+//------------------------------------------------------------------------------
+//! Имя группы в настройках по умолчанию.
+
+const QString TGlobalStatistics::DefaultGroup = "GlobalStatistics";
+
+//------------------------------------------------------------------------------
+//! Конструктор.
+
+TGlobalStatistics::TGlobalStatistics()
+    : BytesReaded(0), BytesWrited(0),
+      FilesReaded(0), FilesWrited(0),
+      TasksCompleted(0)
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+}
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+//------------------------------------------------------------------------------
+//! Деструктор.
 
-    TSettings* pSettings = TSettings::instance();
+TGlobalStatistics::~TGlobalStatistics()
+{
+}
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+//------------------------------------------------------------------------------
+//! Указатель на экземпляр объекта.
 
+TGlobalStatistics* TGlobalStatistics::instance()
+{
+    static TGlobalStatistics Instance;
+    return &Instance;
+}
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
+//------------------------------------------------------------------------------
+//! Чтение настроек.
+/*!
+   \arg pSettings Указатель на экземпляр класса настроек.
+   \arg Group     Имя группы для чтения настроек.
+ */
 
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
+void TGlobalStatistics::read(QSettings* pSettings, QString Group)
+{
+    if (Group.isEmpty())
+        Group = DefaultGroup;
 
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
+    pSettings->beginGroup(Group);
+    READ(BytesReaded,    qint64);
+    READ(BytesWrited,    qint64);
+    READ(FilesReaded,    qint64);
+    READ(FilesWrited,    qint64);
+    READ(TasksCompleted, qint64);
+    pSettings->endGroup();
+}
 
-    return a.exec();
+//------------------------------------------------------------------------------
+//! Запись настроек.
+/*!
+   \arg pSettings Указатель на экземпляр класса настроек.
+   \arg Group     Имя группы для сохранения настроек.
+ */
+
+void TGlobalStatistics::write(QSettings* pSettings, QString Group)
+{
+    if (Group.isEmpty())
+        Group = DefaultGroup;
+
+    pSettings->beginGroup(Group);
+    WRITE(BytesReaded);
+    WRITE(BytesWrited);
+    WRITE(FilesReaded);
+    WRITE(FilesWrited);
+    WRITE(TasksCompleted);
+    pSettings->endGroup();
 }
 
 //------------------------------------------------------------------------------

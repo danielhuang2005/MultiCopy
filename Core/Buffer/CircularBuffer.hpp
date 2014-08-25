@@ -36,55 +36,29 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __CIRCULARBUFFER__HPP__3C99125C_A754_4B7C_AA1D_A46CC6BB65E9__
+#define __CIRCULARBUFFER__HPP__3C99125C_A754_4B7C_AA1D_A46CC6BB65E9__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include "Buffer.hpp"
+#include "Core/Sync/Synchronizer.hpp"
 
 //------------------------------------------------------------------------------
+//! Кольцевой буфер.
 
-int main(int argc, char *argv[])
+class TCircularBuffer : public TBuffer, public TSynchronizer
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        // Скрываем потенциально опасные методы.
+        void clear();
+        void resize(int);
+    public:
+        TCircularBuffer(int CellsCount, int CellSize, bool Lock);
+        ~TCircularBuffer();
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        TBufferCell* firstFreeBlock();
+        TBufferCell* firstUsedBlock(void* pConsumer);
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __CIRCULARBUFFER__HPP__3C99125C_A754_4B7C_AA1D_A46CC6BB65E9__

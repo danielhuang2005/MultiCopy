@@ -36,55 +36,64 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __SETTINGSFORM__HPP__
+#define __SETTINGSFORM__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QDialog>
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
-
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
+namespace Ui {
+    class TSettingsForm;
 }
+class TSettings;
+struct TGeneralSettings;
 
 //------------------------------------------------------------------------------
+
+class TSettingsForm : public QDialog
+{
+    Q_OBJECT
+    private:
+        Ui::TSettingsForm *ui;
+        TSettings* m_pSettings;
+        struct TLangDef {
+            QString LangID;
+            QString LangName;
+            TLangDef() {}
+            TLangDef(const QString& ID, const QString& Name)
+                : LangID(ID), LangName(Name) {}
+        };
+        typedef QList<TLangDef> TLangDefList;
+        TLangDefList m_LangDefList;
+
+        void languagesList();
+        void saveSession();
+        void restoreSession();
+        void readData_ViewParams(const TGeneralSettings* pGS);
+        void readData_SystemParams(const TGeneralSettings* pGS);
+        void readData(const TGeneralSettings* pGS);
+        void writeData_ViewParams(TGeneralSettings* pGS);
+        void writeData_SystemParams(TGeneralSettings* pGS);
+        void writeData(TGeneralSettings* pGS);
+
+    protected :
+        virtual void closeEvent(QCloseEvent *Event);
+        virtual void changeEvent(QEvent *e);
+
+    public:
+        explicit TSettingsForm(QWidget* Parent = NULL);
+        ~TSettingsForm();
+
+    public slots :
+        virtual void accept();
+        virtual void reject();
+
+    private slots :
+        void on_Default_clicked();
+        void on_Languages_currentIndexChanged(int index);
+};
+
+//------------------------------------------------------------------------------
+
+#endif // __SETTINGSFORM__HPP__

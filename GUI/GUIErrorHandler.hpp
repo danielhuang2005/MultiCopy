@@ -36,55 +36,36 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __GUIERRORHANDLER__HPP__
+#define __GUIERRORHANDLER__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include "Core/Errors/ErrorHandler.hpp"
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+class QWidget;
+
+//------------------------------------------------------------------------------
+//! Обработчик ошибок в графическом режиме.
+/*!
+   Класс реализует вывод диалгового окна с запросом действий пользователя
+   в графическом режиме работы приложения.
+ */
+
+class TGUIErrorHandler : public TErrorHandler
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        QWidget* m_pParent;  //!< Родительский виджет. Диалоговое окно будет
+                             //!< центрировано по родительскому виджету.
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+    protected :
+        void userPrompt(TErrorData* pErrorData);
 
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+    public:
+        TGUIErrorHandler(QWidget* Parent);
+        virtual ~TGUIErrorHandler();
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __GUIERRORHANDLER__HPP__

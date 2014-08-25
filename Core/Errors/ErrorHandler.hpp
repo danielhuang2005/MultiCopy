@@ -36,55 +36,55 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __ERRORHANDLER__HPP__
+#define __ERRORHANDLER__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QString>
+#include <QMap>
+#include <QMutex>
+
+#include "ErrorsAndActions.hpp"
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+class TTaskStatus;
+
+//------------------------------------------------------------------------------
+//! Обработчик ошибок.
+
+class TErrorHandler : public QObject
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    Q_OBJECT
+    protected :
+        //! Диалоговый обработчик ошибок.
+        /*!
+           Этот метод должен быть определён в потомке класса. Назначение
+           метода - вывод запроса пользователю о возможных действиях.
+           Метод вызывается только в случае необходимости. Например, если
+           пользователь в определённой ситуации выбрал вариант ответа,
+           предполагающий повтор выбранного действия ("пропустить всё",
+           "игнорировать всё" и т.п.), то метод вызван не будет. Результатом
+           действия метода должна быть ТОЛЬКО установка поля Action
+           структуры m_pErrorData.
+         */
+        virtual void userPrompt(TErrorData* pErrorData) = 0;
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+        TErrorActionSet m_Actions;
 
-    TSettings* pSettings = TSettings::instance();
+    public:
+        TErrorHandler(QObject* Parent = NULL);
+        virtual ~TErrorHandler();
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+        static QString errorText(TErrorCode Code);
+        static TErrorActionSet actions(TErrorCode Code);
 
+    signals :
+        void errorProcessed(TErrorData* pErrorData);
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+    public slots :
+        void errorReceiver(TErrorData* pErrorData);
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __ERRORHANDLER__HPP__

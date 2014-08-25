@@ -36,55 +36,52 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __COMMONFN__HPP__
+#define __COMMONFN__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QString>
+#include <QStringList>
+#include <QFileInfo>
+
+#ifdef Q_OS_WIN
+    #include <windows.h>
+#endif
+
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
-
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+void AddWithSeparator(QString* Initial, const QString& Added);
+QString AddWithSeparator(const QString& Initial, const QString& Added);
+QString PathToLongWinPath(const QString& Path);
+bool isNetworkPath(const QString& Path);
 
 //------------------------------------------------------------------------------
+
+void* GetLockedMem(size_t Size, bool* Lock = NULL);
+void FreeLockedMem(void* Pointer);
+qint64 AvailablePhysicalMemory();
+
+//------------------------------------------------------------------------------
+
+QString GetSystemErrorString();
+QString GetSystemErrorString(
+            #ifdef Q_OS_WIN
+                DWORD
+            #else
+                int
+            #endif
+                ErrCode);
+
+//------------------------------------------------------------------------------
+
+QString speedToStr(qint64 BytesPerSec, int Digits = 4);
+QString sizeToStr(qint64 Bytes, int Digits = 4);
+
+//------------------------------------------------------------------------------
+
+QString GetDriveByPath(const QString& Path);
+qint64 DiskFreeSpace(const QString& Path);
+
+//------------------------------------------------------------------------------
+
+#endif // __COMMONFN__HPP__

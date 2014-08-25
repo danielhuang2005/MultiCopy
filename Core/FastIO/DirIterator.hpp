@@ -36,55 +36,75 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __DIRITERATOR__HPP__4F804DD9_F806_4C0C_AE53_83FC68C494B8__
+#define __DIRITERATOR__HPP__4F804DD9_F806_4C0C_AE53_83FC68C494B8__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QString>
+#include <QFlags>
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+#if defined(Q_OS_WIN)
+    #include <windows.h>
+#else
+    #include <dirent.h>
+#endif
+
+#include "FileInfoEx.hpp"
+
+//------------------------------------------------------------------------------
+
+class TDirIterator
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    public :
+        //! Флаги выборки объектов файловой системы.
+        enum TFilter {
+            Files  = 0x0001,  //!< Файлы.
+            Dirs   = 0x0002,  //!< Каталоги.
+            Hidden = 0x0004,  //!< Скрытые объекты.
+            System = 0x0008   //!< Системные объекты.
+        };
+        //! Фильтр выборки объектов файловой системы.
+        typedef QFlags<TFilter> TFilters;
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+    private :
+        //! Статус экземпляра класса.
+        enum TStatus {
+            stNotStarted,  //!< Перечисление ещё не запущено.
+            stStarted,     //!< Перечисление запущено.
+            stFinished     //!< Перечисление завершено.
+        };
 
-    TSettings* pSettings = TSettings::instance();
+        QString     m_StartPath;
+        TFilters    m_Filters;
+        TFileInfoEx m_FileInfoEx;
+        TStatus     m_Status;
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+        #ifdef Q_OS_WIN
+            HANDLE m_hFind;
+            WIN32_FIND_DATAW m_FindData;
+        #else
+            DIR* m_pDir;
+        #endif
 
+        void start();
+        bool nextRequired();
+        void getNext();
+        void finish();
+    public:
+        TDirIterator(const QString& StartPath, TFilters Filters);
+        virtual ~TDirIterator();
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
+        bool next();
 
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
+        QString fileName() const;
+        QString filePath() const;
+        QString path() const;
+        TFileInfoEx info() const;
+};
 
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+Q_DECLARE_OPERATORS_FOR_FLAGS(TDirIterator::TFilters)
 
 //------------------------------------------------------------------------------
+
+#endif // __DIRITERATOR__HPP__4F804DD9_F806_4C0C_AE53_83FC68C494B8__

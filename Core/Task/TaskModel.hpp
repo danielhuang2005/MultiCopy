@@ -36,55 +36,52 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __TASKMODEL__HPP__
+#define __TASKMODEL__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QStandardItemModel>
+
+#include "Task.hpp"
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+class TTaskModel : public QStandardItemModel
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        typedef QMap<TSharedConstTask, QStandardItem*> TTasks;
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+        TTasks           m_Tasks;        //!< Список задач.
+        TSharedConstTask m_CurrentTask;  //!< Текущая выполняемая задача.
+        QStandardItem*   m_pRoot;        //!< Корневой элемент модели.
+        int              m_LastNumber;   //!< Порядковый номер задачи.
 
-    TSettings* pSettings = TSettings::instance();
+        Q_DISABLE_COPY(TTaskModel)
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+    public :
+        explicit TTaskModel(QObject* Parent = NULL);
+        virtual ~TTaskModel();
 
+        void newTask(TSharedConstTask Task);
+        void beginTask(TSharedConstTask Task);
+        void endTask(TSharedConstTask Task);
+        void deleteTask(TSharedConstTask Task);
+        void deleteTask(int row);
+        void deleteTasks(TTaskList TaskList);
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
+        int taskNumberForIndex(const QModelIndex& Index) const;
+        TSharedConstTask taskForNumber(int row) const;
+        TSharedConstTask taskForIndex(const QModelIndex& Index) const;
+        void moveTask(int row, int delta);
 
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        //! Порядковый номер последней добавленной задачи.
+        inline int lastNumber() const { return m_LastNumber; }
+        //! Установка порядкового последней добавленной задачи.
+        inline void setLastNumber(int Number) { m_LastNumber = Number; }
+        //! Список указателей на задачи.
+        inline TTaskList taskList() const { return m_Tasks.keys(); }
+        inline int tasksCount() const { return m_Tasks.count(); }
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __TASKMODEL__HPP__

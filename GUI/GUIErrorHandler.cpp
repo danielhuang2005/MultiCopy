@@ -36,55 +36,66 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#include "GUIErrorHandler.hpp"
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QDir>
+#include <QApplication>
+#include <QMessageBox>
+
+#include "GUI/Widgets/QPushButton2.hpp"
 
 //------------------------------------------------------------------------------
+//! Диалоговый обработчик ошибок.
 
-int main(int argc, char *argv[])
+void TGUIErrorHandler::userPrompt(TErrorData* pErrorData)
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    Q_ASSERT(pErrorData != NULL);
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+    QMessageBox Box(m_pParent);
+    Box.setIcon(QMessageBox::Warning);
+    Box.setWindowTitle(QApplication::applicationName());
 
-    TSettings* pSettings = TSettings::instance();
+    // Построение текста сообщения об ошибке.
+    QString Msg = errorText(pErrorData->ErrorCode);
+    if (!pErrorData->Message.isEmpty())
+        Msg += "\n\n" + pErrorData->Message.simplified();
+    if (!pErrorData->FileName.isEmpty())
+        Msg += "\n\n" + QDir::toNativeSeparators(pErrorData->FileName);
+    Box.setText(Msg);
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
+
+    // Добавление кнопок в диалог.
+    for (TErrorActionSet::const_iterator I = m_Actions.constBegin();
+         I != m_Actions.constEnd(); ++I)
+    {
+        QPushButton2* pBtn = new QPushButton2(*I);
+        Box.addButton(pBtn, QMessageBox::ActionRole);
     }
 
+    Box.exec();
+    QPushButton2* pClicked = qobject_cast<QPushButton2*>(Box.clickedButton());
+    Q_ASSERT(pClicked != NULL);
+    pErrorData->Action = pClicked->action();
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
+    // Созданные кнопки разрушаются диалогом, поэтому удалять их оператором
+    // delete не нужно.
 }
 
 //------------------------------------------------------------------------------
+//! Конструктор.
+
+TGUIErrorHandler::TGUIErrorHandler(QWidget* Parent)
+    : TErrorHandler(Parent),
+      m_pParent(Parent)
+{
+}
+
+//------------------------------------------------------------------------------
+//! Деструктор.
+
+TGUIErrorHandler::~TGUIErrorHandler()
+{
+}
+
+//------------------------------------------------------------------------------
+

@@ -36,55 +36,61 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#include "Translator.hpp"
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QCoreApplication>
+#include <QTranslator>
+#include <QLibraryInfo>
+#include <QLocale>
 
 //------------------------------------------------------------------------------
+//! Построение списка каталогов для поиска языковых файлов.
 
-int main(int argc, char *argv[])
+QStringList langPaths()
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    QStringList Result;
+    QString AppPath = QCoreApplication::applicationDirPath();
+    Result << AppPath + "/lang"
+           << AppPath
+           << QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+    return Result;
+}
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+//------------------------------------------------------------------------------
+//! Загрузка языковых файлов с указанным идентификатором языка.
 
-    TSettings* pSettings = TSettings::instance();
+void loadTranslators(QString LangId)
+{
+    static QTranslator qtTranslator;   // Общий переводчик Qt.
+    static QTranslator appTranslator;  // Переводчик приложения.
+    static QStringList LangPath = langPaths();  // Пути к файлам перевода.
+    static QString CurrentLangId;  // Текущий идентификатор языка.
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
+    if (LangId.isEmpty())
+        LangId = QLocale::system().name();
+
+    if (LangId == CurrentLangId) {
+        return;
+    }
+    CurrentLangId = LangId;
+
+    for (int i = 0; i < LangPath.count(); ++i)
+    {
+        if (qtTranslator.load("qt_" + LangId, LangPath[i]))
+        {
+            QCoreApplication::installTranslator(&qtTranslator);
+            break;
         }
     }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
+    for (int i = 0; i < LangPath.count(); ++i)
+    {
+        if (appTranslator.load(qApp->applicationName() + "." + LangId,
+                               LangPath[i]))
+        {
+            QCoreApplication::installTranslator(&appTranslator);
+            break;
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

@@ -36,55 +36,62 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef QLISTWIDGET2_HPP
+#define QLISTWIDGET2_HPP
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QListWidget>
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+class QListWidget2 : public QListWidget
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    Q_OBJECT
+    private :
+        bool m_ShowIcons;
+        bool m_ShowNetworkIcons;
+        bool m_DirsOnly;
+        bool m_CheckDirs;
+        bool m_checkNetworkDirs;
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+        void addIcon(QListWidgetItem* pItem, const QString& FileName);
+        void updateIcons();
 
-    TSettings* pSettings = TSettings::instance();
+        bool checkNewItems(QStringList* pList);
+        bool checkNewItem(const QString& Item);
+        QStringList checkNewItems(const QStringList& List);
+    private slots :
+        void dropEventSlot(QStringList Files);
+    protected :
+        virtual void dragEnterEvent(QDragEnterEvent *Event);
+        virtual void dragMoveEvent(QDragMoveEvent *Event);
+        virtual void dropEvent(QDropEvent *Event);
+    public:
+        explicit QListWidget2(QWidget *parent = 0);
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+        void addItem(const QString& Name);
+        void addItems(const QStringList& Names);
+        bool checkAndAddItem(const QString& Name);
+        bool checkAndAddItems(const QStringList& Names);
+        bool checkAndAddItems(QStringList* pList);
 
+        bool showIcons() const;
+        void setShowIcons(bool Show);
+        bool dirsOnly() const;
+        void setDirsOnly(bool DirsOnly);
+        bool showNetworkIcons() const;
+        void setShowNetworkIcons(bool Show);
+        bool checkDirs() const;
+        void setCheckDirs(bool Check);
+        bool checkNetworkDirs() const;
+        void setCheckNetworkDirs(bool Check);
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        void toStringList(QStringList* pList) const;
+        QStringList toStringList() const;
+    signals :
+        void dropEventSignal(QStringList Files);
+        void listChanged();
+};
 
 //------------------------------------------------------------------------------
+
+#endif // QLISTWIDGET2_HPP

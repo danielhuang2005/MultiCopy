@@ -36,55 +36,41 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#ifndef __GLOBALSTATISTICS__HPP__
+#define __GLOBALSTATISTICS__HPP__
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+#include <QtGlobal>
+#include <QString>
+
+//------------------------------------------------------------------------------
+
+class QSettings;
+
+//------------------------------------------------------------------------------
+//! Класс для подсчёта общей статистики работы программы.
+
+class TGlobalStatistics
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        static const QString DefaultGroup;
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+        Q_DISABLE_COPY(TGlobalStatistics)
+        explicit TGlobalStatistics();
+        virtual ~TGlobalStatistics();
+    public:
+        static TGlobalStatistics* instance();
+        void read(QSettings* pSettings, QString Group = QString());
+        void write(QSettings* pSettings, QString Group = QString());
 
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        qint64 BytesReaded;     //!< Число прочитанных байт.
+        qint64 BytesWrited;     //!< Число записанных байт.
+        qint64 FilesReaded;     //!< Число прочитанных файлов.
+        qint64 FilesWrited;     //!< Число записанных файлов.
+        qint64 TasksCompleted;  //!< Число завершённых задач.
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __GLOBALSTATISTIC__HPP__

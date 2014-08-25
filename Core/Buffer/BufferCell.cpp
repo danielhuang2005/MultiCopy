@@ -36,55 +36,34 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#include "BufferCell.hpp"
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include "Core/Common/CommonFn.hpp"
 
 //------------------------------------------------------------------------------
+//! Конструктор.
+/*!
+ * \param Size Объём ячейки (байт).
+ * \param Lock Флаг блокировки страниц памяти.
+ */
 
-int main(int argc, char *argv[])
+TBufferCell::TBufferCell(int Size, bool Lock)
+    : m_Size(Size),
+      m_pData(NULL),
+      m_UsedSize(0),
+      m_Locked(Lock),
+      m_Command(cmdNoOp)
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    if (Size > 0)
+        m_pData = (char*)GetLockedMem(Size, &m_Locked);
+}
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+//------------------------------------------------------------------------------
+//! Деструктор
 
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
+TBufferCell::~TBufferCell()
+{
+    FreeLockedMem(m_pData);
 }
 
 //------------------------------------------------------------------------------

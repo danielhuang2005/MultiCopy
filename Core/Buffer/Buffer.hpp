@@ -36,55 +36,36 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __BUFFER__HPP__ED8BD2FE_B9D9_4A09_A6DE_EFBB66FC7FF5__
+#define __BUFFER__HPP__ED8BD2FE_B9D9_4A09_A6DE_EFBB66FC7FF5__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+
+#include <QVector>
+#include "BufferCell.hpp"
 
 //------------------------------------------------------------------------------
+//! Буфер.
 
-int main(int argc, char *argv[])
+class TBuffer
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        typedef QVector<TBufferCell*> TCellsVector;
+        TCellsVector m_CellsVector;  //!< Вектор ячеек.
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+    public:
+        TBuffer(int CellsCount, int CellSize, bool Lock);
+        ~TBuffer();
 
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        bool resize(int CellsCount, int CellSize, bool Lock);
+        void clear();
+        int size() const;
+        int count() const;
+        int cellSize() const;
+        TBufferCell* at(int Index) const;
+        TBufferCell* operator[](int Index) const;
+        bool isAllocated() const;
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __BUFFER__HPP__ED8BD2FE_B9D9_4A09_A6DE_EFBB66FC7FF5__

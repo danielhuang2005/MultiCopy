@@ -36,55 +36,36 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#ifndef __COMMAND__HPP__
+#define __COMMAND__HPP__
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+#include <QString>
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+#include "Core/FastIO/FileInfoEx.hpp"
 
-    TSettings* pSettings = TSettings::instance();
+enum TCommand {
+    cmdNoOp = -1,
+    cmdNewFile,
+    cmdNewDir,
+    cmdWriteBlock,
+    cmdCloseFile,
+    cmdSetFileStat,
+    cmdSetDirStat,
+    cmdUncompleteFile,
+    cmdEnd
+};
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+struct TCommandData {
+    qint64    Size;
+    QString   ObjName;
+    TFileStat Stat;
 
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+    TCommandData();
+    void clear();
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __COMMAND__HPP__

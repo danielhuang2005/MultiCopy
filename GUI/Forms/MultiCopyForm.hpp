@@ -36,55 +36,87 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __MULTICOPYMAINWINDOW__HPP__
+#define __MULTICOPYMAINWINDOW__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QMainWindow>
+#include <QListWidget>
+
+#include "Core/Task/Task.hpp"
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
-
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
+namespace Ui {
+    class TMultiCopyForm;
 }
+class TSettings;
+class QSettings;
+class TProgressForm;
 
 //------------------------------------------------------------------------------
+
+class TMultiCopy : public QMainWindow
+{
+    Q_OBJECT
+
+    private:
+        Ui::TMultiCopyForm *ui;
+        TSettings*     m_pSettings;
+        TProgressForm* m_pProgressForm;
+
+        void saveSession();
+        void restoreSession();
+        bool loadStringListFromFile(const QString& FileName, QStringList& List);
+        bool saveStringListToFile(const QString& FileName, const QStringList& List);
+        bool loadTaskFromFile(const QString& FileName);
+        bool saveTaskToFile(const QString& FileName);
+        void setShowNameEditors(bool Show);
+
+    protected :
+        virtual void changeEvent(QEvent *e);
+        virtual void closeEvent(QCloseEvent* Event);
+
+    public:
+        explicit TMultiCopy(QWidget *parent = 0);
+        ~TMultiCopy();
+
+        void loadListsFromSettings(QSettings* pS = NULL);
+
+    private slots:
+        void srcChanged();
+        void destChanged();
+        void addCustomSrc();
+        void addCustomDest();
+        void progressFormHidden();
+        void loadTask(TSharedConstTask Task);
+
+        void on_SrcAddFile_clicked();
+        void on_SrcAddFolder_clicked();
+        void on_SrcRemove_clicked();
+        void on_SrcClear_clicked();
+        void on_SrcUp_clicked();
+        void on_SrcDown_clicked();
+        void on_SrcList_currentRowChanged(int currentRow);
+
+        void on_DestAddFolder_clicked();
+        void on_DestRemove_clicked();
+        void on_DestClear_clicked();
+        void on_DestList_currentRowChanged(int currentRow);
+
+        void on_Start_clicked();
+
+        void on_actionAbout_triggered();
+        void on_actionLoadSourcesList_triggered();
+        void on_actionLoadDestinationsList_triggered();
+        void on_actionSaveSourcesList_triggered();
+        void on_actionSaveDestinationsList_triggered();
+        void on_actionSaveTask_triggered();
+        void on_actionLoadTask_triggered();
+        void on_actionGeneralSettings_triggered();
+        void on_actionTaskSettings_triggered();
+        void on_actionStatistics_triggered();
+};
+
+//------------------------------------------------------------------------------
+
+#endif // __MULTICOPYMAINWINDOW__HPP__

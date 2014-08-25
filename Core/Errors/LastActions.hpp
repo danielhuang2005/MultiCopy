@@ -36,55 +36,35 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __LASTACTIONS__HPP__
+#define __LASTACTIONS__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QMap>
+
+#include "ErrorsAndActions.hpp"
 
 //------------------------------------------------------------------------------
+//! Класс для хранения последних выбранных действий при ошибках.
 
-int main(int argc, char *argv[])
+class TLastActions
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        //! Список последних выбранных действий.
+        typedef QMap<TErrorCode, TErrorAction> TLastActionsMap;
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+        TLastActionsMap m_LastActionsMap;  //!< Последние выбранные действия.
+        TErrorAction    m_LastAction;      //!< Последнее выбранное действие.
 
-    TSettings* pSettings = TSettings::instance();
+    public:
+        TLastActions();
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+        TErrorAction lastAction(TErrorCode ErrorCode) const;
+        void addAction(TErrorCode ErrorCode, TErrorAction Action);
+        void clear();
 
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        //! Последнее выбранное действие.
+        inline TErrorAction lastAction() const { return m_LastAction; }
+};
 
 //------------------------------------------------------------------------------
+#endif // __LASTACTIONS__HPP__

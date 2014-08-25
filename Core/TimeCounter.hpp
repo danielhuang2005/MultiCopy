@@ -36,55 +36,46 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#ifndef __TIMECOUNTER__HPP__
+#define __TIMECOUNTER__HPP__
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+#include <QtGlobal>
+
+//------------------------------------------------------------------------------
+//! Счётчик времени с возможностью приостановки.
+
+class TTimeCounter
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        qint64 m_StartTime;
+        qint64 m_PauseTime;
+        bool m_Started;
+        bool m_Paused;
+        qint64 m_msec;
+        qint64 m_Pause_msec;
+    public:
+        TTimeCounter();
+        virtual ~TTimeCounter();
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+        void start();
+        void stop();
+        void pause();
+        void resume();
+        void clear();
+        qint64 msec() const;
 
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        //! Возвращает true, если счётчик запущен.
+        inline bool isStarted() const { return m_Started; }
+        //! То же, что и \c isStarted.
+        inline bool isRunning() const { return m_Started; }
+        //! Возвращает true, если счётчик остановлен.
+        inline bool isStopped() const { return !m_Started; }
+        //! Возвращает true, если счётчик приостановлен.
+        inline bool isPaused() const {return m_Paused; }
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __TIMECOUNTER__HPP__

@@ -36,55 +36,42 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __SEMAPHOREEX__HPP__E1E8D9A3_2274_4393_98E0_FD1F4AE26A61__
+#define __SEMAPHOREEX__HPP__E1E8D9A3_2274_4393_98E0_FD1F4AE26A61__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include <QMutex>
+#include <QWaitCondition>
 
 //------------------------------------------------------------------------------
+//! Семафор с расширенной функциональностью.
+/*!
+   Класс семафора с расширенной функциональностью во многом аналогичен классу
+   QSemaphore. В принципе, этот класс можно реализовать как простую надстройку
+   над QSemaphore, но тот сам реализован на QMutex и QWaitCondition, поэтому для
+   увеличения быстродействия класс реализован заново.
+ */
 
-int main(int argc, char *argv[])
+class TSemaphoreEx
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        mutable QMutex m_Mutex;          //!< Мьютекс.
+        QWaitCondition m_WaitCondition;  //!< Wait condition.
+        int            m_Available;      //!< Счётчик семафора.
+        int m_Acquired;  //!< Последнее число позиций, затребованное для
+                         //!< захвата. Отрицательное значение - признак
+                         //!< принудительной разблокировки.
+    public:
+        TSemaphoreEx(int n = 0);
+        ~TSemaphoreEx();
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        void acquire(int n = 1);
+        void release(int n = 1);
+        int  available() const;
+        void init(int n);
+        void unlock();
+        bool isUnlocked() const;
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __SEMAPHOREEX__HPP__E1E8D9A3_2274_4393_98E0_FD1F4AE26A61__

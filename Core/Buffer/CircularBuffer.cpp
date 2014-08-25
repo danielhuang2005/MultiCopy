@@ -36,55 +36,47 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include "CircularBuffer.hpp"
 
 //------------------------------------------------------------------------------
+//! Конструктор.
+/*!
+ * \param CellsCount Число ячеек.
+ * \param CellSize Объём ячейки (байт).
+ */
 
-int main(int argc, char *argv[])
+TCircularBuffer::TCircularBuffer(int CellsCount, int CellSize, bool Lock)
+    : TBuffer(CellsCount, CellSize, Lock),
+      TSynchronizer(CellsCount)
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+}
 
-    TSettings* pSettings = TSettings::instance();
+//------------------------------------------------------------------------------
+//! Деструктор.
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+TCircularBuffer::~TCircularBuffer()
+{
 
+}
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
+//------------------------------------------------------------------------------
+//! Указатель на первую свободную ячейку.
 
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
+TBufferCell* TCircularBuffer::firstFreeBlock()
+{
+    return at(firstFreeIndex());
+}
 
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
+//------------------------------------------------------------------------------
+//! Указатель на первую готовую для потребителя ячейку.
+/*!
+ * \param pConsumer Указатель на потребителя.
+ */
 
-    return a.exec();
+TBufferCell* TCircularBuffer::firstUsedBlock(void* pConsumer)
+{
+    return at(firstUsedIndex(pConsumer));
 }
 
 //------------------------------------------------------------------------------

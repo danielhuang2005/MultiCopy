@@ -36,55 +36,77 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include "QPushButton2.hpp"
 
 //------------------------------------------------------------------------------
+//! Установка текста на кнопке и во всплывающей подсказке.
 
-int main(int argc, char *argv[])
+void QPushButton2::setTextAndToolTip()
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
-
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
+    switch (m_Action)
+    {
+        case eaOverwrite :
+            setText(tr("&Overwrite"));
+            setToolTip(tr("Overvrite current file"));
+            break;
+        case eaOverwriteAll :
+            setText(tr("O&verwrite All"));
+            setToolTip(tr("Overwrite all files without question"));
+            break;
+        case eaRetry :
+            setText(tr("&Retry"));
+            setToolTip(tr("Retry operation"));
+            break;
+        case eaIgnore :
+            setText(tr("&Ignore"));
+            setToolTip(tr("Ignore this warning and continue"));
+            break;
+        case eaIgnoreAll :
+            setText(tr("I&gnore All"));
+            setToolTip(tr("Ignore all warnings of such type and continue"));
+            break;
+        case eaSkip :
+            setText(tr("&Skip"));
+            setToolTip(tr("Skip current file"));
+            break;
+        case eaSkipAll :
+            setText(tr("Skip &All"));
+            setToolTip(tr("Skip all files without questions"));
+            break;
+        case eaCancelDest :
+            setText(tr("Cancel &Dest"));
+            setToolTip(tr("Cancel copying to this destination"));
+            break;
+        case eaCancelCurrentTask :
+            setText(tr("&Cancel"));
+            setToolTip(tr("Cancel task"));
+            break;
+        case eaCancelAllTasks :
+            setText(tr("Cancel A&ll"));
+            setToolTip(tr("Cancel all tasks"));
+            break;
+        default :
+            qWarning("QPushButton2::setTextAndToolTip. Unknown action (%i).",
+                     m_Action);
     }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
 }
 
 //------------------------------------------------------------------------------
+//! Конструктор.
+
+QPushButton2::QPushButton2(TErrorAction Action, QWidget *Parent)
+    : QPushButton(Parent),
+      m_Action(Action)
+{
+    setTextAndToolTip();
+}
+
+//------------------------------------------------------------------------------
+//! Деструктор.
+
+QPushButton2::~QPushButton2()
+{
+}
+
+//------------------------------------------------------------------------------
+

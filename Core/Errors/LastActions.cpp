@@ -36,55 +36,44 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include "LastActions.hpp"
 
 //------------------------------------------------------------------------------
+//! Конструктор.
 
-int main(int argc, char *argv[])
+TLastActions::TLastActions()
+    : m_LastAction(eaNoAction)
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+}
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+//------------------------------------------------------------------------------
+//! Последнее выбранное действие для указанного кода ошибки.
+/*!
+   \remarks Если ранее запрос для указанного кода ошибки не выводился, метод
+     вернёт eaNoAction.
+ */
 
-    TSettings* pSettings = TSettings::instance();
+TErrorAction TLastActions::lastAction(TErrorCode ErrorCode) const
+{
+    return m_LastActionsMap.value(ErrorCode, eaNoAction);
+}
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+//------------------------------------------------------------------------------
+//! Добавление действия Action для кода ошибки ErrorCode.
 
+void TLastActions::addAction(TErrorCode ErrorCode, TErrorAction Action)
+{
+    m_LastAction = Action;
+    m_LastActionsMap[ErrorCode] = Action;
+}
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
+//------------------------------------------------------------------------------
+//! Очистка всех последних действий.
 
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
+void TLastActions::clear()
+{
+    m_LastAction = eaNoAction;
+    m_LastActionsMap.clear();
 }
 
 //------------------------------------------------------------------------------

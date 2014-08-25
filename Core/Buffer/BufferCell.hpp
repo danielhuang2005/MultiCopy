@@ -36,55 +36,61 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#ifndef __BUFFERCELL__HPP__
+#define __BUFFERCELL__HPP__
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+#include "Core/Task/Command.hpp"
+
+//------------------------------------------------------------------------------
+
+class TBufferCell
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        int      m_Size;      //!< Размер блока данных.
+        char*    m_pData;     //!< Указатель на блок данных.
+        int      m_UsedSize;  //!< Использованный объём буфера.
+        bool     m_Locked;    //!< Флаг блокировки памяти.
+        TCommand m_Command;   //!< Команда.
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+        // Скрываем копирующий конструктор и оператор присваивания.
+        TBufferCell(const TBufferCell&);
+        TBufferCell& operator=(const TBufferCell&);
+    public:
+        TCommandData CommandData;
 
-    TSettings* pSettings = TSettings::instance();
+        explicit TBufferCell(int Size, bool Lock);
+        ~TBufferCell();
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+        //! Размер блока данных.
+        inline int size() const { return m_Size; }
 
+        //! Указатель на блок данных.
+        inline char* data() { return m_pData; }
 
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
+        //! Возвращает true, если память успешно выделена.
+        inline bool isAllocated() { return m_pData != 0; }
 
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
+        //! Указатель на блок данных.
+        inline const char* data() const { return m_pData; }
 
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
+        //! Использованный объём буфера.
+        inline int usedSize() const { return m_UsedSize; }
 
-    return a.exec();
-}
+        //! Возвращает true, если выделенная память заблокирована.
+        inline bool locked() const { return m_Locked; }
+
+        //! Установка использованного объёма буфера.
+        /*!
+           \remarks Проверка переданного значения не производится!
+        */
+        inline void setUsedSize(int UsedSize) { m_UsedSize = UsedSize; }
+
+        inline TCommand command() const { return m_Command; }
+        inline void setCommand(TCommand Command) { m_Command = Command; }
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __BUFFERCELL__HPP__

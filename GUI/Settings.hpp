@@ -36,55 +36,72 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
+#ifndef __SETTINGS__HPP__
+#define __SETTINGS__HPP__
 
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#include "Core/Task/Task.hpp"
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+class QSettings;
+
+//------------------------------------------------------------------------------
+//! Потомок класса TTaskSettings с возможностью сохранения настроек.
+
+struct TTaskSettings2 : public TTaskSettings
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
-
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
-
-    TSettings* pSettings = TSettings::instance();
-
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
-
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+    void read(QSettings* pS, const QString& Group = QString());
+    void write(QSettings* pS, const QString& Group = QString());
+};
 
 //------------------------------------------------------------------------------
+//! Общие настройки приложения.
+
+struct TGeneralSettings
+{
+    bool SingleInstance;        //!< Только один экземпляр приложения.
+    bool ShowFileIcons;         //!< Показывать иконки файлов и каталогов.
+    bool ShowNetworkIcons;      //!< Показывать иконки для сетевых объектов.
+    bool ShowNameEditors;       //!< Показывать поля ручного ввода имён.
+    bool CheckDestDirs;         //!< Проверять объекты назначения на тип "каталог".
+    bool CheckNetworkDestDirs;  //!< Проверять также сетевые объекты назначения.
+
+    void setDefault();
+    void read(QSettings* pS, const QString& Group = QString());
+    void write(QSettings* pS, const QString& Group = QString());
+
+    TGeneralSettings();
+};
+
+//------------------------------------------------------------------------------
+//! Класс для хранения настроек.
+/*!
+   \remarks Класс является синглтоном.
+ */
+
+class TSettings
+{
+    private :
+        QSettings* m_pQSettings;
+
+        Q_DISABLE_COPY(TSettings)
+        explicit TSettings();
+        virtual ~TSettings();
+    public:
+        static TSettings* instance();
+
+        TTaskSettings2   TaskSettings;     //!< Настройки задания.
+        TGeneralSettings GeneralSettings;  //!< Общие настройки приложения.
+
+        void read();
+        void write();
+        QString langID();
+        void setLangID(const QString& ID);
+
+        //! Возвращает указатель на внутренний объект типа QSettings.
+        inline QSettings* getQSettings() { return m_pQSettings; }
+};
+
+//------------------------------------------------------------------------------
+
+#endif // __SETTINGS__HPP__

@@ -36,55 +36,51 @@
 
 *******************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QTextCodec>
-
-#include "Core/Task/GlobalStatistics.hpp"
-#include "Core/AppInstances/AppInstances.hpp"
-#include "GUI/Forms/MultiCopyForm.hpp"
-#include "GUI/Translator.hpp"
-#include "GUI/Settings.hpp"
+#ifndef __THREADEX__HPP__702097ED_31DC_4740_9CE5_9FAB288A4592__
+#define __THREADEX__HPP__702097ED_31DC_4740_9CE5_9FAB288A4592__
 
 //------------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+#include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
+
+//------------------------------------------------------------------------------
+//! Потомок класса QThread с расширенной функциональностью.
+/*!
+   \remarks Все методы класса реентерабельны и потокобезопасны (thread-safe).
+ */
+
+class TThreadEx : public QThread
 {
-    QApplication a(argc, argv);
-    a.setOrganizationName("KrugloffYV");
-    a.setApplicationName("MultiCopy");
+    private :
+        mutable QMutex m_PauseMutex; //!< Мьютекс для приостановки потока.
+        QWaitCondition m_PauseCondition;
+        QAtomicInt     m_Paused;     //!< Флаг приостановки потока.
+        QAtomicInt     m_Cancel;     //!< Флаг отмены выполнения потока.
 
-    #ifdef Q_OS_WIN
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-    #endif
+    protected :
+        void pausePoint();
+        bool cancelPoint();
 
-    TSettings* pSettings = TSettings::instance();
+    public :
+        explicit TThreadEx(QObject* Parent = NULL);
+        virtual ~TThreadEx();
 
-    TAppInstances AppInstances("MultiCopy");
-    if (pSettings->GeneralSettings.SingleInstance) {
-        if (AppInstances.isRunning()) {
-            AppInstances.activateFirst();
-            return 0;
-        }
-    }
+        void pause();
+        void resume();
+        void cancel();
+        void clearStateFlags();
+        bool isPaused() const;
 
-
-    // Языковые настройки.
-    loadTranslators(pSettings->langID());
-    // Статистика работы.
-    TGlobalStatistics::instance()->read(pSettings->getQSettings());
-
-    TMultiCopy MainForm;
-    if (AppInstances.index() != 0)
-        MainForm.setWindowTitle(QString("[%1] ").arg(AppInstances.index() + 1) +
-                                MainForm.windowTitle());
-    AppInstances.setActivationWindow(&MainForm);
-    AppInstances.setActivateOnMessage(true);
-
-    MainForm.show();
-    QApplication::processEvents();
-    MainForm.loadListsFromSettings();
-
-    return a.exec();
-}
+        //! То же, что и pause.
+        inline void suspend() { pause(); }
+        //! То же, что и isPaused.
+        inline bool isSuspended() const { return isPaused(); }
+        //! Флаг отмены выполнения потока.
+        inline bool isCancelled() const { return m_Cancel; }
+};
 
 //------------------------------------------------------------------------------
+
+#endif // __THREADEX__HPP__702097ED_31DC_4740_9CE5_9FAB288A4592__
