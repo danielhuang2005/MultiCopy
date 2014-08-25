@@ -94,6 +94,7 @@ class TProgressForm : public QDialog
         void elideText(QLabel* pLabel, const QString& Text);
         void elideProgressText();
         void setProgressText(const QString& SrcText, const QString& DestText);
+        void clearView();
         void taskListChanged();
         void pendingTasksChanged();
         void moveTask(int Delta);

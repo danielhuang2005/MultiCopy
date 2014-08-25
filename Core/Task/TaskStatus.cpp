@@ -108,6 +108,7 @@ void TTaskStatus::TCounters::nextNormal()
 }
 
 //------------------------------------------------------------------------------
+//! Обработка байт.
 
 void TTaskStatus::TCounters::addBytes(qint64 Bytes)
 {
@@ -116,6 +117,7 @@ void TTaskStatus::TCounters::addBytes(qint64 Bytes)
 }
 
 //------------------------------------------------------------------------------
+//! Пропуск байт.
 
 void TTaskStatus::TCounters::skipBytes(qint64 Bytes)
 {
@@ -151,6 +153,7 @@ qint64 TTaskStatus::TCounters::currentBytes() const
 }
 
 //------------------------------------------------------------------------------
+//! Число обработанных байт (включая пропущенные).
 
 qint64 TTaskStatus::TCounters::totalBytes() const
 {
@@ -1363,54 +1366,9 @@ bool TTaskStatus::isPaused() const
 }
 
 //------------------------------------------------------------------------------
-//! Прошедшее время обработки.
-/*!
-   \sa pause, resume, remaining, speed
- */
+//! Скорость и время обработки.
 
-qint64 TTaskStatus::time() const
-{
-    return m_TimeCounter.msec();
-}
-
-//------------------------------------------------------------------------------
-//! Оставшееся время обработки.
-/*!
-   Метод возвращает примерную оценку оставшегося времени, основываясь на данных
-   об уже обработанных файлах и размере задания. Если размер задания неизвестен,
-   метод вернёт -1.
-
-   \sa time, speed, taskSize, setTaskSize
- */
-
-qint64 TTaskStatus::remaining() const
-{
-    if (m_TaskSize.TotalSize > 0)
-    {
-        QMutexLocker Locker(&m_WritersMutex);
-        Q_UNUSED(Locker);
-
-        const TCounters* pCounters;
-        /*qint64 Written = */slowestWriter(NULL, &pCounters);
-        if (pCounters) {
-            qint64 Written = pCounters->totalBytes();
-            qint64 Time = time();
-            if (Time > 0 && Written > 0)
-                return Time * (m_TaskSize.TotalSize - Written) / Written;
-        }
-    }
-
-    return -1;
-}
-
-//------------------------------------------------------------------------------
-//! Скорость обработки.
-/*!
-   \remarks Метод выдаёт реальную скорость записи самого медленного потока.
-     Пропущенные блоки и файлы не учитываются.
- */
-
-qint64 TTaskStatus::speed() const
+void TTaskStatus::speedAndTime(TSpeedAndTime* pSpeedAndTime) const
 {
     QMutexLocker Locker(&m_WritersMutex);
     Q_UNUSED(Locker);
@@ -1418,13 +1376,36 @@ qint64 TTaskStatus::speed() const
     const TCounters* pCounters;
     slowestWriter(NULL, &pCounters);
     if (pCounters) {
-        qint64 msec = time();
-        if (msec > 0) {
-            return 1000 * pCounters->totalBytes() / msec;
-        }
-    }
+        pSpeedAndTime->ElapsedTime = m_TimeCounter.msec();
 
-    return 0;
+        qint64 speed = -1;
+        if (pSpeedAndTime->ElapsedTime > 0) {
+            speed = pCounters->totalProcessedBytes() / pSpeedAndTime->ElapsedTime;
+            pSpeedAndTime->Speed = 1000 * speed;
+        }
+        else
+            pSpeedAndTime->Speed = -1;
+
+        if (speed > 0)
+            pSpeedAndTime->RemainingTime = (m_TaskSize.TotalSize - pCounters->totalBytes()) / speed;
+        else
+            pSpeedAndTime->RemainingTime = -1;
+    }
+    else {
+        pSpeedAndTime->ElapsedTime   = -1;
+        pSpeedAndTime->RemainingTime = -1;
+        pSpeedAndTime->Speed         = -1;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Скорость и время обработки.
+
+TTaskStatus::TSpeedAndTime TTaskStatus::speedAndTime() const
+{
+    TSpeedAndTime Result;
+    speedAndTime(&Result);
+    return Result;
 }
 
 //------------------------------------------------------------------------------

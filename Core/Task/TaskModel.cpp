@@ -39,6 +39,106 @@
 #include "TaskModel.hpp"
 
 //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//! Класс элемента модели с дополнительным функционалом.
+
+class TTaskModel::QStandardItem2 : public QStandardItem
+{
+    public :
+        //! Тип элемента.
+        enum TItemType {
+            TaskHeader,   //!< Заголовок задания.
+            Sources,      //!< Список источников.
+            Destinations  //!< Список назначений.
+        };
+
+    private :
+        int       m_TaskNumber;  //!< Номер задания.
+        TItemType m_ItemType;    //!< Тип элемента.
+        bool      m_Processing;  //!< Флаг обработки задания.
+
+    public :
+        QStandardItem2(int TaskNumber);
+        QStandardItem2(TItemType ItemType);
+
+        void retranslate(bool WithChildren = true);
+
+        int taskNumber() const { return m_TaskNumber; }
+        TItemType itemType() const { return m_ItemType; }
+        bool isProcessing() const { return m_Processing; }
+        void setProcessing(bool Processing);
+};
+
+//------------------------------------------------------------------------------
+//! Конструктор элемента с типом "заголовок задания".
+
+TTaskModel::QStandardItem2::QStandardItem2(int TaskNumber)
+    : m_TaskNumber(TaskNumber), m_ItemType(TaskHeader), m_Processing(false)
+{
+}
+
+//------------------------------------------------------------------------------
+//! Конструктор элемента указанного типа.
+
+TTaskModel::QStandardItem2::QStandardItem2(TItemType ItemType)
+    : m_TaskNumber(-1), m_ItemType(ItemType), m_Processing(false)
+{
+}
+
+//------------------------------------------------------------------------------
+//! Переводчик элемента.
+/*!
+  \arg WithChildren Флаг перевода дочерних элементов.
+ */
+
+void TTaskModel::QStandardItem2::retranslate(bool WithChildren)
+{
+    switch (m_ItemType)
+    {
+        case TaskHeader :
+            Q_ASSERT(m_TaskNumber > 0);
+            setText(tr("Task No.%1").arg(m_TaskNumber));
+            if (m_Processing) {
+                setText(text() + " " + tr("(processing)"));
+                QFont Font = font();
+                Font.setBold(true);
+                setFont(Font);
+            }
+            break;
+        case Sources :
+            setText(tr("Source(s)"));
+            break;
+        case Destinations :
+            setText(tr("Destination(s)"));
+            break;
+        default :
+            qWarning("TTaskModel::QStandardItem2::retranslate. "
+                     "Nnknown item type (%i).", m_ItemType);
+    }
+
+    if (WithChildren) {
+        for (int row = 0; row < rowCount(); ++row) {
+            QStandardItem2* pItem2 = dynamic_cast<QStandardItem2*>(child(row));
+            if (pItem2 != NULL)
+                pItem2->retranslate();
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Установка флага обработки задания.
+
+void TTaskModel::QStandardItem2::setProcessing(bool Processing)
+{
+    Q_ASSERT(m_ItemType == TaskHeader);
+
+    m_Processing = Processing;
+    retranslate(false);
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //! Конструктор.
 
 TTaskModel::TTaskModel(QObject* Parent)
@@ -56,6 +156,15 @@ TTaskModel::~TTaskModel()
 }
 
 //------------------------------------------------------------------------------
+//! Перевод.
+
+void TTaskModel::retranslate()
+{
+    for (TTasks::iterator I = m_Tasks.begin(); I != m_Tasks.end(); ++I)
+        (*I)->retranslate();
+}
+
+//------------------------------------------------------------------------------
 //! Добавление задачи.
 
 void TTaskModel::newTask(TSharedConstTask Task)
@@ -63,23 +172,23 @@ void TTaskModel::newTask(TSharedConstTask Task)
     Q_ASSERT(!Task.isNull());
 
     ++m_LastNumber;
-    QStandardItem* pItem = new QStandardItem(tr("Task No.") +
-                                             QString::number(m_LastNumber));
+    QStandardItem2* pItem = new QStandardItem2(m_LastNumber);
     m_Tasks.insert(Task, pItem);
 
-    QStandardItem* pSrcs  = new QStandardItem(tr("Source(s)"));
+    QStandardItem2* pSrcs  = new QStandardItem2(QStandardItem2::Sources);
     for (int i = 0; i < Task->SrcList.count(); ++i) {
         QStandardItem* pItem = new QStandardItem(Task->SrcList[i]);
         pSrcs->appendRow(pItem);
     }
     pItem->appendRow(pSrcs);
 
-    QStandardItem* pDests = new QStandardItem(tr("Destination(s)"));
+    QStandardItem2* pDests = new QStandardItem2(QStandardItem2::Destinations);
     for (int i = 0; i < Task->DestList.count(); ++i) {
         pDests->appendRow(new QStandardItem(Task->DestList[i]));
     }
     pItem->appendRow(pDests);
 
+    pItem->retranslate();
     m_pRoot->appendRow(pItem);
 }
 
@@ -94,11 +203,8 @@ void TTaskModel::beginTask(TSharedConstTask Task)
 
         m_CurrentTask = Task;
 
-        QStandardItem* pItem = m_Tasks[Task];
-        pItem->setText(pItem->text() + " " + tr("(processing)"));
-        QFont Font = pItem->font();
-        Font.setBold(true);
-        pItem->setFont(Font);
+        QStandardItem2* pItem = m_Tasks[Task];
+        pItem->setProcessing(true);
     }
     else {
         qWarning("TTaskModel::beginTask. Task not found.");
@@ -109,8 +215,6 @@ void TTaskModel::beginTask(TSharedConstTask Task)
 
 void TTaskModel::endTask(TSharedConstTask Task)
 {
-    //Q_ASSERT(m_Tasks.contains(Task));
-
     deleteTask(Task);
 }
 

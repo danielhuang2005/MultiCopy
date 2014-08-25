@@ -206,7 +206,8 @@ class TTaskStatus
         int handlersCount_Private() const;
         qint64 slowestWriter(const TWriterStat **ppWriterStat = NULL,
                              const TCounters **ppCounters = NULL) const;
-        void unregisterWriter_Private(const void* pWriter, const TCounters* pCounters = NULL);
+        void unregisterWriter_Private(const void* pWriter,
+                                      const TCounters* pCounters = NULL);
 
         // Скрываем конструктор по умолчанию и оператор присваивания.
         Q_DISABLE_COPY(TTaskStatus)
@@ -223,6 +224,13 @@ class TTaskStatus
             float   Percent;       //!< Процент завершения текущего файла.
             qint64  TotalBytes;    //!< Число обработанных байт во всех файлах.
             float   TotalPercent;  //!< Процент завершения задания.
+        };
+
+        //! Время и скорость обработки.
+        struct TSpeedAndTime {
+            qint64 ElapsedTime;    //!< Прошло времени (миллисекунды).
+            qint64 RemainingTime;  //!< Осталось времени (миллисекунды).
+            qint64 Speed;          //!< Скорость (байт в секунду).
         };
 
         explicit TTaskStatus();
@@ -269,9 +277,8 @@ class TTaskStatus
         void resume();
         bool isStarted() const;
         bool isPaused() const;
-        qint64 time() const;
-        qint64 remaining() const;
-        qint64 speed() const;
+        void speedAndTime(TSpeedAndTime* pSpeedAndTime) const;
+        TSpeedAndTime speedAndTime() const;
 
         QString readedFileName() const;
         QString readedFileRelName() const;

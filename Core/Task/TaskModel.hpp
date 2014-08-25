@@ -47,8 +47,10 @@
 
 class TTaskModel : public QStandardItemModel
 {
+    Q_OBJECT
     private :
-        typedef QMap<TSharedConstTask, QStandardItem*> TTasks;
+        class QStandardItem2;
+        typedef QMap<TSharedConstTask, QStandardItem2*> TTasks;
 
         TTasks           m_Tasks;        //!< Список задач.
         TSharedConstTask m_CurrentTask;  //!< Текущая выполняемая задача.
@@ -60,6 +62,8 @@ class TTaskModel : public QStandardItemModel
     public :
         explicit TTaskModel(QObject* Parent = NULL);
         virtual ~TTaskModel();
+
+        void retranslate();
 
         void newTask(TSharedConstTask Task);
         void beginTask(TSharedConstTask Task);

@@ -287,22 +287,14 @@
         <translation>Добавить каталог-назначение</translation>
     </message>
     <message>
-        <source>&lt;p align=&apos;center&apos;&gt;This product licensed under GNU GPL version 3. For details see &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2012 Yuri&amp;nbsp;Krugloff.&lt;br&gt; All rights reserved.&lt;/p&gt;</source>
-        <translation type="obsolete">&lt;p align=&apos;center&apos;&gt;Этот продукт распространяется под лицензией GNU GPL версии 3. Для получения подробностей обратитесь к &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2012&amp;nbsp;Юрий Круглов. Все права защищены.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.ru&apos;&gt;http://www.tver-soft.ru&lt;/a&gt;&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 2.0.0 beta 1&lt;/p&gt;</source>
-        <translation type="obsolete">&lt;p align=&apos;center&apos;&gt;MultiCopy, версия 2.0.0 beta 1&lt;/p&gt;</translation>
+        <location filename="../Forms/MultiCopyForm.cpp" line="479"/>
+        <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 2.0.0&lt;/p&gt;</source>
+        <translation>&lt;p align=&apos;center&apos;&gt;MultiCopy, версия 2.0.0&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../Forms/MultiCopyForm.cpp" line="482"/>
-        <source>&lt;p align=&apos;center&apos;&gt;This product licensed under GNU GPL version 3. For details see &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012 Yuri&amp;nbsp;Krugloff.&lt;br&gt; All rights reserved.&lt;/p&gt;</source>
-        <translation>&lt;p align=&apos;center&apos;&gt;Этот продукт распространяется под лицензией GNU GPL версии 3. Для получения подробностей обратитесь к &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012&amp;nbsp;Юрий Круглов. Все права защищены.&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../Forms/MultiCopyForm.cpp" line="479"/>
-        <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 2.0.0 RC1&lt;/p&gt;</source>
-        <translation>&lt;p align=&apos;center&apos;&gt;MultiCopy, версия 2.0.0 RC1&lt;/p&gt;</translation>
+        <source>&lt;p align=&apos;center&apos;&gt;This product licensed under GNU GPL version 3. For details see &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012 Yuri&amp;nbsp;Krugloff.&lt;br&gt; All rights reserved.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.org&apos;&gt;http://www.tver-soft.org&lt;/a&gt;&lt;/p&gt;</source>
+        <translation>&lt;p align=&apos;center&apos;&gt;Этот продукт распространяется под лицензией GNU GPL версии 3. Для получения подробностей обратитесь к &lt;a href=&apos;http://www.gnu.org/copyleft/gpl.html&apos;&gt;http://www.gnu.org/copyleft/gpl.html&lt;/a&gt;&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;Copyright &amp;copy; 2011-2012&amp;nbsp;Юрий Круглов. Все права защищены.&lt;/p&gt;&lt;p align=&apos;center&apos;&gt;&lt;a href=&apos;http://www.tver-soft.org&apos;&gt;http://www.tver-soft.ru&lt;/a&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../Forms/MultiCopyForm.cpp" line="506"/>
@@ -348,10 +340,6 @@
         <location filename="../Forms/MultiCopyForm.cpp" line="663"/>
         <source>Load task</source>
         <translation>Загрузить задание</translation>
-    </message>
-    <message>
-        <source>&lt;p align=&apos;center&apos;&gt;Statistics of a program runtime&lt;/p&gt;</source>
-        <translation type="obsolete">&lt;p align=&apos;center&apos;&gt;Статистика работы программы&lt;/p&gt;</translation>
     </message>
     <message numerus="yes">
         <location filename="../Forms/MultiCopyForm.cpp" line="718"/>
@@ -599,14 +587,6 @@
         <translation>Байты</translation>
     </message>
     <message>
-        <source>Readed</source>
-        <translation type="obsolete">Чтение</translation>
-    </message>
-    <message>
-        <source>Writed</source>
-        <translation type="obsolete">Запись</translation>
-    </message>
-    <message>
         <location filename="../Forms/ProgressForm.ui" line="145"/>
         <source>Elapsed time:</source>
         <translation>Прошло:</translation>
@@ -630,14 +610,6 @@
         <location filename="../Forms/ProgressForm.ui" line="128"/>
         <source>Speed:</source>
         <translation>Скорость:</translation>
-    </message>
-    <message>
-        <source>+</source>
-        <translation type="obsolete">+</translation>
-    </message>
-    <message>
-        <source>Task List</source>
-        <translation type="obsolete">Список заданий</translation>
     </message>
     <message>
         <location filename="../Forms/ProgressForm.ui" line="73"/>
@@ -676,7 +648,7 @@
     </message>
     <message>
         <location filename="../Forms/ProgressForm.ui" line="354"/>
-        <location filename="../Forms/ProgressForm.cpp" line="648"/>
+        <location filename="../Forms/ProgressForm.cpp" line="660"/>
         <source>&amp;Pause</source>
         <translation>&amp;Пауза</translation>
     </message>
@@ -686,63 +658,63 @@
         <translation>&amp;Отменить</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="215"/>
+        <location filename="../Forms/ProgressForm.cpp" line="238"/>
         <source>Unknown</source>
         <translation>Неизвестно</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="271"/>
-        <location filename="../Forms/ProgressForm.cpp" line="280"/>
+        <location filename="../Forms/ProgressForm.cpp" line="296"/>
+        <location filename="../Forms/ProgressForm.cpp" line="306"/>
         <source>%1 of %2</source>
         <translation>%1 из %2</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="355"/>
+        <location filename="../Forms/ProgressForm.cpp" line="381"/>
         <source>Cancel all tasks and close window?</source>
         <translation>Отменить все задания и закрыть окно?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="356"/>
+        <location filename="../Forms/ProgressForm.cpp" line="382"/>
         <source>Cancel task and close window?</source>
         <translation>Отменить задание и закрыть окно?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="359"/>
+        <location filename="../Forms/ProgressForm.cpp" line="385"/>
         <source>Cancel all tasks and close application?</source>
         <translation>Отменить все задания и закрыть приложение?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="360"/>
+        <location filename="../Forms/ProgressForm.cpp" line="386"/>
         <source>Cancel copy and close application?</source>
         <translation>Отменить копирование и закрыть приложение?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="380"/>
+        <location filename="../Forms/ProgressForm.cpp" line="406"/>
         <source>Do you really want to cancel a copy?</source>
         <translation>Вы действительно хотите отменить копирование?</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="457"/>
+        <location filename="../Forms/ProgressForm.cpp" line="484"/>
         <source>Out of Memory!</source>
         <translation>Недостаточно памяти!</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="517"/>
+        <location filename="../Forms/ProgressForm.cpp" line="529"/>
         <source>Calculate task size...</source>
         <translation>Вычисление размера задания...</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="584"/>
+        <location filename="../Forms/ProgressForm.cpp" line="596"/>
         <source>All tasks are completed!</source>
         <translation>Все задачи завершены!</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="553"/>
+        <location filename="../Forms/ProgressForm.cpp" line="565"/>
         <source>Preparing...</source>
         <translation>Подготовка...</translation>
     </message>
     <message>
-        <location filename="../Forms/ProgressForm.cpp" line="644"/>
+        <location filename="../Forms/ProgressForm.cpp" line="656"/>
         <source>&amp;Resume</source>
         <translation>&amp;Продолжить</translation>
     </message>
@@ -837,22 +809,22 @@
 <context>
     <name>TTaskModel</name>
     <message>
-        <location filename="../../Core/Task/TaskModel.cpp" line="66"/>
-        <source>Task No.</source>
-        <translation>Задание №</translation>
+        <location filename="../../Core/Task/TaskModel.cpp" line="100"/>
+        <source>Task No.%1</source>
+        <translation>Задание №%1</translation>
     </message>
     <message>
-        <location filename="../../Core/Task/TaskModel.cpp" line="70"/>
+        <location filename="../../Core/Task/TaskModel.cpp" line="109"/>
         <source>Source(s)</source>
         <translation>Источник(и)</translation>
     </message>
     <message>
-        <location filename="../../Core/Task/TaskModel.cpp" line="77"/>
+        <location filename="../../Core/Task/TaskModel.cpp" line="112"/>
         <source>Destination(s)</source>
         <translation>Назначение(-ия)</translation>
     </message>
     <message>
-        <location filename="../../Core/Task/TaskModel.cpp" line="98"/>
+        <location filename="../../Core/Task/TaskModel.cpp" line="102"/>
         <source>(processing)</source>
         <translation>(обработка)</translation>
     </message>
@@ -915,10 +887,6 @@
         <translation>Копировать скрытые файлы и каталоги</translation>
     </message>
     <message>
-        <source>Follow symbolic links</source>
-        <translation type="obsolete">Следовать по символическим ссылкам</translation>
-    </message>
-    <message>
         <location filename="../Forms/TaskSettingsForm.ui" line="119"/>
         <source>Don&apos;t create root folders</source>
         <translation>Не создавать корневые каталоги</translation>
@@ -927,10 +895,6 @@
         <location filename="../Forms/TaskSettingsForm.ui" line="98"/>
         <source>Copy system files and folders</source>
         <translation>Копировать системные файлы и каталоги</translation>
-    </message>
-    <message>
-        <source>Process symbolic links</source>
-        <translation type="obsolete">Обрабатывать символические ссылки</translation>
     </message>
     <message>
         <location filename="../Forms/TaskSettingsForm.ui" line="180"/>

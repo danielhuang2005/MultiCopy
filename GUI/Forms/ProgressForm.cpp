@@ -162,6 +162,29 @@ void TProgressForm::setProgressText(const QString& SrcText,
 }
 
 //------------------------------------------------------------------------------
+
+void TProgressForm::clearView()
+{
+    ui->Speed->clear();
+    ui->Elapsed->clear();
+    ui->Remaining->clear();
+    ui->ReadProgress_Label->setText(QString());
+    ui->WriteProgress_Label->setText(QString());
+
+    ui->CountProgress_Label->setEnabled(false);
+    ui->CountProgress->setRange(0, 100);
+    ui->CountProgress->setValue(0);
+    ui->CountProgress->setFormat(QString());
+    ui->CountProgress->update();
+
+    ui->TotalProgress_Label->setEnabled(false);
+    ui->TotalProgress->setRange(0, 100);
+    ui->TotalProgress->setValue(0);
+    ui->TotalProgress->setFormat(QString());
+    ui->TotalProgress->update();
+}
+
+//------------------------------------------------------------------------------
 //! Обработчик смены содержимого или выделенного элемента списка задач.
 
 void TProgressForm::taskListChanged()
@@ -230,9 +253,11 @@ void TProgressForm::updateSpeedAndTime()
         return;
     }
 
-    ui->Elapsed->setText(time(pTaskStatus->time()));
-    ui->Remaining->setText(time(pTaskStatus->remaining()));
-    ui->Speed->setText(speedToStr(pTaskStatus->speed()));
+    TTaskStatus::TSpeedAndTime SpeedAndTime;
+    pTaskStatus->speedAndTime(&SpeedAndTime);
+    ui->Elapsed->setText(time(SpeedAndTime.ElapsedTime));
+    ui->Remaining->setText(time(SpeedAndTime.RemainingTime));
+    ui->Speed->setText(speedToStr(SpeedAndTime.Speed));
 }
 
 //------------------------------------------------------------------------------
@@ -268,7 +293,8 @@ void TProgressForm::updateProgress()
 
         QString S;
         if (m_TaskSize.FilesCount > 0) {
-            S = tr("%1 of %2").arg(Status.Files).arg(m_TaskSize.FilesCount);
+            S = tr("%1 of %2").arg(Status.Files)
+                              .arg(m_TaskSize.FilesCount);
             ui->CountProgress->setValue(Status.Files);
         }
         else {
@@ -413,6 +439,7 @@ void TProgressForm::changeEvent(QEvent *e)
     switch (e->type()) {
         case QEvent::LanguageChange:
             ui->retranslateUi(this);
+            m_pTaskModel->retranslate();
             break;
         default:
             break;
@@ -463,39 +490,24 @@ void TProgressForm::begin()
 {
     ui->Cancel->setEnabled(true);
     ui->Pause->setEnabled(true);
-    ui->Elapsed->clear();
-    ui->Speed->clear();
-    ui->Remaining->clear();
+    clearView();
     m_ForcedHide = false;
 
     show();
     setWindowState(windowState() & ~Qt::WindowMinimized);
     raise();
     activateWindow();
-
 }
 
 //------------------------------------------------------------------------------
 
 void TProgressForm::beginTask(TSharedConstTask Task)
 {
-    Q_UNUSED(Task);
-
     m_TaskSize.clear();
     m_pTaskModel->beginTask(Task);
     m_ProgressTimer.start();
 
-    ui->CountProgress_Label->setEnabled(false);
-    ui->CountProgress->setRange(0, 100);
-    ui->CountProgress->setValue(0);
-    ui->CountProgress->setFormat(QString());
-    ui->CountProgress->update();
-
-    ui->TotalProgress_Label->setEnabled(false);
-    ui->TotalProgress->setRange(0, 100);
-    ui->TotalProgress->setValue(0);
-    ui->TotalProgress->setFormat(QString());
-    ui->TotalProgress->update();
+    clearView();
 }
 
 //------------------------------------------------------------------------------
@@ -692,6 +704,8 @@ void TProgressForm::on_ShowTaskList_toggled(bool checked)
 
 void TProgressForm::on_TaskListTree_clicked(const QModelIndex &index)
 {
+    Q_UNUSED(index);
+
     taskListChanged();
 }
 

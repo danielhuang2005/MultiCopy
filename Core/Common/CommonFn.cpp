@@ -370,19 +370,21 @@ QString sizeToStr(qint64 Bytes, int Digits)
 QString GetDriveByPath(const QString& Path)
 {
     #ifdef Q_OS_WIN
+        QString Result;
         // Имя точки монтирования не может быть длиннее пути!
         int BufferLength = Path.length() + 1;
-        WCHAR VolumePathName[BufferLength];
-        if (GetVolumePathNameW((WCHAR*)Path.utf16(), VolumePathName, BufferLength) != 0)
+        WCHAR* pVolumePathName = new WCHAR[BufferLength];
+        if (GetVolumePathNameW((WCHAR*)Path.utf16(), pVolumePathName, BufferLength) != 0)
         {
-            return QString::fromWCharArray(VolumePathName);
+            Result = QString::fromWCharArray(pVolumePathName);
         }
         else {
             qWarning("GetDriveByPath. GetVolumePathNameW error on \"%s\": %s",
                      qPrintable(Path), qPrintable(GetSystemErrorString()));
         }
 
-        return QString();
+        delete pVolumePathName;
+        return Result;
     #else
         Q_ASSERT_X(false, "GetDriveByPath", "Function is not implemented!");
         return QString();

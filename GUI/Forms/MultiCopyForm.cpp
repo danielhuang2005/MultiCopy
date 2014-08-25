@@ -477,14 +477,14 @@ void TMultiCopy::on_DestList_currentRowChanged(int currentRow)
 void TMultiCopy::on_actionAbout_triggered()
 {
     QString Text = tr(
-        "<p align='center'>MultiCopy, version 2.0.0 RC1</p>"
+        "<p align='center'>MultiCopy, version 2.0.0</p>"
     );
     QString InformativeText = tr(
         "<p align='center'>This product licensed under GNU GPL version 3. For details see "
         "<a href='http://www.gnu.org/copyleft/gpl.html'>http://www.gnu.org/copyleft/gpl.html</a>.</p>"
         "<p align='center'>Copyright &copy; 2011-2012 Yuri&nbsp;Krugloff.<br> "
         "All rights reserved.</p>"
-        // "<p align='center'><a href='http://www.tver-soft.org'>http://www.tver-soft.org</a></p>"
+        "<p align='center'><a href='http://www.tver-soft.org'>http://www.tver-soft.org</a></p>"
     );
     QMessageBox *pBox = new QMessageBox(this);
     pBox->setAttribute(Qt::WA_DeleteOnClose);;
