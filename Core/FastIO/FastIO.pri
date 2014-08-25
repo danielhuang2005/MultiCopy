@@ -53,6 +53,6 @@ win32 {
     LIBS += -lOle32 -lNetapi32
 }
 
-win32-g++ {
+win32-g++* {
     LIBS += -luuid
 }
