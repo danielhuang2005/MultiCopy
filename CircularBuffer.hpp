@@ -52,7 +52,7 @@ class TCircularBuffer : public TBuffer, public TSynchronizer
         void clear();
         void resize(int);
     public:
-        TCircularBuffer(int CellsCount, int CellSize);
+        TCircularBuffer(int CellsCount, int CellSize, bool Lock);
         ~TCircularBuffer();
 
         TBufferCell* firstFreeBlock();

@@ -51,11 +51,14 @@ namespace Ui {
 
 //------------------------------------------------------------------------------
 
+class TMultiCopy;
+
 class TSettingsForm : public QDialog
 {
     Q_OBJECT
     private:
         Ui::TSettingsForm *ui;
+        TMultiCopy* m_pParent;
         TSettings m_Settings;
         struct TLangDef {
             QString LangID;
@@ -68,13 +71,19 @@ class TSettingsForm : public QDialog
         TLangDefList m_LangDefList;
 
         void languagesList();
+
+        void saveSession();
+        void restoreSession();
     public:
-        explicit TSettingsForm(QWidget *parent = 0);
+        explicit TSettingsForm(TMultiCopy *parent);
         ~TSettingsForm();
 
     private slots :
         void calculateRAM();
         void on_OK_clicked();
+        void on_ShowFileIcons_clicked(bool checked);
+        void on_CheckDestDirs_clicked(bool checked);
+        //void on_AutodetectRAM_clicked(bool checked);
 };
 
 //------------------------------------------------------------------------------

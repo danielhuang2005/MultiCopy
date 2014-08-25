@@ -287,6 +287,7 @@ void TRWCalculator::clear()
     m_WritedCurrent = 0;
     m_ReadedCurrent = 0;
     newFile();
+    m_TimeCounter.clear();
 }
 
 //------------------------------------------------------------------------------

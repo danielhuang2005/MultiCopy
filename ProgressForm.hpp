@@ -61,6 +61,20 @@ class TProgressFormPrivate : public QDialog
 {
     Q_OBJECT
     private:
+        struct TProgress {
+            QString Text;
+            int Read;
+            int Write;
+            int Count;
+            int Total;
+
+            void clear() {
+                Text.clear(); Read = Write = 0;  Count = Total = -1;
+            }
+        };
+        TProgress m_Progress;
+        QTimer m_ProgressTimer;
+
         static TProgressFormPrivate* m_pInstance;
         Ui::TProgressForm* ui;
         TControlThread* m_pControlThread;
@@ -69,7 +83,8 @@ class TProgressFormPrivate : public QDialog
         qint64 m_CurrentFileSize;
         int m_FilesCopied;
         QString m_ProgressText;
-        QTimer m_Timer;
+        QTimer m_TimeTimer;
+        TSettings m_Settings;
 
         explicit TProgressFormPrivate(QWidget* parent);
         virtual ~TProgressFormPrivate();
@@ -77,23 +92,30 @@ class TProgressFormPrivate : public QDialog
         void setProgressText(const QString& Text);
         void elideProgressText();
 
-        QString speed(int BytesPerSecond) const;
+        static QString speed(int BytesPerSecond);
+        //static QString size(qint64 Size);
+
+        void saveSession();
+        void restoreSession();
     protected :
         virtual void resizeEvent(QResizeEvent *Event);
         virtual void closeEvent(QCloseEvent *Event);
     private slots :
         void updateSpeedAndTime();
+        void updateProgress();
 
         void begin();
         void beginJob(const TJob* pJob);
         void outOfMemory();
-        void beginCopyFile(QString FileName, qint64 FileSize);
-        void endCopyFile();
-        void readProgress(const TRWCalculator* pCalc);
-        void writeProgress(const TRWCalculator* pCalc);
-        void end();
         void beginCalculate();
         void endCalculate(TJobSize JobSize);
+        void beginCopy();
+        void beginCopyFile(QString FileName, qint64 FileSize);
+        void readProgress(const TRWCalculator* pCalc);
+        void writeProgress(const TRWCalculator* pCalc);
+        void endCopyFile();
+        void endJob();
+        void end();
 
         void on_Cancel_clicked();
         void on_Pause_clicked();
@@ -101,6 +123,8 @@ class TProgressFormPrivate : public QDialog
         static TProgressFormPrivate* create(QWidget* parent);
         void addJob(const TJob& Job);
 
+        static TProgressFormPrivate* instance();
+        void retranslateUi();
     public slots :
         void showMessageBox(TErrorHandler* pErrorHandler);
 };
@@ -116,6 +140,8 @@ class TProgressForm
         ~TProgressForm();
 
         void addJob(const TJob& Job);
+
+        static void retranslateUi();
 };
 
 //------------------------------------------------------------------------------

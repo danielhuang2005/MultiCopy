@@ -43,6 +43,6 @@
 #include <QString>
 
 QStringList langPaths();
-void loadTranslators(const QString& LangID = QString());
+void loadTranslators(QString LangID = QString());
 
 #endif // __TRANSLATOR__HPP__

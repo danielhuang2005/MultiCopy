@@ -58,7 +58,6 @@ class TControlThread;
 class TFileWriter : public TThreadEx
 {
     private :
-        //QFile m_File;                      //!< Файл.
         TFastFile m_File;
         TControlThread* m_pControlThread;  //!< Управляющий поток.
         bool m_Cancel;                     //!< Флаг отмены операции.
@@ -73,7 +72,7 @@ class TFileWriter : public TThreadEx
         virtual ~TFileWriter();
 
         QString fileName() const;
-        bool openFile(const QString& FileName, qint64 Size);
+        bool openFile(const QString& FileName, qint64 Size, bool UseCache);
         void closeFile();
         void cancel();
         bool isCancelled() const;

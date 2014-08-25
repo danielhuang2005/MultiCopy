@@ -55,13 +55,12 @@ int main(int argc, char *argv[])
     TSettings Settings;
 
     // Языковые настройки.
-    QString LangID = Settings.langID();
-    if (LangID.isEmpty())
-        LangID = QLocale::system().name();
-    loadTranslators(LangID);
+    loadTranslators(Settings.langID());
 
     TMultiCopy w;
     w.show();
+    QApplication::processEvents();
+    w.loadListsFromSettings();
 
     return a.exec();
 }

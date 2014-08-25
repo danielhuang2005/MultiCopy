@@ -59,13 +59,15 @@ QStringList langPaths()
 
 //------------------------------------------------------------------------------
 
-void loadTranslators(const QString& LangID)
+void loadTranslators(QString LangID)
 {
     static QTranslator qtTranslator;   // Общий переводчик Qt.
     static QTranslator appTranslator;  // Переводчик приложения.
     QStringList LangPath;       // Пути к файлам перевода.
     LangPath << langPaths()
              << QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+    if (LangID.isEmpty())
+        LangID = QLocale::system().name();
     for (int i = 0; i < LangPath.count(); ++i)
     {
         if (qtTranslator.load("qt_" + LangID, LangPath[i]))
@@ -82,7 +84,6 @@ void loadTranslators(const QString& LangID)
             break;
         }
     }
-
 }
 
 //------------------------------------------------------------------------------

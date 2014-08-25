@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
  *
  *            Copyright (С) 2011 Юрий Владимирович Круглов
  *
@@ -43,42 +43,75 @@
 #include <QTranslator>
 
 #include "Translator.hpp"
+#include "MultiCopyForm.hpp"
 
 //------------------------------------------------------------------------------
 
-TSettingsForm::TSettingsForm(QWidget *parent) :
+TSettingsForm::TSettingsForm(TMultiCopy *parent) :
     QDialog(parent),
-    ui(new Ui::TSettingsForm)
+    ui(new Ui::TSettingsForm),
+    m_pParent(parent)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+    #ifndef Q_OS_WIN
+        ui->LockMemory->setVisible(false);
+        ui->NotUseCache->setVisible(false);
+    #endif
 
-    // Заполнение параметров.
-    TSettingsData* pData = m_Settings.data();
-    ui->CellSize->setValue(pData->RAMCellSize / (1024 * 1024));
-    ui->CellsCount->setValue(pData->RAMCellCount);
-    ui->CopyDateTime->setChecked(pData->CopyDateTime);
-    ui->TotalCalc->setChecked(pData->TotalCalc);
-    ui->DirContentsOnly->setChecked(pData->DirContentsOnly);
-    ui->SubDirsDepth->setValue(pData->SubDirsDepth);
+    QIcon Icon = qApp->style()->standardIcon(QStyle::SP_MessageBoxWarning);
+    QPixmap Pixmap = Icon.pixmap(128);
+    ui->WarningIcon->setPixmap(Pixmap);
+
+    // Указатели на структуры данных.
+    TCopyData*   pCopyData   = m_Settings.copyData();
+    TViewData*   pViewData   = m_Settings.viewData();
+    TSystemData* pSystemData = m_Settings.systemData();
+
+    // Вкладка параметров копирования.
+    ui->CopyDateTime->setChecked(pCopyData->CopyDateTime);
+    ui->CopyAttr->setChecked(pCopyData->CopyAttr);
+    ui->TotalCalc->setChecked(pCopyData->TotalCalc);
+    ui->CheckFreeSpace->setChecked(pCopyData->CheckFreeSpace);
+    ui->DirContentsOnly->setChecked(pCopyData->DirContentsOnly);
+    ui->SubDirsDepth->setValue(pCopyData->SubDirsDepth);
     calculateRAM();
 
+    // Вкладка параметров внешнего вида.
     languagesList();
     QString CurrentLangID = m_Settings.langID();
     for (int i = 0; i < m_LangDefList.count(); ++i)
     {
-        QString LangID = m_LangDefList[i].LangID;
         ui->Languages->addItem(m_LangDefList[i].LangName);
-        if (LangID == CurrentLangID)
+        if (m_LangDefList[i].LangID == CurrentLangID)
             ui->Languages->setCurrentIndex(i);
     }
+    ui->ShowFileIcons->setChecked(pViewData->ShowFileIcons);
+    ui->ShowNetworkIcons->setChecked(pViewData->ShowNetworkIcons);
+    on_ShowFileIcons_clicked(pViewData->ShowFileIcons);
+    ui->ShowNameEditors->setChecked(pViewData->ShowNameEditors);
+
+    // Вкладка системных параметров.
+    ui->CheckDestDirs->setChecked(pSystemData->CheckDirs);
+    ui->CheckDestNetworkDirs->setChecked(pSystemData->CheckNetworkDirs);
+    on_CheckDestDirs_clicked(pSystemData->CheckDirs);
+
+    // Вкладка дополнительных параметров.
+    ui->AutodetectRAM->setChecked(pCopyData->RAMAutodetect);
+    ui->CellSize->setValue(pCopyData->RAMCellSize / (1024 * 1024));
+    ui->CellsCount->setValue(pCopyData->RAMCellCount);
+    ui->LockMemory->setChecked(pCopyData->LockMemory);
+    ui->NotUseCache->setChecked(pCopyData->NotUseCache);
+
+    restoreSession();
 }
 
 //------------------------------------------------------------------------------
 
 TSettingsForm::~TSettingsForm()
 {
+    saveSession();
     delete ui;
 }
 
@@ -110,11 +143,36 @@ void TSettingsForm::languagesList()
 
 //------------------------------------------------------------------------------
 
+void TSettingsForm::saveSession()
+{
+    if (result() == Accepted)
+    {
+        QSettings* pS = m_Settings.getQSettings();
+        pS->beginGroup(objectName());
+        pS->setValue("currentIndex", ui->tabWidget->currentIndex());
+        pS->endGroup();
+        m_Settings.write();
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void TSettingsForm::restoreSession()
+{
+    QSettings* pS = m_Settings.getQSettings();
+    pS->beginGroup(objectName());
+    ui->tabWidget->setCurrentIndex(pS->value("currentIndex").toInt());
+    pS->endGroup();
+}
+
+//------------------------------------------------------------------------------
+
 void TSettingsForm::calculateRAM()
 {
     int mb = ui->CellSize->value() * ui->CellsCount->value();
-    if (mb < 1024)
+    if (mb < 1024) {
         ui->RequiredRAM->setText(QString::number(mb) + tr(" MB"));
+    }
     else {
         float gb = mb / 1024.0;
         ui->RequiredRAM->setText(QString::number(gb, 'g', 3) + tr(" GB"));
@@ -125,18 +183,63 @@ void TSettingsForm::calculateRAM()
 
 void TSettingsForm::on_OK_clicked()
 {
-    TSettingsData* pData = m_Settings.data();
-    pData->RAMCellCount = ui->CellsCount->value();
-    pData->RAMCellSize = ui->CellSize->value() * 1024 * 1024;
-    pData->CopyDateTime = ui->CopyDateTime->isChecked();
-    pData->TotalCalc = ui->TotalCalc->isChecked();
-    pData->DirContentsOnly = ui->DirContentsOnly->isChecked();
-    pData->SubDirsDepth = ui->SubDirsDepth->value();
+    // Указатели на структуры данных.
+    TCopyData*   pCopyData   = m_Settings.copyData();
+    TViewData*   pViewData   = m_Settings.viewData();
+    TSystemData* pSystemData = m_Settings.systemData();
 
+    // Параметры копирования.
+    pCopyData->CopyDateTime    = ui->CopyDateTime->isChecked();
+    pCopyData->CopyAttr        = ui->CopyAttr->isChecked();
+    pCopyData->TotalCalc       = ui->TotalCalc->isChecked();
+    pCopyData->CheckFreeSpace  = ui->CheckFreeSpace->isChecked();
+    pCopyData->DirContentsOnly = ui->DirContentsOnly->isChecked();
+    pCopyData->SubDirsDepth    = ui->SubDirsDepth->value();
+
+    // Параметры внешнего вида.
     m_Settings.setLangID(m_LangDefList[ui->Languages->currentIndex()].LangID);
+    pViewData->ShowFileIcons    = ui->ShowFileIcons->isChecked();
+    pViewData->ShowNetworkIcons = ui->ShowNetworkIcons->isChecked();
+    pViewData->ShowNameEditors  = ui->ShowNameEditors->isChecked();
+
+    // Системные параметры.
+    pSystemData->CheckDirs        = ui->CheckDestDirs->isChecked();
+    pSystemData->CheckNetworkDirs = ui->CheckDestNetworkDirs->isChecked();
+
+    // Дополнительные параметры.
+    pCopyData->RAMAutodetect = ui->AutodetectRAM->isChecked();
+    pCopyData->RAMCellCount  = ui->CellsCount->value();
+    pCopyData->RAMCellSize   = ui->CellSize->value() * 1024 * 1024;
+    pCopyData->LockMemory    = ui->LockMemory->isChecked();
+    pCopyData->NotUseCache   = ui->NotUseCache->isChecked();
 
     m_Settings.write();
-    close();
+    accept();
 }
 
+//------------------------------------------------------------------------------
+
+void TSettingsForm::on_ShowFileIcons_clicked(bool checked)
+{
+    ui->ShowNetworkIcons->setEnabled(checked);
+    if (!checked)
+        ui->ShowNetworkIcons->setChecked(false);
+}
+
+//------------------------------------------------------------------------------
+
+void TSettingsForm::on_CheckDestDirs_clicked(bool checked)
+{
+    ui->CheckDestNetworkDirs->setEnabled(checked);
+    if (!checked)
+        ui->CheckDestNetworkDirs->setChecked(false);
+}
+
+//------------------------------------------------------------------------------
+/*
+void TSettingsForm::on_AutodetectRAM_clicked(bool checked)
+{
+    ui->RAMBox->setEnabled(!checked);
+}
+*/
 //------------------------------------------------------------------------------

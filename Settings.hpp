@@ -44,14 +44,32 @@
 
 //------------------------------------------------------------------------------
 
-struct TSettingsData
+struct TCopyData
 {
+    bool RAMAutodetect;
     int  RAMCellSize;
     int  RAMCellCount;
+    bool LockMemory;
+    bool NotUseCache;
     bool CopyDateTime;
+    bool CopyAttr;
     bool TotalCalc;
+    bool CheckFreeSpace;
     bool DirContentsOnly;
     int  SubDirsDepth;
+};
+
+struct TViewData
+{
+    bool ShowFileIcons;
+    bool ShowNetworkIcons;
+    bool ShowNameEditors;
+};
+
+struct TSystemData
+{
+    bool CheckDirs;
+    bool CheckNetworkDirs;
 };
 
 //------------------------------------------------------------------------------
@@ -65,8 +83,10 @@ class TSettingsPrivate
         TSettingsPrivate();
         ~TSettingsPrivate();
     public :
-        QSettings* m_pSettings;
-        TSettingsData m_pData;
+        QSettings*  m_pSettings;
+        TCopyData   m_CopyData;
+        TViewData   m_ViewData;
+        TSystemData m_SystemData;
 
         static TSettingsPrivate* create();
         void release();
@@ -86,10 +106,12 @@ class TSettings
         QString langID();
         void setLangID(const QString& ID);
 
-        inline TSettingsData* data() { return &(p->m_pData); }
-        inline QSettings* getQSettings() { return p->m_pSettings; }
-        inline void write() { p->write(); }
-        inline void sync() { p->m_pSettings->sync(); }
+        inline TCopyData*   copyData()     { return &(p->m_CopyData);   }
+        inline TViewData*   viewData()     { return &(p->m_ViewData);   }
+        inline TSystemData* systemData()   { return &(p->m_SystemData); }
+        inline QSettings*   getQSettings() { return p->m_pSettings;     }
+        inline void write() { p->write();             }
+        inline void sync()  { p->m_pSettings->sync(); }
 };
 
 //------------------------------------------------------------------------------

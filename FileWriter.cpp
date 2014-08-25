@@ -129,11 +129,12 @@ void TFileWriter::cancel()
  * \param Size Требуемый объём файла. Если по завершении потока объём файла
  *   не совпадёт с требуемым, файл удаляется. Чтобы оставить недописанный
  *   файл, укажите объём равным -1.
+ * \param UseCache Флаг использования системного кеша.
  *
  * \return true, если файл успешно открыт и false в пртивном случае.
  */
 
-bool TFileWriter::openFile(const QString& FileName, qint64 Size)
+bool TFileWriter::openFile(const QString& FileName, qint64 Size, bool UseCache)
 {
     Q_ASSERT(!isRunning());
 
@@ -156,7 +157,7 @@ bool TFileWriter::openFile(const QString& FileName, qint64 Size)
                 ED.Code = TErrorHandler::eMakeDir;
                 ED.FileName = AbsPath;
                 // Строка сообщения пустая.
-                if (m_pControlThread->error(ED, this) != TErrorHandler::aRetry)
+                if (m_pControlThread->error(&ED, this) != TErrorHandler::aRetry)
                 {
                     // Если не была выбрана опция "повторить", то каталога не
                     // существует. Дальнейшая работа невозможна. Возвращаем
@@ -178,7 +179,7 @@ bool TFileWriter::openFile(const QString& FileName, qint64 Size)
         ED.Code = TErrorHandler::eAlreadyExists;
         ED.FileName = FileName;
         // Строка сообщения пустая.
-        TErrorHandler::Action A = m_pControlThread->error(ED, this);
+        TErrorHandler::Action A = m_pControlThread->error(&ED, this);
         if ((A != TErrorHandler::aOverwrite) && (A != TErrorHandler::aOverwriteAll))
         {
             // Если не была затребована перезапись,
@@ -190,14 +191,14 @@ bool TFileWriter::openFile(const QString& FileName, qint64 Size)
     m_File.setFileName(FileName);
     do {
         // Пытаемся открыть файл.
-        if (!m_File.open(QIODevice::WriteOnly))
+        if (!m_File.open(QIODevice::WriteOnly, UseCache))
         {
             // Открыть файл не удалось. Обрабатываем ошибку.
             TErrorHandler::ErrorData ED;
             ED.Code = TErrorHandler::eCreateFile;
             ED.Message = m_File.errorString();
             ED.FileName = FileName;
-            if (m_pControlThread->error(ED, this) != TErrorHandler::aRetry)
+            if (m_pControlThread->error(&ED, this) != TErrorHandler::aRetry)
                 break;
         }
         else {
@@ -236,7 +237,7 @@ qint64 TFileWriter::writeBlock()
             ED.Code = TErrorHandler::eWriteFile;
             ED.Message = m_File.errorString();
             ED.FileName = fileName();
-            if (m_pControlThread->error(ED, this) == TErrorHandler::aRetry)
+            if (m_pControlThread->error(&ED, this) == TErrorHandler::aRetry)
             {
                 // Если что-то записалось, корректируем число байт для записи
                 // и сдвиг относительно начала блока.

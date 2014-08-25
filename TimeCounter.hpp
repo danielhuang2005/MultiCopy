@@ -63,6 +63,7 @@ class TTimeCounter
         void stop();
         void pause();
         void resume();
+        void clear();
         qint64 msec() const;
         bool isStarted() const;
         bool isPaused() const;

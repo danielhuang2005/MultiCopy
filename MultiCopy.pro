@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     FileWriter.cpp \
     ControlThread.cpp \
     FastFile.cpp \
-    CommonFn.cpp
+    CommonFn.cpp \
+    QListWidget2.cpp
 
 HEADERS  += \
     Synchronizer.hpp \
@@ -46,7 +47,8 @@ HEADERS  += \
     FileWriter.hpp \
     ControlThread.hpp \
     FastFile.hpp \
-    CommonFn.hpp
+    CommonFn.hpp \
+    QListWidget2.hpp
 
 FORMS    += \
     MultiCopyForm.ui \
@@ -58,7 +60,8 @@ TRANSLATIONS += \
 
 OTHER_FILES += \
     MultiCopy.Win.rc \
-    history.txt
+    history.txt \
+    Documentation/history.txt
 
 RESOURCES += \
     MultiCopy.qrc
@@ -70,5 +73,7 @@ win32 {
 
 
 # DEFINES += _NO_FAST_FILE
+# DEFINES += _NO_NONPAGED_MEM
 
 DEFINES += _NO_CHECK_MD5
+

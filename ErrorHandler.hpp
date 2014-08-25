@@ -57,12 +57,14 @@ class TErrorHandler : public QObject
     public :
         //! Типы ошибок.
         enum Error {
+            eNoError,       //!< Нет ошибок.
             eOpenFile,      //!< Ошибка при открытии файла (для чтения).
             eReadFile,      //!< Ошибка при чтении файла.
             eMakeDir,       //!< Ошибка при создании каталога.
             eAlreadyExists, //!< Файл уже существует
             eCreateFile,    //!< Ошибка при создании файла.
-            eWriteFile      //!< Ошибка при записи файла.
+            eWriteFile,     //!< Ошибка при записи файла.
+            eNoFreeSpace    //!< Недостаточно свободного места.
         };
         //! Возможные действия.
         enum Action {
@@ -70,6 +72,8 @@ class TErrorHandler : public QObject
             aOverwrite,        //!< Перезаписать файл.
             aOverwriteAll,     //!< Перезаписать все файлы.
             aRetry,            //!< Повторить.
+            aIgnore,           //!< Игнорировать и продолжить.
+            aIgnoreAll,        //!< Игнорировать всё и продолжать.
             aSkip,             //!< Пропустить.
             aSkipAll,          //!< Пропустить всё.
             aCancelDest,       //!< Отменить копирование в данное назначение.
@@ -82,6 +86,9 @@ class TErrorHandler : public QObject
             QString Message;   //!< Сообщение системы об ошибке.
             QString FileName;  //!< Имя файла (каталога), обработка которого
                                //!< вызвала ошибку.
+            int DestsCount;    //!< Количество назначений.
+            //! Конструктор.
+            ErrorData() : Code(TErrorHandler::eNoError), DestsCount(-1) {}
         };
 
     private :
@@ -99,7 +106,7 @@ class TErrorHandler : public QObject
         explicit TErrorHandler(TProgressFormPrivate* Parent);
         virtual ~TErrorHandler();
 
-        void messageBox(QWidget* Parent, int WritersCount);
+        void messageBox(QWidget* Parent/*, int WritersCount*/);
         void clear();
         Action error(const ErrorData& ErrorData);
         Action lastAction() const;

@@ -81,6 +81,7 @@ TActionMap fillActionMap()
     TActionMap Map;
     TActionSet Set;
 
+    // eOpenFile
     Set << TErrorHandler::aRetry
         << TErrorHandler::aSkip
         << TErrorHandler::aSkipAll
@@ -88,6 +89,7 @@ TActionMap fillActionMap()
         /*<< TErrorHandler::aCancelAllJobs*/;
     Map.insert(TErrorHandler::eOpenFile, Set);
 
+    // eReadFile
     Set.clear();
     Set << TErrorHandler::aRetry
         << TErrorHandler::aSkip
@@ -96,6 +98,7 @@ TActionMap fillActionMap()
         /*<< TErrorHandler::aCancelAllJobs*/;
     Map.insert(TErrorHandler::eReadFile, Set);
 
+    // eMakeDir
     Set.clear();
     Set << TErrorHandler::aRetry
         << TErrorHandler::aSkip
@@ -105,6 +108,7 @@ TActionMap fillActionMap()
         /*<< TErrorHandler::aCancelAllJobs*/;
     Map.insert(TErrorHandler::eMakeDir, Set);
 
+    // eAlreadyExists
     Set.clear();
     Set << TErrorHandler::aOverwrite
         << TErrorHandler::aOverwriteAll
@@ -115,6 +119,7 @@ TActionMap fillActionMap()
         /*<< TErrorHandler::aCancelAllJobs*/;
     Map.insert(TErrorHandler::eAlreadyExists, Set);
 
+    // eCreateFile
     Set.clear();
     Set << TErrorHandler::aRetry
         << TErrorHandler::aSkip
@@ -124,6 +129,7 @@ TActionMap fillActionMap()
         /*<< TErrorHandler::aCancelAllJobs*/;
     Map.insert(TErrorHandler::eCreateFile, Set);
 
+    // eWriteFile
     Set.clear();
     Set << TErrorHandler::aRetry
         << TErrorHandler::aSkip
@@ -133,10 +139,21 @@ TActionMap fillActionMap()
         /*<< TErrorHandler::aCancelAllJobs*/;
     Map.insert(TErrorHandler::eWriteFile, Set);
 
+    // eNoFreeSpace
+    Set.clear();
+    Set << TErrorHandler::aRetry
+        << TErrorHandler::aIgnore
+        << TErrorHandler::aIgnoreAll
+        << TErrorHandler::aCancelDest
+        << TErrorHandler::aCancelCurrentJob
+        /*<< TErrorHandler::aCancelAllJobs*/;
+    Map.insert(TErrorHandler::eNoFreeSpace, Set);
+
     return Map;
 }
 
 //------------------------------------------------------------------------------
+//! Конструктор.
 
 TErrorHandler::TErrorHandler(TProgressFormPrivate* Parent)
     : QObject(Parent), m_LastAction(aNoAction)
@@ -155,6 +172,7 @@ TErrorHandler::TErrorHandler(TProgressFormPrivate* Parent)
 }
 
 //------------------------------------------------------------------------------
+//! Деструктор.
 
 TErrorHandler::~TErrorHandler()
 {
@@ -178,6 +196,8 @@ QString TErrorHandler::errorText() const
             return tr("Error creating file");
         case eWriteFile :
             return tr("Error writing file");
+        case eNoFreeSpace :
+            return tr("Not enough free space");
         default :
             return tr("Unknown error at processing file");
     }
@@ -202,6 +222,14 @@ QPushButton2* TErrorHandler::newButton(const TErrorHandler::Action A) const
         case TErrorHandler::aRetry :
             pBtn->setText(tr("&Retry"));
             pBtn->setToolTip(tr("Retry operation"));
+            break;
+        case TErrorHandler::aIgnore :
+            pBtn->setText(tr("&Ignore"));
+            pBtn->setToolTip(tr("Ignore this warning and continue"));
+            break;
+        case TErrorHandler::aIgnoreAll :
+            pBtn->setText(tr("I&gnore All"));
+            pBtn->setToolTip(tr("Ignore this warning and continue"));
             break;
         case TErrorHandler::aSkip :
             pBtn->setText(tr("&Skip"));
@@ -231,7 +259,7 @@ QPushButton2* TErrorHandler::newButton(const TErrorHandler::Action A) const
 
 //------------------------------------------------------------------------------
 
-void TErrorHandler::messageBox(QWidget* Parent, int WritersCount)
+void TErrorHandler::messageBox(QWidget* Parent/*, int WritersCount*/)
 {
     static const TActionMap  ActionsMap  = fillActionMap();
 
@@ -252,7 +280,7 @@ void TErrorHandler::messageBox(QWidget* Parent, int WritersCount)
     {
         // Скрываем кнопку отмены текущего назначения, если поток записи
         // только один.
-        if ((*I == aCancelDest) && (WritersCount < 2))
+        if ((*I == aCancelDest) && (m_ErrorData.DestsCount < 2))
             continue;
 
         QPushButton2* pBtn = newButton(*I);
@@ -290,7 +318,7 @@ TErrorHandler::Action TErrorHandler::error(const TErrorHandler::ErrorData& Error
     if (m_LastActions.contains(ErrorData.Code))
     {
         Action A = m_LastActions.value(ErrorData.Code);
-        if ((A == aOverwriteAll) || (A == aSkipAll))
+        if ((A == aOverwriteAll) || (A == aSkipAll) || (A == aIgnoreAll))
         {
             return A;
         }

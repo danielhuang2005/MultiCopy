@@ -45,8 +45,8 @@
  * \param CellSize Объём ячейки (байт).
  */
 
-TCircularBuffer::TCircularBuffer(int CellsCount, int CellSize)
-    : TBuffer(CellsCount, CellSize),
+TCircularBuffer::TCircularBuffer(int CellsCount, int CellSize, bool Lock)
+    : TBuffer(CellsCount, CellSize, Lock),
       TSynchronizer(CellsCount)
 {
 

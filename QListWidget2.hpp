@@ -36,79 +36,62 @@
  *
  ******************************************************************************/
 
-#ifndef MULTICOPYMAINWINDOW_HPP
-#define MULTICOPYMAINWINDOW_HPP
+#ifndef QLISTWIDGET2_HPP
+#define QLISTWIDGET2_HPP
 
-#include <QMainWindow>
 #include <QListWidget>
 
-#include "Synchronizer.hpp"
-#include "Settings.hpp"
-
 //------------------------------------------------------------------------------
 
-namespace Ui {
-    class TMultiCopyForm;
-}
-
-//------------------------------------------------------------------------------
-
-class TMultiCopy : public QMainWindow
+class QListWidget2 : public QListWidget
 {
     Q_OBJECT
+    private :
+        bool m_ShowIcons;
+        bool m_ShowNetworkIcons;
+        bool m_DirsOnly;
+        bool m_CheckDirs;
+        bool m_checkNetworkDirs;
 
-    private:
-        Ui::TMultiCopyForm *ui;
-        TSettings Settings;
+        void addIcon(QListWidgetItem* pItem, const QString& FileName);
+        void updateIcons();
 
-        void saveSession();
-        void restoreSession();
-        bool loadStringListFromFile(const QString& FileName, QStringList& List);
-        bool saveStringListToFile(const QString& FileName, const QStringList& List);
-        bool loadJobFromFile(const QString& FileName);
-        bool saveJobToFile(const QString& FileName);
-        void setShowNameEditors(bool Show);
-
+        bool checkNewItems(QStringList* pList);
+        bool checkNewItem(const QString& Item);
+        QStringList checkNewItems(const QStringList& List);
+    private slots :
+        void dropEventSlot(QStringList Files);
+    protected :
+        virtual void dragEnterEvent(QDragEnterEvent *Event);
+        virtual void dragMoveEvent(QDragMoveEvent *Event);
+        virtual void dropEvent(QDropEvent *Event);
     public:
-        explicit TMultiCopy(QWidget *parent = 0);
-        ~TMultiCopy();
+        explicit QListWidget2(QWidget *parent = 0);
 
-        void retranslateAllUi(QString LangID);
-        void loadListsFromSettings(QSettings* pS = NULL);
-        //void saveListsToSettings(QSettings* pS = NULL);
+        void addItem(const QString& Name);
+        void addItems(const QStringList& Names);
+        bool checkAndAddItem(const QString& Name);
+        bool checkAndAddItems(const QStringList& Names);
+        bool checkAndAddItems(QStringList* pList);
 
-    private slots:
-        void srcChanged();
-        void destChanged();
-        void addCustomSrc();
-        void addCustomDest();
+        bool showIcons() const;
+        void setShowIcons(bool Show);
+        bool dirsOnly() const;
+        void setDirsOnly(bool DirsOnly);
+        bool showNetworkIcons() const;
+        void setShowNetworkIcons(bool Show);
+        bool checkDirs() const;
+        void setCheckDirs(bool Check);
+        bool checkNetworkDirs() const;
+        void setCheckNetworkDirs(bool Check);
 
-        void on_SrcAddFile_clicked();
-        void on_SrcAddFolder_clicked();
-        void on_SrcRemove_clicked();
-        void on_SrcClear_clicked();
-        void on_SrcUp_clicked();
-        void on_SrcDown_clicked();
-        void on_SrcList_currentRowChanged(int currentRow);
-
-        void on_DestAddFolder_clicked();
-        void on_DestRemove_clicked();
-        void on_DestClear_clicked();
-        void on_DestList_currentRowChanged(int currentRow);
-
-        void on_Start_clicked();
-        void on_Settings_clicked();
-
-        void on_actionAbout_triggered();
-        void on_actionLoadSourcesList_triggered();
-        void on_actionLoadDestinationsList_triggered();
-        void on_actionSaveSourcesList_triggered();
-        void on_actionSaveDestinationsList_triggered();
-        void on_actionSaveJob_triggered();
-        void on_actionLoadJob_triggered();
-        void on_actionAddSubfolders_triggered();
+        void toStringList(QStringList* pList) const;
+        QStringList toStringList() const;
+    signals :
+        void dropEventSignal(QStringList Files);
+        void listChanged();
 };
 
 //------------------------------------------------------------------------------
 
-#endif // MULTICOPYMAINWINDOW_HPP
+#endif // QLISTWIDGET2_HPP

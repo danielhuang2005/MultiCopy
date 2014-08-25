@@ -38,7 +38,16 @@
 
 #include "FastFile.hpp"
 
-#if defined(Q_OS_WIN) && !defined(_NO_FAST_FILE)
+#ifndef _NO_FAST_FILE
+
+#ifdef Q_OS_UNIX
+    #ifndef _LARGEFILE64_SOURCE
+        #define _LARGEFILE64_SOURCE
+    #endif
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <stdio.h>
+#endif
 
 #include "CommonFn.hpp"
 
@@ -53,7 +62,12 @@ void TFastFile::setErrorString()
 //! Конструктор.
 
 TFastFile::TFastFile()
-    : m_Handle(INVALID_HANDLE_VALUE)
+    :
+      #ifdef Q_OS_WIN
+          m_Handle(INVALID_HANDLE_VALUE)
+      #else
+          m_fd(-1)
+      #endif
 {
 }
 
@@ -81,13 +95,13 @@ void TFastFile::setFileName(const QString& FileName)
 
 //------------------------------------------------------------------------------
 
-bool TFastFile::open(QIODevice::OpenMode Mode)
+bool TFastFile::open(QIODevice::OpenMode Mode, bool UseCache)
 {
     close();
     if (isOpen()) return false;
 
     // TODO : Проверять неподдерживаемые флаги.
-
+#ifdef Q_OS_WIN
     LPWSTR wFileName = StrToLPWSTR(PathToLongWinPath(m_FileName));
     DWORD dwDesiredAccess = 0;            // Режим доступа.
     DWORD dwShareMode = FILE_SHARE_READ;  // Режим совместного доступа.
@@ -100,7 +114,11 @@ bool TFastFile::open(QIODevice::OpenMode Mode)
             FILE_ATTRIBUTE_NORMAL     |  // Обычный файл.
             FILE_FLAG_SEQUENTIAL_SCAN |  // Оптимизировать для
                                          // последовательного доступа.
-            FILE_FLAG_WRITE_THROUGH;     // Прямая запись на диск (без кэша).
+            FILE_FLAG_BACKUP_SEMANTICS;  // Для работы с датой.
+    if (!UseCache) {
+        // Прямая запись на диск (без кэша).
+        dwFlagsAndAttributes |= FILE_FLAG_WRITE_THROUGH;
+    }
 
     if (Mode.testFlag(QIODevice::ReadOnly))
     {
@@ -110,7 +128,7 @@ bool TFastFile::open(QIODevice::OpenMode Mode)
     if (Mode.testFlag(QIODevice::WriteOnly))
     {
         dwDesiredAccess |= GENERIC_WRITE;       // Файл для записи.
-        dwCreationDisposition = OPEN_ALWAYS;   // Создать если не существует.
+        dwCreationDisposition = OPEN_ALWAYS;    // Создать если не существует.
     }
 
 
@@ -134,12 +152,38 @@ bool TFastFile::open(QIODevice::OpenMode Mode)
 
     delete wFileName;
     return m_Handle != INVALID_HANDLE_VALUE;
+#else
+    int flags = 0;
+    if (Mode.testFlag(QIODevice::ReadOnly)) {
+        flags |= O_RDONLY;
+    }
+    if (Mode.testFlag(QIODevice::WriteOnly))
+    {
+        flags |= O_WRONLY | O_CREAT;
+    }
+    /*if (!UseCache)
+        flags |= O_DIRECT | O_SYNC;*/
+    mode_t mode = S_IRUSR | S_IWUSR |  // user
+                  S_IRGRP |            // group
+                  S_IROTH;             // other
+    m_fd = ::open(m_FileName.toLocal8Bit().data(), flags, mode);
+    if (m_fd == -1) {
+        setErrorString();
+        qWarning("Error open file \"%s\". %s.",
+                 qPrintable(m_FileName), qPrintable(m_ErrorString));
+    }
+    else {
+       m_ErrorString.clear();
+    }
+    return m_fd != -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
 
 void TFastFile::close()
 {
+#ifdef Q_OS_WIN
     if (m_Handle != INVALID_HANDLE_VALUE)
     {
         if (CloseHandle(m_Handle))
@@ -153,6 +197,19 @@ void TFastFile::close()
                      qPrintable(m_FileName),  qPrintable(m_ErrorString));
         }
     }
+#else
+    if (m_fd != -1) {
+        if (::close(m_fd) != -1) {
+            m_fd = -1;
+            m_ErrorString.clear();
+        }
+        else {
+            setErrorString();
+            qWarning("Error close file \"%s\". %s.",
+                     qPrintable(m_FileName),  qPrintable(m_ErrorString));
+        }
+    }
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -166,7 +223,11 @@ QString TFastFile::errorString() const
 
 bool TFastFile::isOpen() const
 {
+#ifdef Q_OS_WIN
     return m_Handle != INVALID_HANDLE_VALUE;
+#else
+    return m_fd != -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -178,11 +239,12 @@ qint64 TFastFile::read(char* data, qint64 maxSize)
         return -1;
     }
 
+#ifdef Q_OS_WIN
     // TODO : Обрабатывать большие блоки.
     /* В Windows 7 x64 экспериментально проверена работа на блоках размером до
      * одного гигабайта. */
 
-    DWORD NumberOfBytesRead;  // Число прочитанных байт.
+    DWORD NumberOfBytesRead = -1;  // Число прочитанных байт.
     if (!ReadFile(m_Handle, data, maxSize, &NumberOfBytesRead, NULL))
     {
         setErrorString();
@@ -193,6 +255,18 @@ qint64 TFastFile::read(char* data, qint64 maxSize)
         m_ErrorString.clear();
     }
     return NumberOfBytesRead;
+#else
+    ssize_t Readed = ::read(m_fd, data, maxSize);
+    if (Readed == -1) {
+        setErrorString();
+        qWarning("Error reading from file \"%s\". %s.",
+                 qPrintable(m_FileName),  qPrintable(m_ErrorString));
+    }
+    else {
+        m_ErrorString.clear();
+    }
+    return Readed;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -204,11 +278,12 @@ qint64 TFastFile::write(const char* data, qint64 maxSize)
         return -1;
     }
 
+#ifdef Q_OS_WIN
     // TODO : Обрабатывать большие блоки.
     /* В Windows 7 x64 экспериментально проверена работа на блоках размером до
      * одного гигабайта. */
 
-    DWORD NumberOfBytesWritten;  // Число записанных байт.
+    DWORD NumberOfBytesWritten = -1;  // Число записанных байт.
     if (!WriteFile(m_Handle, data, maxSize, &NumberOfBytesWritten, NULL))
     {
         setErrorString();
@@ -219,12 +294,30 @@ qint64 TFastFile::write(const char* data, qint64 maxSize)
         m_ErrorString.clear();
     }
     return NumberOfBytesWritten;
+#else
+    ssize_t Written = ::write(m_fd, data, maxSize);
+    if (Written == -1) {
+        setErrorString();
+        qWarning("Error writing to file \"%s\". %s.",
+                 qPrintable(m_FileName),  qPrintable(m_ErrorString));
+    }
+    else {
+        m_ErrorString.clear();
+    }
+    return Written;
+#endif
 }
 
 //------------------------------------------------------------------------------
 
 qint64 TFastFile::pos()
 {
+    if (!isOpen()) {
+        qWarning("File not open!");
+        return -1;
+    }
+
+#ifdef Q_OS_WIN
     LARGE_INTEGER sz;
     sz.QuadPart = 0;
     sz.u.LowPart = SetFilePointer(m_Handle,       // Дескриптор файла.
@@ -241,12 +334,30 @@ qint64 TFastFile::pos()
     }
 
     return sz.QuadPart;
+#else
+    off64_t Offset = lseek64(m_fd, 0, SEEK_CUR);
+    if (Offset == -1) {
+        setErrorString();
+        qWarning("Error seek on file \"%s\". %s.",
+                 qPrintable(m_FileName),  qPrintable(m_ErrorString));
+    }
+    else {
+        m_ErrorString.clear();
+    }
+    return Offset;
+#endif
 }
 
 //------------------------------------------------------------------------------
 
 bool TFastFile::seek(qint64 pos)
 {
+    if (!isOpen()) {
+        qWarning("File not open!");
+        return false;
+    }
+
+#ifdef Q_OS_WIN
     LARGE_INTEGER sz;
     sz.QuadPart = pos;
     if ((SetFilePointer(m_Handle, sz.u.LowPart, &sz.u.HighPart, FILE_BEGIN) ==
@@ -262,12 +373,32 @@ bool TFastFile::seek(qint64 pos)
     }
 
     return false;
+#else
+    off64_t Offset = lseek64(m_fd, pos, SEEK_SET);
+    if (Offset == -1) {
+        setErrorString();
+        qWarning("Error seek on file \"%s\". %s.",
+                 qPrintable(m_FileName),  qPrintable(m_ErrorString));
+    }
+    else {
+        m_ErrorString.clear();
+        return true;
+    }
+
+    return false;
+#endif
 }
 
 //------------------------------------------------------------------------------
 
 bool TFastFile::resize(qint64 Size)
 {
+    if (!isOpen()) {
+        qWarning("File not open!");
+        return false;
+    }
+
+#ifdef Q_OS_WIN
     qint64 current = pos();
     if (current >= 0) {
         if (seek(Size)) {
@@ -285,12 +416,31 @@ bool TFastFile::resize(qint64 Size)
     }
 
     return false;
+#else
+    if (ftruncate(m_fd, Size) != -1) {
+        m_ErrorString.clear();
+        return true;
+    }
+    else {
+        setErrorString();
+        qWarning("Error truncate of file \"%s\". %s.",
+                 qPrintable(m_FileName),  qPrintable(m_ErrorString));
+    }
+
+    return false;
+#endif
 }
 
 //------------------------------------------------------------------------------
 
 qint64 TFastFile::size()
 {
+    if (!isOpen()) {
+        qWarning("File not open!");
+        return -1;
+    }
+
+#ifdef Q_OS_WIN
     LARGE_INTEGER Size;
     Size.u.LowPart = GetFileSize(m_Handle, (DWORD*)&Size.u.HighPart);
     if ((Size.u.LowPart == INVALID_FILE_SIZE) && (GetLastError() != NO_ERROR))
@@ -304,6 +454,18 @@ qint64 TFastFile::size()
         m_ErrorString.clear();
     }
     return Size.QuadPart;
+#else
+    struct stat Stat;
+    if (::fstat(m_fd, &Stat) == -1) {
+        setErrorString();
+        qWarning("Error get size of file \"%s\". %s.",
+                 qPrintable(m_FileName),  qPrintable(m_ErrorString));
+        return -1;
+    }
+    else {
+        return Stat.st_size;
+    }
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -312,6 +474,7 @@ bool TFastFile::remove()
 {
     close();
 
+#ifdef Q_OS_WIN
     LPWSTR wFileName = StrToLPWSTR(PathToLongWinPath(m_FileName));
     bool Result = DeleteFileW(wFileName);
     if (!Result) {
@@ -325,9 +488,21 @@ bool TFastFile::remove()
     delete wFileName;
 
     return Result;
+#else
+    if (::remove(m_FileName.toLocal8Bit().constData()) == -1) {
+        setErrorString();
+        qWarning("Error deleting file \"%s\". %s.",
+                 qPrintable(m_FileName),  qPrintable(m_ErrorString));
+        return false;
+    }
+    else {
+        m_ErrorString.clear();
+        return true;
+    }
+#endif
 }
 
 //------------------------------------------------------------------------------
 
 
-#endif // Q_OS_WIN
+#endif // _NO_FAST_FILE

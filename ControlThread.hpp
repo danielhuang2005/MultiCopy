@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
  *
  *            Copyright (С) 2011 Юрий Владимирович Круглов
  *
@@ -68,16 +68,18 @@ class TCircularBuffer;
 //
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-//! Задание копирование.
+//! Задание копирования.
+
 struct TJob {
     QStringList Srcs;  //!< Список источников.
     QStringList Dests; //!< Список назначений.
-    TSettingsData SettingsData;
+    TCopyData SettingsData;
     void clear() { Srcs.clear(); Dests.clear(); }
 };
 
 //------------------------------------------------------------------------------
 //! Размер задания копирования.
+
 struct TJobSize {
     int FilesCount;    //!< Число файлов.
     qint64 FilesSize;  //!< Суммарный размер файлов.
@@ -103,6 +105,15 @@ Q_DECLARE_METATYPE(TJobSize);
 class TControlThread : public QThread
 {
     Q_OBJECT
+    public :
+        //! Статус обработки задания.
+        enum Status {
+            Preparing,    //!< Подготовка задания к обработке.
+            Calculating,  //!< Вычисление объёма задания.
+            Copying,      //!< Копирование файлов.
+            Finished      //!< Обработка завершена.
+        };
+
     private :
         //! Тип вектора заданий.
         typedef QVector<TJob> TJobs;
@@ -144,6 +155,7 @@ class TControlThread : public QThread
         TErrorHandler    m_ErrorHandler;  //!< Обработчик ошибок.
         Cancel           m_Cancel;        //!< Флаг отмены операции.
         bool             m_Paused;        //!< Флаг постановки на паузу.
+        Status           m_Status;        //!< Статус обработки задания.
 
         void createThreads(int WritersCount);
         void registerThreads();
@@ -161,6 +173,7 @@ class TControlThread : public QThread
                         int SubDirsDepth = -1);
         void calculate(const QString& Name, int SubDirsDepth = -1);
         void calculate(const TJob* Job);
+        void checkFreeSpace(TJob* Job);
         void cancelCurrentFile();
     protected :
         virtual void run();
@@ -172,14 +185,16 @@ class TControlThread : public QThread
         void pause();
         void resume();
         bool isPaused() const;
+        Status status() const { return m_Status; }
 
         void cancelCurrentJob();
         void cancelAllJobs();
 
         TCircularBuffer* buffer() const { return m_pBuffer; }
         TRWCalculator* rwCalc() { return &m_RWCalculator; }
+        const TJobSize* jobSize() const { return &m_JobSize; }
 
-        TErrorHandler::Action error(const TErrorHandler::ErrorData& ErrorData,
+        TErrorHandler::Action error(TErrorHandler::ErrorData* pErrorData,
                                     QThread* pThread);
         void readedBlock(qint64 Length);
         void writedBlock(const TFileWriter* pFileWriter, qint64 Length);
@@ -190,6 +205,9 @@ class TControlThread : public QThread
         //! Начало обработки задания.
         /*!
          * \param pJob Указатель на структуру данных задания.
+         *
+         * \remarks Гарантируется, что указатель будет валидным как минимум
+         *   до сигнала endJob.
          */
         void beginJob(const TJob* pJob);
 
@@ -198,9 +216,11 @@ class TControlThread : public QThread
 
         //! Конец процесса подсчёта размера задания.
         /*!
-         * \param JobSize Вычисленный объём задания.
+         * \param pJobSize Структура с вычисленным размером задания.
          */
-        void endCalculate(TJobSize JobSize);
+        void endCalculate(TJobSize pJobSize);
+
+        void beginCopy();
 
         //! Начало копирования файла.
         /*!

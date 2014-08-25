@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
  *
  *            Copyright (С) 2011 Юрий Владимирович Круглов
  *
@@ -108,12 +108,28 @@ void TSettingsPrivate::release()
 void TSettingsPrivate::read()
 {
     m_pSettings->beginGroup("MultiCopy");
-    m_pData.RAMCellSize     = m_pSettings->value("RAMCellSize",     16*1024*1024).toInt();
-    m_pData.RAMCellCount    = m_pSettings->value("RAMCellCount",    4).toInt();
-    m_pData.CopyDateTime    = m_pSettings->value("CopyDateTime",    true).toBool();
-    m_pData.TotalCalc       = m_pSettings->value("TotalCalc",       true).toBool();
-    m_pData.DirContentsOnly = m_pSettings->value("DirContentsOnly", false).toBool();
-    m_pData.SubDirsDepth    = m_pSettings->value("SubDirsDepth",    -1).toInt();
+    m_CopyData.RAMAutodetect   = m_pSettings->value("RAMAutodetect",   true).toBool();
+    m_CopyData.RAMCellSize     = m_pSettings->value("RAMCellSize",     16*1024*1024).toInt();
+    m_CopyData.RAMCellCount    = m_pSettings->value("RAMCellCount",    4).toInt();
+    m_CopyData.LockMemory      = m_pSettings->value("LockMemory",      false).toBool();
+    m_CopyData.NotUseCache     = m_pSettings->value("NotUseCache",     true).toBool();
+    m_CopyData.CopyDateTime    = m_pSettings->value("CopyDateTime",    true).toBool();
+    m_CopyData.CopyAttr        = m_pSettings->value("CopyAttr",        true).toBool();
+    m_CopyData.TotalCalc       = m_pSettings->value("TotalCalc",       true).toBool();
+    m_CopyData.CheckFreeSpace  = m_pSettings->value("CheckFreeSpace",  true).toBool();
+    m_CopyData.DirContentsOnly = m_pSettings->value("DirContentsOnly", false).toBool();
+    m_CopyData.SubDirsDepth    = m_pSettings->value("SubDirsDepth",    -1).toInt();
+    m_pSettings->endGroup();
+
+    m_pSettings->beginGroup("ViewData");
+    m_ViewData.ShowFileIcons    = m_pSettings->value("ShowFileIcons",    true).toBool();
+    m_ViewData.ShowNetworkIcons = m_pSettings->value("ShowNetworkIcons", false).toBool();
+    m_ViewData.ShowNameEditors  = m_pSettings->value("ShowNameEditors",  false).toBool();
+    m_pSettings->endGroup();
+
+    m_pSettings->beginGroup("SystemData");
+    m_SystemData.CheckDirs        = m_pSettings->value("CheckDirs",        true).toBool();
+    m_SystemData.CheckNetworkDirs = m_pSettings->value("CheckNetworkDirs", false).toBool();
     m_pSettings->endGroup();
 }
 
@@ -122,13 +138,30 @@ void TSettingsPrivate::read()
 void TSettingsPrivate::write()
 {
     m_pSettings->beginGroup("MultiCopy");
-    m_pSettings->setValue("RAMCellSize",     m_pData.RAMCellSize);
-    m_pSettings->setValue("RAMCellCount",    m_pData.RAMCellCount);
-    m_pSettings->setValue("CopyDateTime",    m_pData.CopyDateTime);
-    m_pSettings->setValue("TotalCalc",       m_pData.TotalCalc);
-    m_pSettings->setValue("DirContentsOnly", m_pData.DirContentsOnly);
-    m_pSettings->setValue("SubDirsDepth",    m_pData.SubDirsDepth);
+    m_pSettings->setValue("RAMAutodetect",   m_CopyData.RAMAutodetect);
+    m_pSettings->setValue("RAMCellSize",     m_CopyData.RAMCellSize);
+    m_pSettings->setValue("RAMCellCount",    m_CopyData.RAMCellCount);
+    m_pSettings->setValue("LockMemory",      m_CopyData.LockMemory);
+    m_pSettings->setValue("NotUseCache",     m_CopyData.NotUseCache);
+    m_pSettings->setValue("CopyDateTime",    m_CopyData.CopyDateTime);
+    m_pSettings->setValue("CopyAttr",        m_CopyData.CopyAttr);
+    m_pSettings->setValue("TotalCalc",       m_CopyData.TotalCalc);
+    m_pSettings->setValue("CheckFreeSpace",  m_CopyData.CheckFreeSpace);
+    m_pSettings->setValue("DirContentsOnly", m_CopyData.DirContentsOnly);
+    m_pSettings->setValue("SubDirsDepth",    m_CopyData.SubDirsDepth);
     m_pSettings->endGroup();
+
+    m_pSettings->beginGroup("ViewData");
+    m_pSettings->setValue("ShowFileIcons",    m_ViewData.ShowFileIcons);
+    m_pSettings->setValue("ShowNetworkIcons", m_ViewData.ShowNetworkIcons);
+    m_pSettings->setValue("ShowNameEditors",  m_ViewData.ShowNameEditors);
+    m_pSettings->endGroup();
+
+    m_pSettings->beginGroup("SystemData");
+    m_pSettings->setValue("CheckDirs",        m_SystemData.CheckDirs);
+    m_pSettings->setValue("CheckNetworkDirs", m_SystemData.CheckNetworkDirs);
+    m_pSettings->endGroup();
+
     m_pSettings->sync();
 }
 

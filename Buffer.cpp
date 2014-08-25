@@ -37,19 +37,29 @@
  ******************************************************************************/
 
 #include "Buffer.hpp"
+#include <QDebug>
+#include "CommonFn.hpp"
+
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+//
+//                        T B u f f e r C e l l
+//
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
 //! Конструктор.
 /*!
  * \param Size Объём ячейки (байт).
+ * \param Lock Флаг блокировки страниц памяти.
  */
 
-TBufferCell::TBufferCell(int Size)
+TBufferCell::TBufferCell(int Size, bool Lock)
     : m_Size(Size), m_pData(NULL), Length(0)
 {
     if (Size > 0)
-        m_pData = (char*)malloc(Size);
+        m_pData = (char*)GetLockedMem(Size, Lock);
 }
 
 //------------------------------------------------------------------------------
@@ -57,7 +67,7 @@ TBufferCell::TBufferCell(int Size)
 
 TBufferCell::~TBufferCell()
 {
-    free(m_pData);
+    FreeLockedMem(m_pData);
     m_pData = NULL;
 }
 
@@ -82,15 +92,22 @@ char* TBufferCell::data()
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+//
+//                           T B u f f e r
+//
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
 //! Конструктор.
 /*!
  * \param CellsCount Число ячеек.
  * \param CellSize Объём ячейки (байт).
+ * \param Lock Флаг блокировки страниц памяти.
  */
 
-TBuffer::TBuffer(int CellsCount, int CellSize)
+TBuffer::TBuffer(int CellsCount, int CellSize, bool Lock)
 {
-    resize(CellsCount, CellSize);
+    resize(CellsCount, CellSize, Lock);
 }
 
 //------------------------------------------------------------------------------
@@ -106,6 +123,7 @@ TBuffer::~TBuffer()
 /*!
  * \param CellsCount Число ячеек.
  * \param CellSize Объём ячейки (байт).
+ * \param Lock Флаг блокировки страниц памяти.
  *
  * \return true, если изменение размера прошло успешно и false если произошла
  *   ошибка. При возникновении ошибки буфер разрушается.
@@ -113,13 +131,13 @@ TBuffer::~TBuffer()
  * \remarks Старое содержимое буфера разрушается!
  */
 
-bool TBuffer::resize(int CellsCount, int CellSize)
+bool TBuffer::resize(int CellsCount, int CellSize, bool Lock)
 {
     clear();
     m_CellsVector.reserve(CellsCount);
     for (int i = CellsCount; i > 0; --i)
     {
-        TBufferCell* pBC = new TBufferCell(CellSize);
+        TBufferCell* pBC = new TBufferCell(CellSize, Lock);
         if ((pBC != NULL) && (pBC->data() != NULL))
             m_CellsVector.append(pBC);
         else {

@@ -58,7 +58,6 @@ class TControlThread;
 class TFileReader : public TThreadEx
 {
     private :
-        //QFile m_File;                      //!< Файл.
         TFastFile m_File;
         TControlThread* m_pControlThread;  //!< Управляющий поток.
         bool m_Cancel;                     //!< Флаг отмены операции.
@@ -70,7 +69,7 @@ class TFileReader : public TThreadEx
         explicit TFileReader(TControlThread* pControlThread);
 
         QString fileName() const;
-        bool openFile(const QString& FileName);
+        bool openFile(const QString& FileName, bool UseCache);
         void closeFile();
         void cancel();
         bool isCancelled() const;

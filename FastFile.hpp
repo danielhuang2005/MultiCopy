@@ -41,12 +41,14 @@
 
 #include <QtGlobal>
 
-#if defined(Q_OS_WIN) && !defined(_NO_FAST_FILE)
+#ifndef _NO_FAST_FILE
 
 //------------------------------------------------------------------------------
 
 #include <QIODevice>
-#include <windows.h>
+#ifdef Q_OS_WIN
+    #include <windows.h>
+#endif
 
 //------------------------------------------------------------------------------
 //! Класс для быстрых операций с файлами в Windows.
@@ -60,7 +62,11 @@
 class TFastFile
 {
     private :
-        HANDLE  m_Handle;       //!< Дескриптор файла.
+        #ifdef Q_OS_WIN
+            HANDLE m_Handle;    //!< Дескриптор файла.
+        #else
+            int m_fd;       //!< Дескриптор файла.
+        #endif
         QString m_FileName;     //!< Имя файла.
         QString m_ErrorString;  //!< Строка с сообщением об ошибке.
 
@@ -71,7 +77,7 @@ class TFastFile
 
         QString fileName() const;
         void setFileName(const QString& FileName);
-        virtual bool open(QIODevice::OpenMode Mode);
+        virtual bool open(QIODevice::OpenMode Mode, bool UseCache/* = false*/);
         virtual void close();
         QString errorString() const;
         bool isOpen() const;
@@ -91,10 +97,17 @@ class TFastFile
 //------------------------------------------------------------------------------
 
 #include <QFile>
-#define TFastFile QFile
+class TFastFile : pulbic QFile
+{
+    public :
+        TFastFile() : QFile() { }
+        virtual ~TFastFile() { }
+        virtual bool open(QIODevice::OpenMode Mode, bool UseCache = false)
+            { return open(Mode); }
+}
 
 //------------------------------------------------------------------------------
 
-#endif // Q_OS_WIN
+#endif // _NO_FAST_FILE
 
 #endif // __FASTFILE__HPP__

@@ -41,11 +41,14 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <QDirIterator>
 #include <QDebug>
+#include <QLibrary>
 
 #if defined(Q_OS_WIN)
+    #define _WIN32_WINNT 0x500 // Windows 2000 and above.
     #include <windows.h>
-#elif defined(Q_OS_LINUX)
+#else
     #include <sys/types.h>
     #include <sys/stat.h>
     #include <utime.h>
@@ -76,7 +79,7 @@
  *
  * \remarks В Windows поддерживаются имена длиной до 32767 символов.
  */
-
+/*
 bool CopyFileTime(const QString& SrcName, const QString& DestName)
 {
     bool Result = false;
@@ -107,77 +110,113 @@ bool CopyFileTime(const QString& SrcName, const QString& DestName)
                 Result = SetFileTime(hDest, &CreationTime, NULL, &LastWriteTime);
                 if (!Result)
                 {
-                    qWarning("Cannot set date/time for file %ls. Error code is %lu",
-                             wDestName, GetLastError());
+                    qWarning("Cannot set date/time for file %ls: %s",
+                             wDestName, qPrintable(GetSystemErrorString()));
                 }
                 CloseHandle(hDest);
             }
             else {
-                qWarning("Cannot open file %ls for writing. Error code is %lu.",
-                         wDestName, GetLastError());
+                qWarning("Cannot open file %ls for writing: %s",
+                         wDestName, qPrintable(GetSystemErrorString()));
 
             }
         }
         else {
-            qWarning("Cannot get date/time of file %ls. Error code is %lu",
-                     wSrcName, GetLastError());
+            qWarning("Cannot get date/time of file %ls: %s",
+                     wSrcName, qPrintable(GetSystemErrorString()));
         }
         CloseHandle(hSrc);
     }
     else {
-        qWarning("Cannot open file %ls for reading. Error code is %lu.",
-                 wSrcName, GetLastError());
+        qWarning("Cannot open file %ls for reading: %s",
+                 wSrcName, qPrintable(GetSystemErrorString()));
     }
     delete wSrcName;
     delete wDestName;
-#elif defined(Q_OS_LINUX)
-    const char* cSrcName  = QDir::toNativeSeparators(SrcName).toLocal8Bit().data();
-    const char* cDestName = QDir::toNativeSeparators(DestName).toLocal8Bit().data();
+#else
+    QByteArray Src = QDir::toNativeSeparators(SrcName).toLocal8Bit();
     struct stat Stat;
-    if (stat(cSrcName, &Stat) == 0)
+    if (stat(Src.data(), &Stat) == 0)
     {
         utimbuf Utimbuf;
         Utimbuf.actime = 0; //Stat.st_atime;
         Utimbuf.modtime = Stat.st_mtime;
-        Result = utime(cDestName, &Utimbuf) == 0;
+
+        QByteArray Dest = QDir::toNativeSeparators(DestName).toLocal8Bit();
+        Result = utime(Dest.data(), &Utimbuf) == 0;
         if (!Result)
         {
-            qWarning("Cannot set time for file %s. Error code is %d.",
-                     cDestName, errno);
+            qWarning("Cannot set time for file %s: %s",
+                     Dest.data(), qPrintable(GetSystemErrorString()));
+        }
+        Result = chmod(Dest.data(), Stat.st_mode) == 0;
+        if (!Result) {
+            qWarning("Cannot set permissions for file %s: %s",
+                     Dest.data(), qPrintable(GetSystemErrorString()));
         }
     }
     else {
-        qWarning("Cannot get statistics for file %s. Error code is %d.",
-                 cSrcName, errno);
+        qWarning("Cannot get statistics for file %s: %s",
+                 Src.data(), qPrintable(GetSystemErrorString()));
     }
-#else
-    qWarning("Function CopyFileTime is not realized!");
 #endif
     return Result;
 }
-
+*/
 //------------------------------------------------------------------------------
-//! Конкатенация строк со вставкой между ними символа-разделителя каталогов.
 
-void AddWithSeparator(QString* Initial, const QString& Added)
+bool AutodetectRAMBuffer(int* pCellSize, int* pCellsCount)
 {
-    if (!Initial->isEmpty() && !Added.isEmpty())
-    {
-        if (!Initial->endsWith(QDir::separator()))
-            *Initial += QDir::separator();
+    qint64 AvailPhys;
+
+#ifdef Q_OS_WIN
+    MEMORYSTATUSEX MemStatus;
+    MemStatus.dwLength = sizeof(MemStatus);
+    if (GlobalMemoryStatusEx(&MemStatus)) {
+        AvailPhys = MemStatus.ullAvailPhys;
     }
-    *Initial += Added;
+    else {
+        qDebug() << "GlobalMemoryStatusEx error.\n" << GetSystemErrorString();
+
+        // Значения по умолчанию (32Mb).
+        *pCellSize = 4*1024*1024;  // 4Mb
+        *pCellSize = 8;
+        return false;
+    }
+#else
+    //#error "Function is not realized!"
+    long AvailPhysPages = sysconf(_SC_AVPHYS_PAGES),
+         PageSize = sysconf(_SC_PAGE_SIZE);
+    if ((AvailPhysPages > 0) && (PageSize > 0))  {
+        AvailPhys = AvailPhysPages * PageSize;
+    }
+    else {
+        qDebug() << "Error detecting RAM Size.";
+
+        // Значения по умолчанию (32Mb).
+        *pCellSize = 4*1024*1024;  // 4Mb
+        *pCellSize = 8;
+        return false;
+    }
+#endif
+
+    *pCellSize = 4*1024*1024;  // 4Mb
+    if (AvailPhys <= 2 * 2 * 4*1024*1024) { // 2 x 2 x 4Mb = 16Mb
+        *pCellsCount = 2;
+    }
+    else {
+        if (AvailPhys >= 2 * 32 * 4*1024*1024) { // 2 x 32 x 4Mb = 256Mb
+            *pCellsCount = 32;
+        }
+        else {
+            *pCellsCount = AvailPhys / *pCellSize / 2;
+        }
+    }
+    qDebug() << "AutodetectRAMBuffer: " << *pCellsCount << "x" << *pCellSize;
+    return true;
 }
 
-//------------------------------------------------------------------------------
-//! Перегруженный вариант функции.
 
-QString AddWithSeparator(const QString& Initial, const QString& Added)
-{
-    QString Result = Initial;
-    AddWithSeparator(&Result, Added);
-    return Result;
-}
 
 
 
@@ -196,7 +235,8 @@ TControlThread::TControlThread(TProgressFormPrivate *Parent)
       m_pReader(NULL),
       m_ErrorHandler(Parent),
       m_Cancel(cNoCancel),
-      m_Paused(false)
+      m_Paused(false),
+      m_Status(Finished)
 {
 }
 
@@ -389,9 +429,19 @@ void TControlThread::copyFile(const QString& FileName,
     emit beginCopyFile(FileName, m_FileInfo.size());
 
 
+    // Сохраняем статистику файла.
+    // TODO : Убрать в TFileReader (?).
+    TFileStat FileStat;
+    if (m_CurrentJob.SettingsData.CopyDateTime)
+        FileStat.Options |= fsoTime;
+    if (m_CurrentJob.SettingsData.CopyAttr)
+        FileStat.Options |= fsoAttr;
+    GetFileStat(FileName, &FileStat);
+
     // Пытаемся открыть файлы.
     bool ReadyWrite = false;
-    bool ReadyRead = m_pReader->openFile(FileName);
+    bool ReadyRead = m_pReader->openFile(FileName,
+                                         !m_CurrentJob.SettingsData.NotUseCache);
     if (ReadyRead)
     {
         // Файл-источник успешно открыт. Открываем файлы-назначения.
@@ -405,7 +455,9 @@ void TControlThread::copyFile(const QString& FileName,
 
             // ...и добавляем к нему имя файла.
             AddWithSeparator(&Dest, Name);
-            m_Writers[i].pWriter->openFile(Dest, m_FileInfo.size());
+            m_Writers[i].pWriter->openFile(Dest,
+                                           m_FileInfo.size(),
+                                           !m_CurrentJob.SettingsData.NotUseCache);
             ReadyWrite |= m_Writers[i].pWriter->readyToRun();
         }
     }
@@ -428,12 +480,11 @@ void TControlThread::copyFile(const QString& FileName,
         for (int i = 0; i < m_Writers.count(); ++i)
         {
             m_Writers[i].pWriter->wait();
-            // После завершения потока копируем дату и время файлов.
-            if (m_CurrentJob.SettingsData.CopyDateTime &&
-                !m_Writers[i].pWriter->isCancelled())
+            if (!m_Writers[i].pWriter->isCancelled())
             {
-                CopyFileTime(m_pReader->fileName(),
-                             m_Writers[i].pWriter->fileName());
+                // Устанавливаем статистику файла.
+                // TODO : Убрать в TFileWriter (?).
+                SetFileStat(m_Writers[i].pWriter->fileName(), &FileStat);
             }
         }
 
@@ -480,46 +531,44 @@ void TControlThread::copyFolderEntry(const QString& DirName,
     if (m_Cancel != cNoCancel)
         return;
 
-    QDir Dir(DirName);
+    // Сохраняем статистику каталога.
+    TFileStat DirStat;
+    if (m_CurrentJob.SettingsData.CopyDateTime)
+        DirStat.Options |= fsoTime;
+    if (m_CurrentJob.SettingsData.CopyAttr)
+        DirStat.Options |= fsoAttr;
+    GetFileStat(DirName, &DirStat);
 
     // Рекурсивный обход подкаталогов.
-    if (SubDirsDepth != 0)
-    {
-        if (SubDirsDepth > 0)
-            --SubDirsDepth;
-
-        QStringList SubFolders = Dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot,
-                                               QDir::Name);
-        for (QStringList::const_iterator I = SubFolders.constBegin();
-             I != SubFolders.constEnd(); ++I)
-        {
-            if (m_Cancel != cNoCancel)
-                return;
-
-            copyFolderEntry(AddWithSeparator(DirName, *I),
-                            AddWithSeparator(RelativePath, *I),
-                            SubDirsDepth);
-        }
-    }
-
-    // Обработка файлов, находящихся в каталоге.
-    QStringList Files = Dir.entryList(QDir::Files, QDir::Name);
-    for (QStringList::const_iterator I = Files.constBegin();
-         I != Files.constEnd(); ++I)
-    {
-        if (m_Cancel != cNoCancel)
+    bool WithSubDirs = SubDirsDepth != 0;
+    if (SubDirsDepth > 0)
+        --SubDirsDepth;
+    QDirIterator DirI(DirName, QDir::NoDotAndDotDot |
+                               QDir::Files |
+                               QDir::Dirs |
+                               QDir::Hidden |
+                               QDir::System);
+    QFileInfo FileInfo;
+    while (DirI.hasNext()) {
+        if (m_Cancel)
             return;
-
-        copyFile(AddWithSeparator(DirName, *I), RelativePath);
+        DirI.next();
+        FileInfo = DirI.fileInfo();
+        if (FileInfo.isFile())
+            copyFile(AddWithSeparator(DirName, DirI.fileName()), RelativePath);
+        else if (WithSubDirs)
+            copyFolderEntry(AddWithSeparator(DirName, DirI.fileName()),
+                            AddWithSeparator(RelativePath, DirI.fileName()),
+                            SubDirsDepth);
     }
-
 
     if (m_CurrentJob.SettingsData.CopyDateTime && !RelativePath.isEmpty())
     {
         for (QStringList::const_iterator I = m_CurrentJob.Dests.constBegin();
              I != m_CurrentJob.Dests.constEnd(); ++I)
         {
-            CopyFileTime(DirName, AddWithSeparator(*I, RelativePath));
+            // Устанавливаем статистику каталога.
+            SetFileStat(AddWithSeparator(*I, RelativePath), &DirStat);
         }
     }
 }
@@ -546,6 +595,7 @@ void TControlThread::copyFolder(const QString& DirName,
 
 void TControlThread::run()
 {
+    m_Status = Preparing;
     {
         QMutexLocker Locker(&m_ThreadsLocker);
         Q_UNUSED(Locker);
@@ -577,26 +627,44 @@ void TControlThread::run()
             m_Jobs.pop_front();
         }
 
-        emit beginJob(&m_CurrentJob);
-
+        // Очистка.
         m_RWCalculator.clear();
+        m_ErrorHandler.clear();
+
+        emit beginJob(&m_CurrentJob);
 
         // Подсчёт размера задания.
         calculate(&m_CurrentJob);
 
+        // Проверка свободного места.
+        checkFreeSpace(&m_CurrentJob);
+
+        if (m_Cancel != cNoCancel)
+            break;
+
+        m_Status = Copying;
+        emit beginCopy();
+
         // Распределение памяти.
-        m_pBuffer = new TCircularBuffer(m_CurrentJob.SettingsData.RAMCellCount,
-                                        m_CurrentJob.SettingsData.RAMCellSize);
+        int CellSize, CellCount;
+        if (m_CurrentJob.SettingsData.RAMAutodetect) {
+            AutodetectRAMBuffer(&CellSize, &CellCount);
+        }
+        else {
+            CellCount = m_CurrentJob.SettingsData.RAMCellCount;
+            CellSize  = m_CurrentJob.SettingsData.RAMCellSize;
+
+        }
+        m_pBuffer = new TCircularBuffer(CellCount, CellSize,
+                                        m_CurrentJob.SettingsData.LockMemory);
         if (!m_pBuffer->isAllocated())
         {
             emit outOfMemory();
             break;
         }
 
-
         createThreads(m_CurrentJob.Dests.count());
         m_RWCalculator.begin();
-        m_ErrorHandler.clear();
 
         QFileInfo FileInfo;
         for (QStringList::const_iterator I = m_CurrentJob.Srcs.constBegin();
@@ -629,6 +697,7 @@ void TControlThread::run()
         delete m_pBuffer;  m_pBuffer = NULL;
         m_CurrentJob.clear();
 
+        m_Status = Finished;
         emit endJob();
 
     } while(true);
@@ -760,14 +829,15 @@ void TControlThread::cancelAllJobs()
 //------------------------------------------------------------------------------
 //! Обработчик ошибок.
 
-TErrorHandler::Action TControlThread::error(const TErrorHandler::ErrorData& ErrorData,
+TErrorHandler::Action TControlThread::error(TErrorHandler::ErrorData* pErrorData,
                                             QThread* pThread)
 {
     QMutex Mutex;
     QMutexLocker Locker(&Mutex);
     Q_UNUSED(Locker);
 
-    TErrorHandler::Action A = m_ErrorHandler.error(ErrorData);
+    pErrorData->DestsCount = buffer()->consumersCount();
+    TErrorHandler::Action A = m_ErrorHandler.error(*pErrorData);
     switch (A)
     {
         case TErrorHandler::aCancelAllJobs :
@@ -832,32 +902,29 @@ void TControlThread::calculate(const QString& Name, int SubDirsDepth)
     m_FileInfo.setFile(Name);
     if (m_FileInfo.isDir())
     {
-        QDir Dir(Name);
+        // Рекурсивный обход подкаталогов.
+        bool WithSubDirs = SubDirsDepth != 0;
+        if (WithSubDirs && SubDirsDepth > 0)
+            --SubDirsDepth;
 
-        // Подсчёт файлов в корне каталога.
-        QStringList Entry = Dir.entryList(QDir::Files);
-        for (QStringList::const_iterator I = Entry.constBegin();
-             I != Entry.constEnd(); ++I)
+        QDirIterator DirI(Name, QDir::NoDotAndDotDot |
+                                QDir::Files |
+                                QDir::Dirs |
+                                QDir::Hidden |
+                                QDir::System);
+        while (DirI.hasNext())
         {
             if (m_Cancel)
                 break;
-            m_FileInfo.setFile(AddWithSeparator(Name, *I));
-            m_JobSize.addFile(m_FileInfo.size());
-        }
-
-        // Рекурсивный обход подкаталогов.
-        if (SubDirsDepth != 0)
-        {
-            if (SubDirsDepth > 0)
-                --SubDirsDepth;
-
-            Entry = Dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-            for (QStringList::const_iterator I = Entry.constBegin();
-                 I != Entry.constEnd(); ++I)
+            DirI.next();
+            if ((DirI.fileName() != ".") && (DirI.fileName() != ".."))
             {
-                if (m_Cancel)
-                    break;
-                calculate(AddWithSeparator(Name, *I), SubDirsDepth);
+                m_FileInfo = DirI.fileInfo();
+                if (m_FileInfo.isFile())
+                    m_JobSize.addFile(m_FileInfo.size());
+                else if (WithSubDirs)
+                         calculate(AddWithSeparator(Name, DirI.fileName()),
+                                   SubDirsDepth);
             }
         }
     }
@@ -873,6 +940,7 @@ void TControlThread::calculate(const TJob* Job)
 {
     if (Job->SettingsData.TotalCalc)
     {
+        m_Status = Calculating;
         emit beginCalculate();
         m_JobSize.FilesCount = 0;
         m_JobSize.FilesSize = 0;
@@ -884,6 +952,62 @@ void TControlThread::calculate(const TJob* Job)
         }
         emit endCalculate(m_JobSize);
     }
+}
+
+//------------------------------------------------------------------------------
+/*!
+ *
+ * \remarks Метод может удалить часть назначений из списка, если пользователь
+ *   отказался от их использования.
+ */
+
+void TControlThread::checkFreeSpace(TJob* Job)
+{
+    if (!Job->SettingsData.CheckFreeSpace)
+        return;
+
+    QStringList ToDel;
+    for (QStringList::const_iterator I = Job->Dests.constBegin();
+         I != Job->Dests.constEnd(); ++I)
+    {
+        if (m_JobSize.FilesSize > DiskFreeSpace(*I))
+        {
+            do {
+                TErrorHandler::ErrorData ED;
+                ED.Code = TErrorHandler::eNoFreeSpace;
+                ED.FileName = *I;
+                ED.DestsCount = Job->Dests.count() - ToDel.count();
+
+                TErrorHandler::Action A = m_ErrorHandler.error(ED);
+                if (A == TErrorHandler::aCancelDest) {
+                    ToDel.append(*I);
+                    break;
+                }
+                else if (A == TErrorHandler::aIgnore) {
+                    break;
+                }
+
+                switch (A) {
+                    case TErrorHandler::aRetry :
+                        continue;
+                    case TErrorHandler::aIgnoreAll :
+                        return;
+                    case TErrorHandler::aCancelCurrentJob :
+                        cancelCurrentJob();
+                        return;
+                    case TErrorHandler::aCancelAllJobs :
+                        cancelAllJobs();
+                        return;
+                    default :
+                        qWarning("Unknown action!");
+                        return;
+                }
+            } while (true);
+        }
+    }
+
+    for (int i = ToDel.count() - 1; i >= 0; --i)
+        Job->Dests.removeAll(ToDel.at(i));
 }
 
 //------------------------------------------------------------------------------

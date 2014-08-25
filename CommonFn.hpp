@@ -40,16 +40,82 @@
 #define __COMMONFN__HPP__
 
 #include <QString>
+#include <QStringList>
+#include <QFlags>
 
 #ifdef Q_OS_WIN
+    #include <windows.h>
+#else
+    #include <utime.h>
+    #include <sys/stat.h>
+#endif
 
-#include <windows.h>
 
+//------------------------------------------------------------------------------
+
+wchar_t* StrToLPWSTR(const QString& Str);
+void AddWithSeparator(QString* Initial, const QString& Added);
+QString AddWithSeparator(const QString& Initial, const QString& Added);
 QString PathToLongWinPath(const QString& Path);
-LPWSTR StrToLPWSTR(const QString& Str);
-QString GetSystemErrorString(DWORD ErrCode);
-QString GetSystemErrorString();
 
-#endif //Q_OS_WIN
+//------------------------------------------------------------------------------
+
+void* GetLockedMem(size_t Size, bool Lock = false);
+void FreeLockedMem(void* Pointer);
+
+//------------------------------------------------------------------------------
+
+qint64 DiskFreeSpace(const QString& Path);
+
+//------------------------------------------------------------------------------
+
+QString GetSystemErrorString();
+QString GetSystemErrorString(
+            #ifdef Q_OS_WIN
+                DWORD
+            #else
+                int
+            #endif
+                ErrCode);
+
+//------------------------------------------------------------------------------
+
+void SubfoldersList(QStringList* pList,
+                    const QString& Dir,
+                    int Depth = -1,
+                    bool FullPath = true);
+QStringList SubfoldersList(const QString& Dir,
+                           int Depth = -1,
+                           bool FullPath = true);
+
+//------------------------------------------------------------------------------
+//! Параметры статистической информации о файлах/каталогах.
+enum TFileStatOption {
+    fsoTime = 0x01,  //!< Дата/время.
+    fsoAttr = 0x02   //!< Атрибуты.
+};
+
+typedef QFlags<TFileStatOption> TFileStatOptions;
+Q_DECLARE_OPERATORS_FOR_FLAGS(TFileStatOptions)
+
+//! Статистическая информация о файлах/каталогах.
+struct TFileStat {
+    TFileStatOptions Options;
+    #ifdef Q_OS_WIN
+        FILETIME CreationTime,    //!< Время создания.
+                 LastAccessTime,  //!< Время последнего доступа.
+                 LastWriteTime;   //!< Время последнего изменения.
+        DWORD    Attr;            //!< Атрибуты файла.
+    #else
+        time_t AccessTime,        //!< Время последнего доступа.
+               ModificationTime;  //!< Время последнего изменения.
+        mode_t Mode;              //!< Права доступа.
+    #endif
+};
+
+void GetFileStat(const QString& FileName, TFileStat* pFileStat);
+TFileStatOptions SetFileStat(const QString& FileName, const TFileStat* pFileStat);
+
+//------------------------------------------------------------------------------
 
 #endif // __COMMONFN__HPP__

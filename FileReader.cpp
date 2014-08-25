@@ -109,25 +109,26 @@ void TFileReader::cancel()
 //! Открытие файла.
 /*!
  * \param FileName Имя файла.
+ * \param UseCache Флаг использования системного кеша.
  *
  * \return true, если файл успешно открыт и false в пртивном случае.
  */
 
-bool TFileReader::openFile(const QString& FileName)
+bool TFileReader::openFile(const QString& FileName, bool UseCache)
 {
     Q_ASSERT(!isRunning());
 
     m_File.setFileName(FileName);
     do {
         // Пытаемся открыть файл.
-        if (!m_File.open(QIODevice::ReadOnly))
+        if (!m_File.open(QIODevice::ReadOnly, UseCache))
         {
             // Открыть файл не удалось. Обрабатываем ошибку.
             TErrorHandler::ErrorData ED;
             ED.Code = TErrorHandler::eOpenFile;
             ED.Message = m_File.errorString();
             ED.FileName = FileName;
-            if (m_pControlThread->error(ED, this) != TErrorHandler::aRetry)
+            if (m_pControlThread->error(&ED, this) != TErrorHandler::aRetry)
                 break;
         }
         else {
@@ -159,7 +160,7 @@ qint64 TFileReader::readBlock()
             ED.Code = TErrorHandler::eReadFile;
             ED.Message = m_File.errorString();
             ED.FileName = fileName();
-            if (m_pControlThread->error(ED, this) != TErrorHandler::aRetry)
+            if (m_pControlThread->error(&ED, this) != TErrorHandler::aRetry)
                 break;
         }
         else {

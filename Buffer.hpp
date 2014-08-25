@@ -51,7 +51,7 @@ class TBufferCell
         char* m_pData;   //!< Указатель на блок данных.
     public :
         int   Length;  //!< Используемый объём буфера. (Не равен его размеру!)
-        TBufferCell(int size);
+        TBufferCell(int Size, bool Lock);
         ~TBufferCell();
         int size() const;
         char* data();
@@ -67,10 +67,10 @@ class TBuffer
         TCellsVector m_CellsVector;  //!< Вектор ячеек.
 
     public:
-        TBuffer(int CellsCount, int CellSize);
+        TBuffer(int CellsCount, int CellSize, bool Lock);
         ~TBuffer();
 
-        bool resize(int CellsCount, int CellSize);
+        bool resize(int CellsCount, int CellSize, bool Lock);
         void clear();
         int size() const;
         int count() const;

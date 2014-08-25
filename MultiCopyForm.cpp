@@ -40,15 +40,15 @@
 #include "ui_MultiCopyForm.h"
 
 #include <QFileDialog>
-#include <QFileIconProvider>
 #include <QMessageBox>
-#include <QMenu>
-#include <QStringBuilder>
+#include <QTextStream>
 
 #include "ControlThread.hpp"
 #include "SettingsForm.hpp"
 #include "ProgressForm.hpp"
 #include "ErrorHandler.hpp"
+#include "Translator.hpp"
+#include "CommonFn.hpp"
 
 //------------------------------------------------------------------------------
 //! Перемещение элемента в списке типа QListWidget.
@@ -76,50 +76,35 @@ void MoveListWigetItem(QListWidget* ListWidget, int Row, int Delta)
 }
 
 //------------------------------------------------------------------------------
-
-QStringList ListWidgetToStrings(QListWidget* List)
-{
-    QStringList Strings;
-    for (int i =  0; i < List->count(); ++i)
-        Strings.append(List->item(i)->text());
-    return Strings;
-}
-
-//------------------------------------------------------------------------------
-//! "Укорачивание" длинных строк.
-/*!
- * Если строка Str длиннее чем MaxSymbols, возвращает строку длиной не более
- * MaxSymbols, полученную из Str заменой лишних символов в середине на
- * многоточие ("..."). Если MaxSymbols <= 3, вернёт только многоточие.
- */
-
-QString ElideText(const QString& Str, int MaxSymbols)
-{
-    if (MaxSymbols <= 3)
-        return "...";
-
-    if (Str.length() <= MaxSymbols)
-        return Str;
-
-    int n = (MaxSymbols - 3) / 2;
-    return Str.left(n) % QString("...") % Str.right(n);
-}
-
-//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
 TMultiCopy::TMultiCopy(QWidget *parent) :
-    QWidget(parent),
+    QMainWindow(parent),
     ui(new Ui::TMultiCopyForm)
 {
     ui->setupUi(this);
+    ui->SrcList->setDirsOnly(false);
+    ui->DestList->setDirsOnly(true);
+    ui->DestList->setCheckDirs(Settings.systemData()->CheckDirs);
+    ui->DestList->setCheckNetworkDirs(Settings.systemData()->CheckNetworkDirs);
 
-    QMenu* pMenu = new QMenu(this);
-    pMenu->addAction(tr("About"), this, SLOT(about()));
-    pMenu->addAction(tr("About Qt"), qApp, SLOT(aboutQt()));
-    ui->About->setMenu(pMenu);
+    setShowNameEditors(Settings.viewData()->ShowNameEditors);
+
+    // "Сложные" соединения (дизайнер сделать не позволяет).
+    connect(ui->actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     restoreSession();
+
+    bool ShowIcons = Settings.viewData()->ShowFileIcons;
+    ui->SrcList->setShowIcons(ShowIcons);
+    ui->DestList->setShowIcons(ShowIcons);
+
+    ShowIcons = Settings.viewData()->ShowNetworkIcons;
+    ui->SrcList->setShowNetworkIcons(ShowIcons);
+    ui->DestList->setShowNetworkIcons(ShowIcons);
+
+    ui->SrcList->setCurrentRow(0);
+    ui->DestList->setCurrentRow(0);
 }
 
 //------------------------------------------------------------------------------
@@ -172,31 +157,13 @@ void TMultiCopy::destChanged()
 
 //------------------------------------------------------------------------------
 
-void TMultiCopy::addItemWithIcon(QListWidget* List, const QString& FileName)
-{
-    QFileInfo FileInfo(FileName);
-    QFileIconProvider FileIconProvider;
-    List->addItem(new QListWidgetItem(FileIconProvider.icon(FileInfo),
-                          QDir::toNativeSeparators(FileName)));
-}
-
-//------------------------------------------------------------------------------
-
-void TMultiCopy::addItemsWithIcon(QListWidget* List,
-                                  const QStringList& FileNames)
-{
-    for (int i = 0; i < FileNames.count(); ++i)
-        addItemWithIcon(List, FileNames[i]);
-}
-
-//------------------------------------------------------------------------------
-
 void TMultiCopy::saveSession()
 {
     QSettings* pS = Settings.getQSettings();
+    //saveListsToSettings(pS);
     pS->beginGroup(objectName());
-    pS->setValue(ui->SrcList->objectName(), ListWidgetToStrings(ui->SrcList));
-    pS->setValue(ui->DestList->objectName(), ListWidgetToStrings(ui->DestList));
+    pS->setValue(ui->SrcList->objectName(), ui->SrcList->toStringList());
+    pS->setValue(ui->DestList->objectName(), ui->DestList->toStringList());
     pS->setValue("geometry", geometry());
     pS->setValue(ui->splitter->objectName(), ui->splitter->saveState());
     pS->endGroup();
@@ -209,102 +176,174 @@ void TMultiCopy::restoreSession()
 {
     QSettings* pS = Settings.getQSettings();
     pS->beginGroup(objectName());
-    addItemsWithIcon(ui->SrcList, pS->value(ui->SrcList->objectName()).toStringList());
-    addItemsWithIcon(ui->DestList, pS->value(ui->DestList->objectName()).toStringList());
     QRect Geometry = pS->value("geometry").toRect();
     if (!Geometry.isEmpty())
         setGeometry(Geometry);
     ui->splitter->restoreState(pS->value(ui->splitter->objectName()).toByteArray());
     pS->endGroup();
-
-    srcChanged();
-    destChanged();
 }
 
 //------------------------------------------------------------------------------
 
-bool TMultiCopy::testNewSource(QStringList* pSrc)
+bool TMultiCopy::loadStringListFromFile(const QString& FileName,
+                                        QStringList& List)
 {
-    /*QMessageBox::StandardButtons Buttons = QMessageBox::Ok;
-    if (pSrc->count() > 1)
-        Buttons |= QMessageBox::Cancel;*/
-
-    QStringList Dup;
-    for (QStringList::iterator I = pSrc->begin(); I != pSrc->end(); ++I)
+    // TODO : Обрабатывать ошибки.
+    QFile File(FileName);
+    if (File.open(QFile::ReadOnly | QFile::Text))
     {
-        for (int j = 0; j < ui->SrcList->count(); ++j)
-        {
-            if (ui->SrcList->item(j)->text() == *I)
-            {
-                /*QMessageBox::StandardButton B = QMessageBox::warning(
-                    this,
-                    QApplication::applicationName(),
-                    tr("This source already added.") + "\n\n" + *I,
-                    Buttons,
-                    QMessageBox::Ok);
-                if (B == QMessageBox::Ok)
-                {
-                    pSrc->removeAll(*I);
-                    break;
-                }
-                else
-                    return false;*/
-                Dup << *I;
-                break;
-            }
-        }
+        QTextStream Stream(&File);
+        QString S;
+        while (!(S = Stream.readLine()).isEmpty())
+            List.append(S);
+        File.close();
+        return true;
     }
 
-    if (Dup.count() > 0)
-    {
-        // Есть дублируемые элементы.
-        QString Names;
-        const int MaxOutputNames = 4;  //!< Максимальное число выводимых строк.
-        for (int i = 0; i < qMin(Dup.count(), MaxOutputNames); ++i)
-        {
-            Names += ElideText(Dup[i], 40) + "\n";
-        }
-        if (Dup.count() > MaxOutputNames)
-            Names += "..........";
-
-        // Выводим сообщение пользователю.
-        QMessageBox::StandardButton  DefButton = QMessageBox::NoButton;
-        QMessageBox::StandardButtons Buttons = QMessageBox::NoButton;
-        QString Message = tr("Some sources already added:") + "\n\n" + Names;
-        if ((pSrc->count() > 1) && (Dup.count() < pSrc->count()))
-        {
-            DefButton = QMessageBox::Yes;
-            Buttons   = QMessageBox::Yes | QMessageBox::No;
-            Message  += "\n\n" + tr("They won't be added again. Continue?");
-        }
-        else {
-            DefButton = QMessageBox::Ok;
-            Buttons   = DefButton;
-        }
-        QMessageBox::StandardButton B = QMessageBox::warning(
-                    this,
-                    QApplication::applicationName(),
-                    Message,
-                    Buttons,
-                    DefButton);
-        if (B == QMessageBox::No)
-            return false;
-
-        for (int i = Dup.count() - 1; i >= 0; --i)
-            pSrc->removeAll(Dup[i]);
-    }
-
-    return true;
+    return false;
 }
 
 //------------------------------------------------------------------------------
 
-bool TMultiCopy::testNewSource(const QString& Src)
+bool TMultiCopy::saveStringListToFile(const QString& FileName,
+                                      const QStringList& List)
 {
-    QStringList List(Src);
-    return testNewSource(&List) && !List.isEmpty();
+    // TODO : Обрабатывать ошибки.
+    QFile File(FileName);
+    if (File.open(QFile::WriteOnly | QFile::Truncate | QFile::Text))
+    {
+        QTextStream Stream(&File);
+        for (QStringList::const_iterator I = List.begin(); I != List.end(); ++I)
+            Stream << *I << "\n";
+        File.close();
+        return true;
+    }
+
+    return false;
 }
 
+//------------------------------------------------------------------------------
+
+bool TMultiCopy::loadJobFromFile(const QString& FileName)
+{
+    // TODO : Обрабатывать ошибки.
+    QFile File(FileName);
+    bool Result = File.open(QFile::ReadOnly | QFile::Text);
+
+    if (Result) {
+        QString S;
+        QTextStream Stream(&File);
+        QStringList List,
+                    OldSrcList  = ui->SrcList->toStringList(),
+                    OldDestList = ui->DestList->toStringList();
+
+        ui->SrcList->clear();
+        ui->DestList->clear();
+
+        // Загрузка списка источников.
+        while(!(S = Stream.readLine()).isEmpty())
+            List.append(S);
+        Result = ui->SrcList->checkAndAddItems(&List);
+
+        if (Result) {
+            // Загрузка списка назначений.
+            List.clear();
+            while(!(S = Stream.readLine()).isEmpty())
+                List.append(S);
+            Result = ui->DestList->checkAndAddItems(&List);
+        }
+
+        File.close();
+
+        if (!Result) {
+            ui->SrcList->clear();
+            ui->SrcList->checkAndAddItems(&OldSrcList);
+            ui->DestList->clear();
+            ui->DestList->checkAndAddItems(&OldDestList);
+        }
+    }
+
+    return Result;
+}
+
+//------------------------------------------------------------------------------
+
+bool TMultiCopy::saveJobToFile(const QString& FileName)
+{
+    // TODO : Обрабатывать ошибки.
+    QFile File(FileName);
+    if (File.open(QFile::ReadWrite | QFile::Truncate | QFile::Text))
+    {
+        QTextStream Stream(&File);
+        QStringList List;
+
+        // Запись списка источников.
+        List = ui->SrcList->toStringList();
+        for (QStringList::const_iterator I = List.begin(); I != List.end(); ++I)
+            Stream << *I << "\n";
+
+        // Разделитель (пустая строка).
+        Stream << "\n";
+
+        // Запись списка назначений.
+        List = ui->DestList->toStringList();
+        for (QStringList::const_iterator I = List.begin(); I != List.end(); ++I)
+            Stream << *I << "\n";
+
+        File.close();
+        return true;
+    }
+
+    return false;
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::setShowNameEditors(bool Show)
+{
+    ui->SrcCustom->setVisible(Show);
+    ui->SrcAddCustom->setVisible(Show);
+    ui->DestCustom->setVisible(Show);
+    ui->DestAddCustom->setVisible(Show);
+}
+
+//------------------------------------------------------------------------------
+/*!
+ *
+ * \remarks Форма настроек должна сама вызвать свой метод retranslateUi!
+ */
+
+void TMultiCopy::retranslateAllUi(QString LangID)
+{
+    loadTranslators(LangID);
+    ui->retranslateUi(this);
+    TProgressForm::retranslateUi();
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::loadListsFromSettings(QSettings* pS)
+{
+    if (pS == NULL)
+        pS = Settings.getQSettings();
+    pS->beginGroup(objectName());
+    ui->SrcList->addItems(pS->value(ui->SrcList->objectName()).toStringList());
+    ui->DestList->addItems(pS->value(ui->DestList->objectName()).toStringList());
+    pS->endGroup();
+}
+
+//------------------------------------------------------------------------------
+/*
+void TMultiCopy::saveListsToSettings(QSettings* pS)
+{
+    if (pS == NULL)
+        pS = Settings.getQSettings();
+    pS->beginGroup(objectName());
+    pS->setValue(ui->SrcList->objectName(), ui->SrcList->toStringList());
+    pS->setValue(ui->DestList->objectName(), ui->DestList->toStringList());
+    pS->endGroup();
+}
+*/
 //------------------------------------------------------------------------------
 
 void TMultiCopy::on_SrcAddFile_clicked()
@@ -314,12 +353,11 @@ void TMultiCopy::on_SrcAddFile_clicked()
     QStringList FileNames = QFileDialog::getOpenFileNames(this,
                                 tr("Add source file(s)"),
                                 pS->value(key).toString());
-    if (testNewSource(&FileNames) && (FileNames.count() > 0))
+    if (FileNames.count() > 0)
     {
         QFileInfo FileInfo(FileNames[0]);
         pS->setValue(key, FileInfo.absoluteDir().absolutePath());
-        addItemsWithIcon(ui->SrcList, FileNames);
-        srcChanged();
+        ui->SrcList->checkAndAddItems(&FileNames);
     }
 }
 
@@ -332,11 +370,11 @@ void TMultiCopy::on_SrcAddFolder_clicked()
     QString Dir = QFileDialog::getExistingDirectory(this,
                       tr("Add source folder"),
                       pS->value(key).toString());
-    if (!Dir.isEmpty() && testNewSource(Dir))
+    if (!Dir.isEmpty())
     {
         pS->setValue(key, Dir);
-        addItemWithIcon(ui->SrcList, Dir);
-        srcChanged();
+        if (ui->SrcList->checkAndAddItem(Dir))
+            srcChanged();
     }
 }
 
@@ -352,18 +390,7 @@ void TMultiCopy::on_DestAddFolder_clicked()
     if (!Dir.isEmpty())
     {
         pS->setValue(key, Dir);
-
-        // Проверка дублирования элементов.
-        for (int i = ui->DestList->count() - 1; i >= 0; --i)
-            if (ui->DestList->item(i)->text() == Dir)
-            {
-                QMessageBox::warning(this, QApplication::applicationName(),
-                                     tr("Folder already added."));
-                return;
-            }
-
-        addItemWithIcon(ui->DestList, Dir);
-        destChanged();
+        ui->DestList->checkAndAddItem(Dir);
     }
 }
 
@@ -396,9 +423,9 @@ void TMultiCopy::on_Start_clicked()
 {
     TProgressForm ProgressForm(this);
     TJob Job;
-    Job.Srcs = ListWidgetToStrings(ui->SrcList);
-    Job.Dests = ListWidgetToStrings(ui->DestList);
-    Job.SettingsData = *Settings.data();
+    Job.Srcs = ui->SrcList->toStringList();
+    Job.Dests = ui->DestList->toStringList();
+    Job.SettingsData = *Settings.copyData();
     ProgressForm.addJob(Job);
 }
 
@@ -420,7 +447,7 @@ void TMultiCopy::on_SrcUp_clicked()
 void TMultiCopy::on_SrcDown_clicked()
 {
     int Index = ui->SrcList->currentRow();
-    if ((Index <= 0) || (Index >= ui->SrcList->count() - 1))
+    if ((Index < 0) || (Index >= ui->SrcList->count() - 1))
         return;
 
     QListWidgetItem* Item = ui->SrcList->takeItem(Index);
@@ -456,19 +483,40 @@ void TMultiCopy::on_DestList_currentRowChanged(int currentRow)
 
 void TMultiCopy::on_Settings_clicked()
 {
+    // Вызываем форму настроек.
     TSettingsForm* Form = new TSettingsForm(this);
-    Form->show();
+    if (Form->exec() == QDialog::Accepted)
+    {
+        ui->DestList->setCheckDirs(Settings.systemData()->CheckDirs);
+        ui->DestList->setCheckNetworkDirs(Settings.systemData()->CheckNetworkDirs);
+
+        // Обновление внешнего вида формы.
+        bool ShowIcons = Settings.viewData()->ShowNetworkIcons;
+        ui->SrcList->setShowNetworkIcons(ShowIcons);
+        ui->DestList->setShowNetworkIcons(ShowIcons);
+
+        ShowIcons = Settings.viewData()->ShowFileIcons;
+        ui->SrcList->setShowIcons(ShowIcons);
+        ui->DestList->setShowIcons(ShowIcons);
+
+        setShowNameEditors(Settings.viewData()->ShowNameEditors);
+        QString LangID = Settings.langID();
+        if (LangID.isEmpty())
+            LangID = QLocale::system().name();
+        loadTranslators(LangID);
+        ui->retranslateUi(this);
+    }
 }
 
 //------------------------------------------------------------------------------
 
-void TMultiCopy::about()
+void TMultiCopy::on_actionAbout_triggered()
 {
     QString Text = tr(
-        "<p align='center'>MultiCopy, version 1.1.0</p>"
+        "<p align='center'>MultiCopy, version 1.2.0</p>"
     );
     QString InformativeText = tr(
-        "<p>This product licensed under GNU GPL version 3. For details see "
+        "<p align='center'>This product licensed under GNU GPL version 3. For details see "
         "<a href='http://www.gnu.org/copyleft/gpl.html'>http://www.gnu.org/copyleft/gpl.html</a>.</p>"
         "<p align='center'>Copyright &copy; 2011 Yuri&nbsp;Krugloff. "
         "All rights reserved.</p>"
@@ -482,6 +530,173 @@ void TMultiCopy::about()
     QPixmap Pixmap(":/MainIcon");
     pBox->setIconPixmap(Pixmap);
     pBox->exec();
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::on_actionLoadSourcesList_triggered()
+{
+    static const char* key = "LoadSourcesListPath";
+    QSettings* pS = Settings.getQSettings();
+    QString FileName = QFileDialog::getOpenFileName(this,
+                           tr("Load sources list"),
+                           pS->value(key).toString(),
+                           tr("Lists (*.lst);;All files (*.*)"));
+    if (!FileName.isEmpty())
+    {
+        QFileInfo FileInfo(FileName);
+        pS->setValue(key, FileInfo.absoluteFilePath());
+        QStringList List;
+        loadStringListFromFile(FileName, List);
+
+        ui->SrcList->checkAndAddItems(&List);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::on_actionLoadDestinationsList_triggered()
+{
+    static const char* key = "LoadDestsListPath";
+    QSettings* pS = Settings.getQSettings();
+    QString FileName = QFileDialog::getOpenFileName(this,
+                           tr("Load destinations list"),
+                           pS->value(key).toString(),
+                           tr("Lists (*.lst);;All files (*.*)"));
+    if (!FileName.isEmpty())
+    {
+        QFileInfo FileInfo(FileName);
+        pS->setValue(key, FileInfo.absoluteFilePath());
+        QStringList List;
+        loadStringListFromFile(FileName, List);
+        ui->DestList->checkAndAddItems(&List);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::on_actionSaveSourcesList_triggered()
+{
+    static const char* key = "SaveSourcesListPath";
+    QSettings* pS = Settings.getQSettings();
+    QString FileName = QFileDialog::getSaveFileName(this,
+                           tr("Save sources list"),
+                           pS->value(key).toString(),
+                           tr("Lists (*.lst);;All files (*.*)"));
+    if (!FileName.isEmpty())
+    {
+        QFileInfo FileInfo(FileName);
+        pS->setValue(key, FileInfo.absoluteFilePath());
+        saveStringListToFile(FileName, ui->SrcList->toStringList());
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::on_actionSaveDestinationsList_triggered()
+{
+    static const char* key = "SaveDestsListPath";
+    QSettings* pS = Settings.getQSettings();
+    QString FileName = QFileDialog::getSaveFileName(this,
+                           tr("Save destinations list"),
+                           pS->value(key).toString(),
+                           tr("Lists (*.lst);;All files (*.*)"));
+    if (!FileName.isEmpty())
+    {
+        QFileInfo FileInfo(FileName);
+        pS->setValue(key, FileInfo.absoluteFilePath());
+        saveStringListToFile(FileName, ui->DestList->toStringList());
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::addCustomSrc()
+{
+    if (!ui->SrcCustom->text().isEmpty()) {
+        if (ui->SrcList->checkAndAddItem(ui->SrcCustom->text())) {
+            ui->SrcCustom->clear();
+        }
+    }
+    else {
+        QApplication::beep();
+    }
+    ui->SrcCustom->setFocus();
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::addCustomDest()
+{
+    if (!ui->DestCustom->text().isEmpty()) {
+        if (ui->DestList->checkAndAddItem(ui->DestCustom->text())) {
+            ui->DestCustom->clear();
+        }
+    }
+    else {
+        QApplication::beep();
+    }
+    ui->DestCustom->setFocus();
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::on_actionSaveJob_triggered()
+{
+    static const char* key = "SaveJobPath";
+    QSettings* pS = Settings.getQSettings();
+    QString FileName = QFileDialog::getSaveFileName(this,
+                           tr("Save job"),
+                           pS->value(key).toString(),
+                           tr("Jobs (*.job);;All files (*.*)"));
+    if (!FileName.isEmpty())
+    {
+        QFileInfo FileInfo(FileName);
+        pS->setValue(key, FileInfo.absoluteFilePath());
+        //QSettings Ini(FileName, QSettings::IniFormat, this);
+        //saveListsToSettings(&Ini);
+        saveJobToFile(FileName);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::on_actionLoadJob_triggered()
+{
+    static const char* key = "LoadJobPath";
+    QSettings* pS = Settings.getQSettings();
+    QString FileName = QFileDialog::getOpenFileName(this,
+                           tr("Load job"),
+                           pS->value(key).toString(),
+                           tr("Jobs (*.job);;All files (*.*)"));
+    if (!FileName.isEmpty())
+    {
+        QFileInfo FileInfo(FileName);
+        pS->setValue(key, FileInfo.absoluteFilePath());
+        /*QSettings Ini(FileName, QSettings::IniFormat, this);
+        ui->SrcList->clear();
+        ui->DestList->clear();
+        loadListsFromSettings(&Ini);*/
+        loadJobFromFile(FileName);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void TMultiCopy::on_actionAddSubfolders_triggered()
+{
+    static const char* key = "AddSubfoldersPath";
+    QSettings* pS = Settings.getQSettings();
+    QString Dir = QFileDialog::getExistingDirectory(this,
+                      tr ("Select folder"),
+                      pS->value(key).toString());
+    if (!Dir.isEmpty())
+    {
+        pS->setValue(key, Dir);
+        QStringList List = SubfoldersList(Dir);
+        if (List.count() > 0)
+            ui->DestList->checkAndAddItems(&List);
+    }
 }
 
 //------------------------------------------------------------------------------
