@@ -181,9 +181,9 @@
     </message>
     <message>
         <location filename="MultiCopyForm.cpp" line="467"/>
-        <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 1.0.0&lt;/p&gt;</source>
-        <oldsource>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 1.0.0 RC&lt;/p&gt;</oldsource>
-        <translation>&lt;p align=&apos;center&apos;&gt;MultiCopy, версия 1.0.0&lt;/p&gt;</translation>
+        <source>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 1.1.0&lt;/p&gt;</source>
+        <oldsource>&lt;p align=&apos;center&apos;&gt;MultiCopy, version 1.0.0&lt;/p&gt;</oldsource>
+        <translation>&lt;p align=&apos;center&apos;&gt;MultiCopy, версия 1.1.0&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="MultiCopyForm.cpp" line="470"/>
@@ -341,57 +341,57 @@
 <context>
     <name>TProgressFormPrivate</name>
     <message>
-        <location filename="ProgressForm.cpp" line="133"/>
+        <location filename="ProgressForm.cpp" line="132"/>
         <source>B/s</source>
         <translation>Б/с</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="136"/>
+        <location filename="ProgressForm.cpp" line="135"/>
         <source>kB/s</source>
         <translation>кБ/с</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="139"/>
+        <location filename="ProgressForm.cpp" line="138"/>
         <source>MB/s</source>
         <translation>МБ/с</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="141"/>
+        <location filename="ProgressForm.cpp" line="140"/>
         <source>GB/s</source>
         <translation>ГБ/с</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="154"/>
+        <location filename="ProgressForm.cpp" line="152"/>
         <source>Unknown</source>
         <translation>Неизвестно</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="181"/>
+        <location filename="ProgressForm.cpp" line="179"/>
         <source>Out of Memory!</source>
         <translation>Недостаточно памяти!</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="264"/>
+        <location filename="ProgressForm.cpp" line="262"/>
         <source>All jobs are completed!</source>
         <translation>Все задачи завершены!</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="277"/>
+        <location filename="ProgressForm.cpp" line="275"/>
         <source>Calculate job size...</source>
         <translation>Вычисление объёма задания...</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="324"/>
+        <location filename="ProgressForm.cpp" line="322"/>
         <source>You really want to cancel copy?</source>
         <translation>Вы действительно хотите отменить копирование?</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="347"/>
+        <location filename="ProgressForm.cpp" line="345"/>
         <source>&amp;Resume</source>
         <translation>&amp;Продолжить</translation>
     </message>
     <message>
-        <location filename="ProgressForm.cpp" line="351"/>
+        <location filename="ProgressForm.cpp" line="349"/>
         <source>&amp;Pause</source>
         <translation>&amp;Пауза</translation>
     </message>
@@ -436,48 +436,48 @@
         <translation>Объём ячейки:</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="93"/>
+        <location filename="SettingsForm.ui" line="90"/>
         <source>Cells count:</source>
         <translation>Число ячеек:</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="110"/>
+        <location filename="SettingsForm.ui" line="107"/>
         <source>Required RAM:</source>
         <translation>Требуется:</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="133"/>
+        <location filename="SettingsForm.ui" line="130"/>
         <source>Copy date and time of folders</source>
         <oldsource>Copy date and time of folders (slowly!)</oldsource>
         <translation>Копировать дату и время каталогов</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="140"/>
+        <location filename="SettingsForm.ui" line="137"/>
         <source>Calculate count and total size of files</source>
         <translation>Вычислять число и общий объём файлов</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="147"/>
+        <location filename="SettingsForm.ui" line="144"/>
         <source>Copy folder content only (not same folder)</source>
         <translation>Копировать только содержимое каталога (а не сам каталог)</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="156"/>
+        <location filename="SettingsForm.ui" line="153"/>
         <source>Depth of copying of subdirectories:</source>
         <translation>Глубина копирования подкаталогов:</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="163"/>
+        <location filename="SettingsForm.ui" line="160"/>
         <source>Unlimited</source>
         <translation>Неогр.</translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="222"/>
+        <location filename="SettingsForm.ui" line="219"/>
         <source>OK</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="SettingsForm.ui" line="229"/>
+        <location filename="SettingsForm.ui" line="226"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>

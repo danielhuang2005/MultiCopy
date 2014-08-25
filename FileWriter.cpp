@@ -51,6 +51,9 @@ TFileWriter::TFileWriter(TControlThread* pControlThread)
       m_pControlThread(pControlThread),
       m_Cancel(false),
       m_Size(-1)
+      #ifndef _NO_CHECK_MD5
+          , m_MD5(QCryptographicHash::Md5)
+      #endif
 {
 }
 
@@ -73,6 +76,10 @@ void TFileWriter::run()
         return;
     }
     m_Cancel = false;
+
+    #ifndef _NO_CHECK_MD5
+        m_MD5.reset();
+    #endif
 
     m_Written = 0;
     int Length = -1;
@@ -212,15 +219,15 @@ bool TFileWriter::openFile(const QString& FileName, qint64 Size)
 qint64 TFileWriter::writeBlock()
 {
     // Получаем адрес ячейки.
-    TBufferCell* pA = m_pControlThread->buffer()->firstUsedBlock(this);
-    Q_ASSERT(pA);
+    TBufferCell* pCell = m_pControlThread->buffer()->firstUsedBlock(this);
+    Q_ASSERT(pCell);
     int Written;
     int WrittenTotal = 0;
-    int toWrite = pA->Length;
+    int toWrite = pCell->Length;
     int Delta = 0;
     do {
-        Q_ASSERT(Delta + toWrite <= pA->Length);
-        Written = m_File.write(pA->data() + Delta, toWrite);
+        Q_ASSERT(Delta + toWrite <= pCell->Length);
+        Written = m_File.write(pCell->data() + Delta, toWrite);
         if (Written > 0)
             WrittenTotal += Written;
         if (Written != toWrite) {
@@ -244,12 +251,16 @@ qint64 TFileWriter::writeBlock()
         }
         else {
             // Блок записан успешно. Прерываем цикл.
+            #ifndef _NO_CHECK_MD5
+                m_MD5.addData(pCell->data(), pCell->Length);
+            #endif
+
             break;
         }
     } while (true);
 
     // Если блок записан не полностью, возвращаем -1.
-    return (WrittenTotal == pA->Length) ? WrittenTotal : -1;
+    return (WrittenTotal == pCell->Length) ? WrittenTotal : -1;
 }
 
 //------------------------------------------------------------------------------

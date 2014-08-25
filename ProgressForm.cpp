@@ -41,7 +41,6 @@
 
 #include <QMessageBox>
 #include <QResizeEvent>
-#include <QDebug>
 #include <QTime>
 
 #include "ErrorHandler.hpp"
@@ -147,7 +146,6 @@ void TProgressFormPrivate::updateSpeedAndTime()
 {
     const TRWCalculator* pCalc = m_pControlThread->rwCalc();
     QString S = speed(pCalc->speed());
-    qDebug() << S;
     ui->Speed->setText(S);
     ui->Elapsed->setText(time(pCalc->time()));
     qint64 et = pCalc->remaining(m_JobSize.FilesSize - m_CopiedSize - pCalc->writedBytes());

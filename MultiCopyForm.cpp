@@ -465,7 +465,7 @@ void TMultiCopy::on_Settings_clicked()
 void TMultiCopy::about()
 {
     QString Text = tr(
-        "<p align='center'>MultiCopy, version 1.0.0</p>"
+        "<p align='center'>MultiCopy, version 1.1.0</p>"
     );
     QString InformativeText = tr(
         "<p>This product licensed under GNU GPL version 3. For details see "

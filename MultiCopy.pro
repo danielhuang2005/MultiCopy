@@ -25,7 +25,9 @@ SOURCES += main.cpp\
     Translator.cpp \
     FileReader.cpp \
     FileWriter.cpp \
-    ControlThread.cpp
+    ControlThread.cpp \
+    FastFile.cpp \
+    CommonFn.cpp
 
 HEADERS  += \
     Synchronizer.hpp \
@@ -42,7 +44,9 @@ HEADERS  += \
     Translator.hpp \
     FileReader.hpp \
     FileWriter.hpp \
-    ControlThread.hpp
+    ControlThread.hpp \
+    FastFile.hpp \
+    CommonFn.hpp
 
 FORMS    += \
     MultiCopyForm.ui \
@@ -64,3 +68,7 @@ win32 {
         MultiCopy.Win.rc
 }
 
+
+# DEFINES += _NO_FAST_FILE
+
+DEFINES += _NO_CHECK_MD5

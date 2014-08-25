@@ -57,6 +57,7 @@
 #include "FileReader.hpp"
 #include "FileWriter.hpp"
 #include "ProgressForm.hpp"
+#include "CommonFn.hpp"
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -65,53 +66,7 @@
 //
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-//! Преобразование QString в WCHAR*.
-/*!
- * Создаёт массив элементов типа WCHAR, заканчивающийся нулём. Использует
- * минимально необходимый объём памяти. Динамически создаёт массив требуемого
- * размера и возвращает указатель на него. Вызывающая процедура должна
- * сама его разрушить вызовом оператора delete. Если при выделении памяти
- * возникла ошибка, возвращает NULL.
- */
 
-LPWSTR StrToWChar(const QString& Str)
-{
-    LPWSTR Result;
-    try {
-        Result = new WCHAR[(Str.length() + 1)];
-    }
-    catch (...) {
-        return NULL;
-    }
-
-    int i = Str.toWCharArray(Result);
-    Q_ASSERT(i == Str.length());
-    Result[i] = 0;
-    return Result;
-}
-
-//------------------------------------------------------------------------------
-#ifdef Q_OS_WIN
-
-//! Преобразование пути в длинный путь Windows.
-
-QString PathToLongPath(const QString& Path)
-{
-    static const QString LocalPrefix = "\\\\?\\";
-    static const QString UNCPrefix   = "\\\\?\\UNC\\";
-    QString S = QDir::toNativeSeparators(Path);
-    if (S.startsWith("\\\\"))
-    {
-        return UNCPrefix + S.mid(2);
-    }
-    else {
-        return LocalPrefix + S;
-    }
-}
-
-#endif
-
-//------------------------------------------------------------------------------
 //! Копирование даты и времени файлов и каталогов.
 /*!
  * \param SrcName Файл/каталог, дата и время которого копируются.
@@ -126,8 +81,8 @@ bool CopyFileTime(const QString& SrcName, const QString& DestName)
 {
     bool Result = false;
 #if defined(Q_OS_WIN)
-    LPWSTR wSrcName  = StrToWChar(PathToLongPath(SrcName));
-    LPWSTR wDestName = StrToWChar(PathToLongPath(DestName));
+    LPWSTR wSrcName  = StrToLPWSTR(PathToLongWinPath(SrcName));
+    LPWSTR wDestName = StrToLPWSTR(PathToLongWinPath(DestName));
     FILETIME CreationTime, LastWriteTime;
     HANDLE hSrc = CreateFileW(wSrcName,
                               GENERIC_READ,
@@ -412,9 +367,12 @@ void TControlThread::unregisterThread(TFileWriter* pFileWriter)
 void TControlThread::copyFile(const QString& FileName,
                               const QString& RelativePath)
 {
-    // Предыдущее копирование могло быть прервано методом unlock.
-    // Для избежания ошибок реинициализируем кольцевой буфер.
-    m_pBuffer->reset();
+    if (m_pBuffer->isUnlocked())
+    {
+        // Если предыдущее копирование прервано методом unlock,
+        // то реинициализируем кольцевой буфер.
+        m_pBuffer->reset();
+    }
     m_RWCalculator.newFile();
     registerThreads();
 
@@ -478,6 +436,18 @@ void TControlThread::copyFile(const QString& FileName,
                              m_Writers[i].pWriter->fileName());
             }
         }
+
+        #ifndef _NO_CHECK_MD5
+        QByteArray Reader_MD5 = m_pReader->m_MD5.result().toHex();
+        qDebug() << "Reader_MD5 = " << Reader_MD5;
+        for (int i = 0; i < m_Writers.count(); ++i)
+        {
+            QByteArray Writer_MD5 = m_Writers[i].pWriter->m_MD5.result().toHex();
+            qDebug() << "Writer_MD5 (" << m_Writers[i].pWriter->fileName()
+                     << ") = " << Writer_MD5;
+            Q_ASSERT(Reader_MD5 == Writer_MD5);
+        }
+        #endif
 
         // Разрушаем отменённые потоки. Отмена регистрации должна быть выполнена
         // в обработчике ошибок!
@@ -608,6 +578,8 @@ void TControlThread::run()
         }
 
         emit beginJob(&m_CurrentJob);
+
+        m_RWCalculator.clear();
 
         // Подсчёт размера задания.
         calculate(&m_CurrentJob);

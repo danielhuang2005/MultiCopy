@@ -39,9 +39,14 @@
 #ifndef __FILEREADER__HPP__
 #define __FILEREADER__HPP__
 
-#include <QFile>
+//#include <QFile>
 
 #include "ThreadEx.hpp"
+#include "FastFile.hpp"
+
+#ifndef _NO_CHECK_MD5
+    #include <QCryptographicHash>
+#endif
 
 //------------------------------------------------------------------------------
 
@@ -53,7 +58,8 @@ class TControlThread;
 class TFileReader : public TThreadEx
 {
     private :
-        QFile m_File;                      //!< Файл.
+        //QFile m_File;                      //!< Файл.
+        TFastFile m_File;
         TControlThread* m_pControlThread;  //!< Управляющий поток.
         bool m_Cancel;                     //!< Флаг отмены операции.
 
@@ -69,6 +75,11 @@ class TFileReader : public TThreadEx
         void cancel();
         bool isCancelled() const;
         bool readyToRun() const;
+
+#ifndef _NO_CHECK_MD5
+    public :
+        QCryptographicHash m_MD5;
+#endif
 };
 
 //------------------------------------------------------------------------------

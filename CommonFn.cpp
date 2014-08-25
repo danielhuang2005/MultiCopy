@@ -36,56 +36,79 @@
  *
  ******************************************************************************/
 
-#ifndef __FILEWRITER__HPP__
-#define __FILEWRITER__HPP__
+#include "CommonFn.hpp"
 
-//#include <QFile>
+#include <QDir>
 
-#include "ThreadEx.hpp"
-#include "FastFile.hpp"
-
-#ifndef _NO_CHECK_MD5
-    #include <QCryptographicHash>
-#endif
+#ifdef Q_OS_WIN
 
 //------------------------------------------------------------------------------
+//! Преобразование пути в длинный путь Windows.
 
-class TControlThread;
-
-//------------------------------------------------------------------------------
-//! Класс, записывающий файл из кольцевого буфера.
-
-class TFileWriter : public TThreadEx
+QString PathToLongWinPath(const QString& Path)
 {
-    private :
-        //QFile m_File;                      //!< Файл.
-        TFastFile m_File;
-        TControlThread* m_pControlThread;  //!< Управляющий поток.
-        bool m_Cancel;                     //!< Флаг отмены операции.
-        qint64 m_Size;                     //!< Требуемый объём файла.
-        qint64 m_Written;                  //!< Записанный объём данных.
+    static const QString LocalPrefix = "\\\\?\\";
+    static const QString UNCPrefix   = LocalPrefix + "UNC\\";
 
-        qint64 writeBlock();
-    protected :
-        virtual void run();
-    public :
-        explicit TFileWriter(TControlThread* pControlThread);
-        virtual ~TFileWriter();
-
-        QString fileName() const;
-        bool openFile(const QString& FileName, qint64 Size);
-        void closeFile();
-        void cancel();
-        bool isCancelled() const;
-        bool readyToRun() const;
-        qint64 written() const;
-
-#ifndef _NO_CHECK_MD5
-    public :
-        QCryptographicHash m_MD5;
-#endif
-};
+    if (!Path.startsWith(LocalPrefix))
+    {
+        QString S = QDir::toNativeSeparators(Path);
+        if (S.startsWith("\\\\"))
+        {
+            return UNCPrefix + S.mid(2);
+        }
+        else {
+            return LocalPrefix + S;
+        }
+    }
+    else return Path;
+}
 
 //------------------------------------------------------------------------------
 
-#endif // __FILEWRITER__HPP__
+//! Преобразование QString в LPWSTR.
+/*!
+ * Создаёт массив элементов типа WCHAR, заканчивающийся нулём. Использует
+ * минимально необходимый объём памяти. Динамически создаёт массив требуемого
+ * размера и возвращает указатель на него. Вызывающая процедура должна
+ * сама его разрушить вызовом оператора delete. Если при выделении памяти
+ * возникла ошибка, возвращает NULL.
+ */
+
+LPWSTR StrToLPWSTR(const QString& Str)
+{
+    LPWSTR Result = new(std::nothrow) WCHAR[(Str.length() + 1)];
+    if (Result != NULL)
+        Result[Str.toWCharArray(Result)] = 0;
+    return Result;
+}
+
+//------------------------------------------------------------------------------
+//! Строковое описание системной ошибки.
+
+QString GetSystemErrorString(DWORD ErrCode)
+{
+    WCHAR* errStr = NULL;
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                  NULL,
+                  ErrCode,
+                  MAKELANGID(LANG_USER_DEFAULT, SUBLANG_DEFAULT),
+                  errStr,
+                  0,
+                  NULL);
+    QString Result = QString::fromWCharArray(errStr);
+    LocalFree(errStr);
+    return Result;
+}
+
+//------------------------------------------------------------------------------
+//! Строковое описание последней системной ошибки.
+
+QString GetSystemErrorString()
+{
+    return GetSystemErrorString(GetLastError());
+}
+
+//------------------------------------------------------------------------------
+
+#endif //Q_OS_WIN

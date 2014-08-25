@@ -92,6 +92,7 @@ class TRWCalculator
         void resume();
         bool isPaused() const;
         void end();
+        void clear();
         qint64 time() const;
         qint64 speed() const;
         qint64 remaining(qint64 Size) const;

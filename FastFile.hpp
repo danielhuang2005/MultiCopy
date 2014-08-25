@@ -36,56 +36,65 @@
  *
  ******************************************************************************/
 
-#ifndef __FILEWRITER__HPP__
-#define __FILEWRITER__HPP__
+#ifndef __FASTFILE__HPP__
+#define __FASTFILE__HPP__
 
-//#include <QFile>
+#include <QtGlobal>
 
-#include "ThreadEx.hpp"
-#include "FastFile.hpp"
-
-#ifndef _NO_CHECK_MD5
-    #include <QCryptographicHash>
-#endif
+#if defined(Q_OS_WIN) && !defined(_NO_FAST_FILE)
 
 //------------------------------------------------------------------------------
 
-class TControlThread;
+#include <QIODevice>
+#include <windows.h>
 
 //------------------------------------------------------------------------------
-//! Класс, записывающий файл из кольцевого буфера.
+//! Класс для быстрых операций с файлами в Windows.
+/*!
+ * Класс оптимизирован для последовательной работы
+ *
+ * \remarks Все методы класса выполняют те же функции, что и соответствующие
+ *   методы класса QFile.
+ */
 
-class TFileWriter : public TThreadEx
+class TFastFile
 {
     private :
-        //QFile m_File;                      //!< Файл.
-        TFastFile m_File;
-        TControlThread* m_pControlThread;  //!< Управляющий поток.
-        bool m_Cancel;                     //!< Флаг отмены операции.
-        qint64 m_Size;                     //!< Требуемый объём файла.
-        qint64 m_Written;                  //!< Записанный объём данных.
+        HANDLE  m_Handle;       //!< Дескриптор файла.
+        QString m_FileName;     //!< Имя файла.
+        QString m_ErrorString;  //!< Строка с сообщением об ошибке.
 
-        qint64 writeBlock();
-    protected :
-        virtual void run();
-    public :
-        explicit TFileWriter(TControlThread* pControlThread);
-        virtual ~TFileWriter();
+        void setErrorString();
+    public:
+        TFastFile();
+        ~TFastFile();
 
         QString fileName() const;
-        bool openFile(const QString& FileName, qint64 Size);
-        void closeFile();
-        void cancel();
-        bool isCancelled() const;
-        bool readyToRun() const;
-        qint64 written() const;
-
-#ifndef _NO_CHECK_MD5
-    public :
-        QCryptographicHash m_MD5;
-#endif
+        void setFileName(const QString& FileName);
+        virtual bool open(QIODevice::OpenMode Mode);
+        virtual void close();
+        QString errorString() const;
+        bool isOpen() const;
+        qint64 read(char* data, qint64 maxSize);
+        qint64 write(const char* data, qint64 maxSize);
+        virtual qint64 pos();
+        virtual bool seek(qint64 pos);
+        bool resize(qint64 Size);
+        qint64 size();
+        bool remove();
 };
 
 //------------------------------------------------------------------------------
 
-#endif // __FILEWRITER__HPP__
+#else
+
+//------------------------------------------------------------------------------
+
+#include <QFile>
+#define TFastFile QFile
+
+//------------------------------------------------------------------------------
+
+#endif // Q_OS_WIN
+
+#endif // __FASTFILE__HPP__

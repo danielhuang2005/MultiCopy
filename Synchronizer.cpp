@@ -77,6 +77,10 @@ TSynchronizer::~TSynchronizer()
 
 void TSynchronizer::updateReadIndex()
 {
+    // Все операции со счётчиками должны проводиться монопольно!
+    // (Метод должен быть вызван только при заблокированном мьютексе.)
+    Q_ASSERT(!m_Mutex.tryLock());
+
     TDataMap::const_iterator I = m_DataMap.constBegin();
     if (I != m_DataMap.constEnd())
     {
@@ -107,7 +111,7 @@ void TSynchronizer::updateReadIndex()
 }
 
 //------------------------------------------------------------------------------
-//! Захват блоков "производителем".
+//! Захват блоков производителем.
 /*!
  * Метод производит захват указанного числа свободных блоков кольцевого
  * буфера. Если данное число блоков захватить невозможно, вызывающий процесс
@@ -175,7 +179,7 @@ void TSynchronizer::releaseConsumerSemaphore(int n)
  * \remarks Если число блоков неположительно, метод ничего не делает;
  *   если это число больше числа блоков буфера, производится захват всех блоков.
  *
- * \remarks  Если "потребитель" не был ранее зарегистрирован методом
+ * \remarks  Если потребитель не был ранее зарегистрирован методом
  *   registerConsumer или его регистрация отменена методом unregisterConsumer
  *   захват блоков и остановка вызывающего процесса не происходят.
  */
@@ -203,7 +207,7 @@ void TSynchronizer::acquireConsumerSemaphore(void* pConsumer, int n)
  *   registerConsumer.
  * \arg n Число освобождаемых блоков.
  *
- * \remarks  Если "потребитель" не был ранее зарегистрирован методом
+ * \remarks  Если потребитель не был ранее зарегистрирован методом
  *   registerConsumer или его регистрация отменена методом unregisterConsumer
  *   освобождения свободных блоков не происходит.
  *
@@ -217,7 +221,9 @@ void TSynchronizer::releaseProducerSemaphore(void* pConsumer, int n)
     if ((n > 0) && ((pCD = m_DataMap.value(pConsumer, NULL)) != NULL))
     {
         // Коррекция числа блоков.
-        if (n > m_BlocksCount) n = m_BlocksCount;
+        //if (n > m_BlocksCount) n = m_BlocksCount;
+        int n1 = m_BlocksCount - pCD->Delta;
+        if (n > n1) n = n1;
 
         // Все операции со счётчиками должны проводиться монопольно!
         QMutexLocker Locker(&m_Mutex);
@@ -225,6 +231,7 @@ void TSynchronizer::releaseProducerSemaphore(void* pConsumer, int n)
 
         // Увеличиваем дельту.
         pCD->Delta += n;
+        Q_ASSERT(pCD->Delta <= m_BlocksCount);
         updateReadIndex();
     }
 }
@@ -236,10 +243,10 @@ void TSynchronizer::releaseProducerSemaphore(void* pConsumer, int n)
  * структуру данных.
  *
  * \arg pConsumer Указатель, используемый в качестве идентификатора
- *   "потребителя". Это может быть, например, дескриптор потока или указатель
+ *   потребителя. Это может быть, например, дескриптор потока или указатель
  *   на объект типа QThread.
  *
- * \return true, если регистрация прошла успешно и false если "потребитель"
+ * \return true, если регистрация прошла успешно и false если потребитель
  *   уже зарегистрирован.
  */
 
@@ -260,7 +267,7 @@ bool TSynchronizer::registerConsumer(void* pConsumer)
 //! Отмена регистрации "потребителя".
 /*!
  *
- * \return true, если регистрация успешно отменена и false если "потребитель"
+ * \return true, если регистрация успешно отменена и false если потребитель
  *   не был зарегистрирован.
  */
 
@@ -334,6 +341,7 @@ int TSynchronizer::firstFreeIndex() const
     // Все операции со счётчиками должны проводиться монопольно!
     QMutexLocker Locker(&m_Mutex);
     Q_UNUSED(Locker);
+
     return m_WriteIndex;
 }
 
@@ -373,13 +381,13 @@ int TSynchronizer::firstUsedIndex() const
 }
 
 //------------------------------------------------------------------------------
-//! Индекс первого ещё не освобождённого "потребителем" блока.
+//! Индекс первого ещё не освобождённого потребителем блока.
 /*!
- * Метод возвращает индекс первого ещё не освобождённого "потребителем" блока
+ * Метод возвращает индекс первого ещё не освобождённого потребителем блока
  * кольцевого буфера. Если потребитель не зарегистрирован, возвращает -1.
  *
  * \arg pConsumer Указатель, используемый в качестве идентификатора
- *   "потребителя". Должен совпадать с указателем, переданным ранее в метод
+ *   потребителя. Должен совпадать с указателем, переданным ранее в метод
  *   registerConsumer.
  */
 
@@ -457,8 +465,8 @@ bool TSynchronizer::isUnlocked() const
 
 void TSynchronizer::reset()
 {
-    QMutexLocker Locker1(&m_Mutex);
-    Q_UNUSED(Locker1);
+    QMutexLocker Locker(&m_Mutex);
+    Q_UNUSED(Locker);
 
     m_ProducerSemaphore.release(m_BlocksCount -
                                 m_ProducerSemaphore.available());

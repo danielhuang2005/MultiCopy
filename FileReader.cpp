@@ -48,6 +48,9 @@ TFileReader::TFileReader(TControlThread* pControlThread)
     : TThreadEx(NULL),
       m_pControlThread(pControlThread),
       m_Cancel(false)
+      #ifndef _NO_CHECK_MD5
+          , m_MD5(QCryptographicHash::Md5)
+      #endif
 {
 }
 
@@ -58,7 +61,11 @@ void TFileReader::run()
 {
     m_Cancel = false;
 
-    quint64 ReadedBytes = 0;
+    #ifndef _NO_CHECK_MD5
+        m_MD5.reset();
+    #endif
+
+        quint64 ReadedBytes = 0;
     int Length = -1;
     do {
         // Точка паузы потока.
@@ -156,6 +163,9 @@ qint64 TFileReader::readBlock()
                 break;
         }
         else {
+            #ifndef _NO_CHECK_MD5
+                m_MD5.addData(pCell->data(), Length);
+            #endif
             // Блок успешно прочитан. Прерываем цикл.
             break;
         }

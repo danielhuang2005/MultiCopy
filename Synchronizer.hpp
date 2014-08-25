@@ -48,7 +48,7 @@
 class TSynchronizer
 {
     private :
-        //! Структура связанных с "потребителем" данных.
+        //! Структура связанных с потребителем данных.
         struct TConsumerData {
             QSemaphore Semaphore;  //!< Семафор непрочитанных блоков.
             int Delta;             //!< Сдвиг индекса чтения.
@@ -56,7 +56,7 @@ class TSynchronizer
         };
         typedef QHash<void*, TConsumerData*> TDataMap;
 
-        TDataMap m_DataMap;  //!< Данные, связанные с "потребителями".
+        TDataMap m_DataMap;  //!< Данные, связанные с потребителями.
         QSemaphore m_ProducerSemaphore;  //!< Семафор свободных блоков.
         int m_BlocksCount;  //!< Число блоков кольцевого буфера.
         int m_ReadIndex;    //!< Индекс первого занятого блока.

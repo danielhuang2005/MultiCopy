@@ -36,56 +36,20 @@
  *
  ******************************************************************************/
 
-#ifndef __FILEWRITER__HPP__
-#define __FILEWRITER__HPP__
+#ifndef __COMMONFN__HPP__
+#define __COMMONFN__HPP__
 
-//#include <QFile>
+#include <QString>
 
-#include "ThreadEx.hpp"
-#include "FastFile.hpp"
+#ifdef Q_OS_WIN
 
-#ifndef _NO_CHECK_MD5
-    #include <QCryptographicHash>
-#endif
+#include <windows.h>
 
-//------------------------------------------------------------------------------
+QString PathToLongWinPath(const QString& Path);
+LPWSTR StrToLPWSTR(const QString& Str);
+QString GetSystemErrorString(DWORD ErrCode);
+QString GetSystemErrorString();
 
-class TControlThread;
+#endif //Q_OS_WIN
 
-//------------------------------------------------------------------------------
-//! Класс, записывающий файл из кольцевого буфера.
-
-class TFileWriter : public TThreadEx
-{
-    private :
-        //QFile m_File;                      //!< Файл.
-        TFastFile m_File;
-        TControlThread* m_pControlThread;  //!< Управляющий поток.
-        bool m_Cancel;                     //!< Флаг отмены операции.
-        qint64 m_Size;                     //!< Требуемый объём файла.
-        qint64 m_Written;                  //!< Записанный объём данных.
-
-        qint64 writeBlock();
-    protected :
-        virtual void run();
-    public :
-        explicit TFileWriter(TControlThread* pControlThread);
-        virtual ~TFileWriter();
-
-        QString fileName() const;
-        bool openFile(const QString& FileName, qint64 Size);
-        void closeFile();
-        void cancel();
-        bool isCancelled() const;
-        bool readyToRun() const;
-        qint64 written() const;
-
-#ifndef _NO_CHECK_MD5
-    public :
-        QCryptographicHash m_MD5;
-#endif
-};
-
-//------------------------------------------------------------------------------
-
-#endif // __FILEWRITER__HPP__
+#endif // __COMMONFN__HPP__
