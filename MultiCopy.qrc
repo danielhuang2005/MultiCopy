@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="MainIcon_32x32">Resources/Disks_32x32.png</file>
+        <file alias="MainIcon">Resources/Disks_64x64.png</file>
+    </qresource>
+</RCC>
